@@ -1,17 +1,11 @@
 matrix:
   include:
     - language: clojure
-      jdk:
-        - oraclejdk8
-      before_script:
-        - cd front
-      script:
-        - lein cljsbuild once min
+      jdk: oraclejdk8
+      before_install: cd front
+      script: lein cljsbuild once min
 
     - language: rust
-      rust:
-        - nightly
-      before_script:
-        - cd backend
-      script:
-        - cargo build
+      rust: 1.34.0
+      before_install: cd backend
+      script: cargo build
