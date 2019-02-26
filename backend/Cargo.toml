@@ -1,0 +1,7 @@
+[package]
+name = "backend"
+version = "0.1.0"
+authors = ["Albert Safin <xzfcpw@gmail.com>"]
+
+[dependencies]
+rocket = "0.4.0"
