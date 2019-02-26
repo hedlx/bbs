@@ -6,6 +6,6 @@ matrix:
       script: lein cljsbuild once min
 
     - language: rust
-      rust: 1.34.0-nightly
+      rust: nightly
       before_install: cd backend
       script: cargo build
