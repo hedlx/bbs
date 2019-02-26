@@ -10,7 +10,7 @@ matrix:
 
     - language: rust
       rust:
-        - 1.34.0-nightly
+        - nightly
       before_script:
         - cd backend
       script:
