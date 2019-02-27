@@ -17,7 +17,7 @@ use db::{Db};
 #[derive(Deserialize)]
 struct Message {
     name: String,
-    trip: String,
+    secret: String, // used to produce tripcode
     text: String,
 }
 
