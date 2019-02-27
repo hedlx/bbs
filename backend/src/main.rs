@@ -29,16 +29,22 @@ struct OutMessage {
     text: String,
 }
 
-#[get("/thread/list?<page>&<tag>")]
-fn threads_list(page: Option<u8>, tag: Option<String>) -> &'static str {
+#[get("/thread/list?<before>&<after>&<limit>&<tag>")]
+fn threads_list(
+    before: Option<u32>, // timestamp
+    after: Option<u32>,  // timestamp
+    limit: Option<u32>,
+    tag: Option<String>,
+) -> &'static str {
+    let limit = limit.unwrap_or(100);
     "Hello, world!"
 }
 
 #[get("/thread/<id>?<before>&<after>&<limit>")]
 fn thread_id(
     id: u32,
-    before: Option<u32>,
-    after: Option<u32>,
+    before: Option<u32>, // message id
+    after: Option<u32>,  // message id
     limit: Option<u32>,
 ) -> Json<Vec<OutMessage>> {
     let limit = limit.unwrap_or(100);
