@@ -29,7 +29,7 @@ struct OutMessage {
     text: String,
 }
 
-#[get("/thread/list?<before>&<after>&<limit>&<tag>")]
+#[get("/threads?<before>&<after>&<limit>&<tag>")]
 fn threads_list(
     before: Option<u32>, // timestamp
     after: Option<u32>,  // timestamp
@@ -40,7 +40,7 @@ fn threads_list(
     "Hello, world!"
 }
 
-#[get("/thread/<id>?<before>&<after>&<limit>")]
+#[get("/threads/<id>?<before>&<after>&<limit>")]
 fn thread_id(
     id: u32,
     before: Option<u32>, // message id
@@ -57,12 +57,12 @@ fn thread_id(
     Json(vec![])
 }
 
-#[post("/thread/new", format = "json", data = "<msg>")]
+#[post("/threads", format = "json", data = "<msg>")]
 fn thread_new(msg: Json<Message>) -> &'static str {
     "Hello, world!"
 }
 
-#[post("/thread/<id>/reply", format = "json", data = "<msg>")]
+#[post("/threads/<id>", format = "json", data = "<msg>")]
 fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
     "Hello, world!"
 }
