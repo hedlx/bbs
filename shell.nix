@@ -15,5 +15,6 @@ stdenv.mkDerivation {
   name = "hedlx-bbs";
   buildInputs = [
     rust-channel.rust
+    sqlite
   ];
 }
