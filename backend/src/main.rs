@@ -1,33 +1,19 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+extern crate postgres;
 #[macro_use]
 extern crate rocket;
 extern crate rocket_contrib;
-extern crate rusqlite;
 extern crate serde;
 
 use rocket_contrib::json::Json;
-use serde::{Deserialize, Serialize};
 
 mod db;
+mod data;
 use db::{Db};
+use data::{Message, OutMessage};
 
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
-
-#[derive(Deserialize)]
-struct Message {
-    name: String,
-    secret: String, // used to produce tripcode
-    text: String,
-}
-
-#[derive(Serialize)]
-struct OutMessage {
-    id: u32,
-    name: String,
-    trip: String,
-    text: String,
-}
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
 fn threads_list(

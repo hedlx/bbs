@@ -1,6 +1,12 @@
+CREATE TABLE threads (
+	id   INTEGER PRIMARY KEY,
+	
+	bump TIMESTAMP
+);
+
 CREATE TABLE messages (
 	id        INTEGER PRIMARY KEY,
-	thread_id INTEGER NOT NULL,     -- 0 for original posts, or `id` of OP
+	thread_id INTEGER NOT NULL,
 
 	name      VARCHAR,
 	trip      VARCHAR,
@@ -20,7 +26,7 @@ CREATE TABLE media (
 
 	tn_fname   VARCHAR NOT NULL, -- url
 	tn_width   INTEGER NOT NULL, -- pixels
-	tn_height  INTEGER NOT NULL, -- pixels
+	tn_height  INTEGER NOT NULL  -- pixels
 );
 
 CREATE TABLE tags (
