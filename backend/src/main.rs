@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+extern crate chrono;
 extern crate postgres;
 #[macro_use]
 extern crate rocket;
@@ -8,10 +9,10 @@ extern crate serde;
 
 use rocket_contrib::json::Json;
 
-mod db;
 mod data;
-use db::{Db};
+mod db;
 use data::{Message, OutMessage};
+use db::Db;
 
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
@@ -55,7 +56,6 @@ fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
 
 fn main() {
     let db = Db::new();
-    db.init();
 
     rocket::ignite()
         .mount(
