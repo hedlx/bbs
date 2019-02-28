@@ -4,6 +4,7 @@ extern crate chrono;
 extern crate postgres;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
 extern crate rocket_contrib;
 extern crate serde;
 
@@ -11,20 +12,27 @@ use rocket_contrib::json::Json;
 
 mod data;
 mod db;
-use data::{Message, OutMessage};
+use data::{Message, OutMessage, Thread};
 use db::Db;
 
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
 fn threads_list(
+    db: Db,
     before: Option<u32>, // timestamp
     after: Option<u32>,  // timestamp
     limit: Option<u32>,
     tag: Option<String>,
-) -> &'static str {
+) -> Json<Vec<Thread>> {
     let limit = limit.unwrap_or(100);
-    "Hello, world!"
+    let resp = match (before, after) {
+        (None, None) => db.get_threads_before(0, limit),
+        (Some(ts), None) => db.get_threads_before(ts, limit),
+        (None, Some(_)) => Vec::new(),
+        (Some(_), Some(_)) => Vec::new(),
+    };
+    Json(resp)
 }
 
 #[get("/threads/<id>?<before>&<after>&<limit>")]
@@ -45,8 +53,9 @@ fn thread_id(
 }
 
 #[post("/threads", format = "json", data = "<msg>")]
-fn thread_new(msg: Json<Message>) -> &'static str {
-    "Hello, world!"
+fn thread_new(db: Db, msg: Json<Message>) -> &'static str {
+    db.new_thread(msg.0);
+    "done"
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
@@ -55,9 +64,8 @@ fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
 }
 
 fn main() {
-    let db = Db::new();
-
     rocket::ignite()
+        .attach(Db::fairing())
         .mount(
             "/",
             routes![threads_list, thread_id, thread_new, thread_reply],

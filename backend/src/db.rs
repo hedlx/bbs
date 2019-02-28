@@ -1,40 +1,33 @@
 use super::data::{Message, OutMessage, Thread};
-use chrono::Utc;
+use chrono::{NaiveDateTime, Utc};
 use postgres::{Connection, TlsMode};
+use rocket_contrib::databases;
 
-pub struct Db {
-    conn: Connection,
-}
+#[database("db")]
+pub struct Db ( Connection );
 
 impl Db {
-    pub fn new() -> Db {
-        Db {
-            conn: Connection::connect("postgres://postgres@127.0.0.1:5432", TlsMode::None).unwrap(),
-        }
-    }
-
     pub fn new_thread(&self, msg: Message) {
         let now = Utc::now().naive_utc();
 
-        let thread_id: u32 = self
-            .conn
+        let thread_id: i32 = self.0
             .query(
                 "
                     INSERT INTO threads(last_reply_no, bump)
                     VALUES (0, $1)
                     RETURNING id
                 ",
-                &[&0, &now],
+                &[&now],
             )
             .unwrap()
             .get(0)
             .get(0);
 
-        self.conn
+        self.0
             .execute(
                 "
                     INSERT INTO messages
-                    ( thread_id, no, sender, text, ts
+                    ( thread_id, no, sender, text, ts )
                     VALUES (
                         $1, 0, 'sender', $2, $3
                     )
@@ -45,8 +38,7 @@ impl Db {
     }
 
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
-        let rows = self
-            .conn
+        let rows = self.0
             .query(
                 "
                 SELECT id, last_reply_no, bump
@@ -55,16 +47,16 @@ impl Db {
                  ORDER BY (bump, id) ASC
                  LIMIT $2
             ",
-                &[&ts, &limit],
+                &[&NaiveDateTime::from_timestamp(ts as i64, 0), &(limit as i64)],
             )
-            .unwrap();
+            .expect("get_threads_before");
         let mut result = Vec::new();
         for row in &rows {
-            let id: u32 = row.get(0);
-            let last_reply_no: u32 = row.get(1);
-            let bump: u32 = row.get(2);
+            let id: i32 = row.get(0);
+            let last_reply_no: i32 = row.get(1);
+            let bump: NaiveDateTime = row.get(2);
             result.push(Thread {
-                id: id,
+                id: id as u32,
                 op: self.get_op(id),
                 last: Vec::new(),
             });
@@ -72,12 +64,11 @@ impl Db {
         result
     }
 
-    fn get_op(&self, thread_id: u32) -> OutMessage {
-        let msg = self
-            .conn
+    fn get_op(&self, thread_id: i32) -> OutMessage {
+        let msg = self.0
             .query(
                 "
-                SELECT name, trip, 
+                SELECT name, trip, text
                   FROM messages
                  WHERE thread_id = $1
                    AND no = 0
@@ -87,7 +78,7 @@ impl Db {
             .unwrap();
         let msg = msg.get(0);
         OutMessage {
-            no: 0,
+                no: 0,
             name: msg
                 .get::<usize, Option<String>>(0)
                 .unwrap_or("Anonymous".to_string()),
