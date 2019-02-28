@@ -11,5 +11,5 @@ Curl queries:
 
 ```
 curl localhost:8000/threads --header "Content-Type: application/json" --request POST --data '{"name":"me", "secret":"x", "text":"nope"}'
-curl localhost:8000/threads'
+curl localhost:8000/threads
 ```
