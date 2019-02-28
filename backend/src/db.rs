@@ -1,50 +1,49 @@
 use super::data::{Message, OutMessage, Thread};
+use super::schema;
 use chrono::Utc;
 use postgres::{Connection, TlsMode};
 
-pub struct Db {
-    conn: Connection,
+use rocket_contrib::databases::diesel;
+use diesel::sql_query;
+use diesel::RunQueryDsl;
+use diesel::sql_types::{Integer, Text};
+
+#[database("db")]
+pub struct Db ( diesel::PgConnection );
+
+#[derive(QueryableByName)]
+struct Id {
+    #[sql_type = "Integer"]
+    id: i32,
 }
 
 impl Db {
-    pub fn new() -> Db {
-        Db {
-            conn: Connection::connect("postgres://postgres@127.0.0.1:5432", TlsMode::None).unwrap(),
-        }
-    }
-
     pub fn new_thread(&self, msg: Message) {
-        let now = Utc::now().naive_utc();
+        let now = Utc::now().naive_utc().timestamp();
 
-        let thread_id: u32 = self
-            .conn
-            .query(
-                "
-                    INSERT INTO threads(last_reply_no, bump)
-                    VALUES (0, $1)
-                    RETURNING id
-                ",
-                &[&0, &now],
-            )
-            .unwrap()
-            .get(0)
-            .get(0);
+        let thread_id = sql_query("
+            INSERT INTO threads(last_reply_no, bump)
+            VALUES (0, $1)
+            RETURNING id
+        ")
+            .bind::<Integer, _>(now)
+            .get_result::<Id>(&self.0).unwrap().id;
 
-        self.conn
-            .execute(
-                "
-                    INSERT INTO messages
-                    ( thread_id, no, sender, text, ts
-                    VALUES (
-                        $1, 0, 'sender', $2, $3
-                    )
-                ",
-                &[&thread_id, &msg.text, &now],
+        sql_query("
+            INSERT INTO messages
+            ( thread_id, no, sender, text, ts
+            VALUES (
+                $1, 0, 'sender', $2, $3
             )
-            .unwrap();
+        ")
+            .bind::<Integer, _>(thread_id)
+            .bind::<Text, _>(msg.text)
+            .bind::<Integer, _>(now)
+            .execute(&self.0).unwrap();
     }
 
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
+        /*
         let rows = self
             .conn
             .query(
@@ -70,8 +69,11 @@ impl Db {
             });
         }
         result
+        */
+        Vec::new()
     }
 
+    /*
     fn get_op(&self, thread_id: u32) -> OutMessage {
         let msg = self
             .conn
@@ -97,4 +99,5 @@ impl Db {
             text: msg.get(2),
         }
     }
+    */
 }

@@ -1,9 +1,12 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 extern crate chrono;
+#[macro_use]
+extern crate diesel;
 extern crate postgres;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
 extern crate rocket_contrib;
 extern crate serde;
 
@@ -11,6 +14,8 @@ use rocket_contrib::json::Json;
 
 mod data;
 mod db;
+mod schema;
+
 use data::{Message, OutMessage};
 use db::Db;
 
@@ -55,7 +60,7 @@ fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
 }
 
 fn main() {
-    let db = Db::new();
+    //let db = Db::new();
 
     rocket::ignite()
         .mount(
