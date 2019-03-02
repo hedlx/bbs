@@ -1,91 +1,107 @@
 use super::data::{Message, OutMessage, Thread};
+use super::schema::{messages, threads};
 use chrono::{NaiveDateTime, Utc};
-use postgres::{Connection, TlsMode};
-use rocket_contrib::databases;
+
+use diesel::sql_query;
+use diesel::sql_types::{Integer, Text, Timestamp};
+use diesel::RunQueryDsl;
+use rocket_contrib::databases::diesel;
 
 #[database("db")]
-pub struct Db ( Connection );
+pub struct Db(diesel::PgConnection);
+
+#[derive(QueryableByName)]
+struct Id {
+    #[sql_type = "Integer"]
+    id: i32,
+}
+
+#[derive(QueryableByName)]
+#[table_name = "messages"]
+struct DbMessage {
+    no: i32,
+    name: Option<String>,
+    trip: Option<String>,
+    text: String,
+}
+
+#[derive(QueryableByName)]
+#[table_name = "threads"]
+struct DbThread {
+    id: i32,
+    last_reply_no: i32,
+    bump: NaiveDateTime,
+}
+
+// TODO: wrap into transactions
 
 impl Db {
     pub fn new_thread(&self, msg: Message) {
         let now = Utc::now().naive_utc();
 
-        let thread_id: i32 = self.0
-            .query(
-                "
-                    INSERT INTO threads(last_reply_no, bump)
-                    VALUES (0, $1)
-                    RETURNING id
-                ",
-                &[&now],
-            )
-            .unwrap()
-            .get(0)
-            .get(0);
+        let thread_id = sql_query(r"
+            INSERT INTO threads(last_reply_no, bump)
+            VALUES (0, $1)
+            RETURNING id
+        ")
+        .bind::<Timestamp, _>(now)
+        .get_result::<Id>(&self.0)
+        .unwrap()
+        .id;
 
-        self.0
-            .execute(
-                "
-                    INSERT INTO messages
-                    ( thread_id, no, sender, text, ts )
-                    VALUES (
-                        $1, 0, 'sender', $2, $3
-                    )
-                ",
-                &[&thread_id, &msg.text, &now],
+        sql_query(r"
+            INSERT INTO messages
+            ( thread_id, no, sender, text, ts )
+            VALUES (
+                $1, 0, 'sender', $2, $3
             )
-            .unwrap();
+        ")
+        .bind::<Integer, _>(thread_id)
+        .bind::<Text, _>(msg.text)
+        .bind::<Timestamp, _>(now)
+        .execute(&self.0)
+        .unwrap();
     }
 
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
-        let rows = self.0
-            .query(
-                "
-                SELECT id, last_reply_no, bump
-                  FROM threads
-                 WHERE bump > $1
-                 ORDER BY (bump, id) ASC
-                 LIMIT $2
-            ",
-                &[&NaiveDateTime::from_timestamp(ts as i64, 0), &(limit as i64)],
-            )
-            .expect("get_threads_before");
-        let mut result = Vec::new();
-        for row in &rows {
-            let id: i32 = row.get(0);
-            let last_reply_no: i32 = row.get(1);
-            let bump: NaiveDateTime = row.get(2);
-            result.push(Thread {
-                id: id as u32,
-                op: self.get_op(id),
+        let threads = sql_query(r"
+            SELECT id, last_reply_no, bump
+              FROM threads
+             WHERE bump > $1
+             ORDER BY (bump, id) ASC
+             LIMIT $2
+        ")
+        .bind::<Timestamp, _>(NaiveDateTime::from_timestamp(ts as i64, 0))
+        .bind::<Integer, _>(limit as i32)
+        .load::<DbThread>(&self.0)
+        .unwrap();
+
+        threads
+            .iter()
+            .map(|thread| Thread {
+                id: thread.id as u32,
+                op: self.get_op(thread.id),
                 last: Vec::new(),
-            });
-        }
-        result
+            })
+            .collect()
     }
 
     fn get_op(&self, thread_id: i32) -> OutMessage {
-        let msg = self.0
-            .query(
-                "
-                SELECT name, trip, text
-                  FROM messages
-                 WHERE thread_id = $1
-                   AND no = 0
-                ",
-                &[&thread_id],
-            )
-            .unwrap();
-        let msg = msg.get(0);
+        let op = sql_query(r"
+            SELECT *
+              FROM messages
+             WHERE thread_id = $1
+               AND no = 0
+        ")
+        .bind::<Integer, _>(thread_id)
+        .get_result::<DbMessage>(&self.0)
+        .unwrap();
+
         OutMessage {
-                no: 0,
-            name: msg
-                .get::<usize, Option<String>>(0)
-                .unwrap_or("Anonymous".to_string()),
-            trip: msg
-                .get::<usize, Option<String>>(1)
-                .unwrap_or("".to_string()),
-            text: msg.get(2),
+            no: op.no as u32,
+            name: op.name.unwrap_or("Anonymous".to_string()),
+            trip: op.trip.unwrap_or("".to_string()),
+            text: op.text,
         }
     }
 }

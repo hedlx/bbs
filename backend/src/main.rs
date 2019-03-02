@@ -1,6 +1,8 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
 extern crate chrono;
+#[macro_use]
+extern crate diesel;
 extern crate postgres;
 #[macro_use]
 extern crate rocket;
@@ -12,6 +14,7 @@ use rocket_contrib::json::Json;
 
 mod data;
 mod db;
+mod schema;
 use data::{Message, OutMessage, Thread};
 use db::Db;
 

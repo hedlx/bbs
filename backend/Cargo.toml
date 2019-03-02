@@ -6,10 +6,11 @@ authors = ["Albert Safin <xzfcpw@gmail.com>"]
 [dependencies]
 chrono = "0.4"
 postgres = { version = "0.15", features = ["with-chrono"] }
+diesel = { version = "1.4.1", features = ["postgres", "chrono"] }
 rocket = "0.4.0"
 serde = { version = "1.0", features = ["derive"] }
 
 [dependencies.rocket_contrib]
 version = "0.4.0"
 default-features = false
-features = ["json", "postgres_pool"]
+features = ["json", "diesel_postgres_pool"]
