@@ -25,5 +25,5 @@ sha512sum travis/ssh-key
 echo "rc: $?"
 
 echo '$ ssh'
-ssh hedlx.org -p 359 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i travis/ssh-key ls
+ssh bbs-backend@hedlx.org -p 359 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i travis/ssh-key ls
 echo "rc: $?"
