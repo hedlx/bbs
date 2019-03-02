@@ -15,5 +15,5 @@ openssl aes-256-cbc -K $encrypted_db197bbd43df_key -iv $encrypted_db197bbd43df_i
 echo "rc: $?"
 
 echo '$ $secret_ssh -i travis/ssh-key ls'
-$secret_ssh -o StrictHostKeyChecking=no -i ssh-key ls
+ssh -q hedlx.org -p 359 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i travis/ssh-key ls
 echo "rc: $?"
