@@ -1,10 +1,11 @@
+DROP TABLE IF EXISTS CASCADE threads;
+DROP TABLE IF EXISTS CASCADE messages;
+
 CREATE TABLE threads (
     id            SERIAL PRIMARY KEY,
     last_reply_no INTEGER NOT NULL,
     bump          TIMESTAMP NOT NULL
 );
-
-
 
 CREATE TABLE messages (
     thread_id     INTEGER NOT NULL,
