@@ -4,6 +4,8 @@ CREATE TABLE threads (
     bump          TIMESTAMP NOT NULL
 );
 
+
+
 CREATE TABLE messages (
     thread_id     INTEGER NOT NULL,
     no            INTEGER NOT NULL,
