@@ -14,6 +14,8 @@ echo '$ openssl'
 openssl aes-256-cbc -K $encrypted_db197bbd43df_key -iv $encrypted_db197bbd43df_iv -in travis/ssh-key.enc -out travis/ssh-key -d
 echo "rc: $?"
 
+chmod 600 travis/ssh-key
+
 echo '$ ls -l travis/ssh-key'
 ls -l travis/ssh-key
 echo "rc: $?"
