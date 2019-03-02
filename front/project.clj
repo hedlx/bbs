@@ -5,16 +5,12 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.10.0"]
-                 [ring-server "0.5.0"]
                  [reagent "0.8.1"]
                  [reagent-utils "0.3.2"]
                  [re-frame "0.10.6"]
-                 [ring "1.7.1"]
-                 [ring/ring-defaults "0.3.2"]
-                 [hiccup "1.0.5"]
-                 [yogthos/config "1.1.1"]
                  [org.clojure/clojurescript "1.10.520"
                   :scope "provided"]
+                 [binaryage/devtools "0.9.10"]
                  [metosin/reitit "0.2.13"]
                  [pez/clerk "1.0.0"]
                  [venantius/accountant "0.2.4"
@@ -22,22 +18,11 @@
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.7"]
+            [lein-figwheel "0.5.18"]
             [lein-asset-minifier "0.2.7"
              :exclusions [org.clojure/clojure]]]
 
-  :ring {:handler front.handler/app
-         :uberwar-name "front.war"}
-
   :min-lein-version "2.5.0"
-  :uberjar-name "front.jar"
-  :main front.server
-  :clean-targets ^{:protect false}
-  [:target-path
-   [:cljsbuild :builds :app :compiler :output-dir]
-   [:cljsbuild :builds :app :compiler :output-to]]
-
-  :source-paths ["src/clj" "src/cljc"]
-  :resource-paths ["resources" "target/cljsbuild"]
 
   :minify-assets
   {:assets
@@ -55,56 +40,20 @@
               :pretty-print  false}}
             :app
             {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-             :figwheel {:on-jsload "front.core/mount-root"}
+             :figwheel {:on-jsload "front.core/mount-root"
+                        :open-urls ["http://localhost:3449/"]}
              :compiler
              {:main "front.dev"
               :asset-path "/js/out"
-              :output-to "target/cljsbuild/public/js/app.js"
-              :output-dir "target/cljsbuild/public/js/out"
+              :output-to "resources/public/js/app.js"
+              :output-dir "resources/public/js/out"
               :source-map true
               :optimizations :none
               :pretty-print  true}}
-
-
-
             }
    }
 
   :figwheel
-  {:http-server-root "public"
-   :server-port 3449
-   :nrepl-port 7002
-   :nrepl-middleware [cider.piggieback/wrap-cljs-repl
-                      ]
-   :css-dirs ["resources/public/css"]
-   :ring-handler front.handler/app}
-
-
-
-  :profiles {:dev {:repl-options {:init-ns front.repl}
-                   :dependencies [[cider/piggieback "0.4.0"]
-                                  [binaryage/devtools "0.9.10"]
-                                  [ring/ring-mock "0.3.2"]
-                                  [ring/ring-devel "1.7.1"]
-                                  [prone "1.6.1"]
-                                  [figwheel-sidecar "0.5.18"]
-                                  [nrepl "0.6.0"]
-                                  [pjstadig/humane-test-output "0.9.0"]
-                                  
- ]
-
-                   :source-paths ["env/dev/clj"]
-                   :plugins [[lein-figwheel "0.5.18"]
-]
-
-                   :injections [(require 'pjstadig.humane-test-output)
-                                (pjstadig.humane-test-output/activate!)]
-
-                   :env {:dev true}}
-
-             :uberjar {:hooks [minify-assets.plugin/hooks]
-                       :source-paths ["env/prod/clj"]
-                       :prep-tasks ["compile" ["cljsbuild" "once" "min"]]
-                       :env {:production true}
-                       :aot :all
-                       :omit-source true}})
+  {
+    :css-dirs ["resources/public/css"] }
+)
