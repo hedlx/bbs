@@ -12,8 +12,10 @@ matrix:
       deploy:
         - provider: script
           script:
-            - printf "$secret_deploy_ssh_addr" > ~/ssh-key
             - ls target
-            - ssh $secret_deploy_ssh_addr -i ~/ssh-key ls
+            - echo "$secret_key" > ~/ssh-key
+            - date > ~/date.txt
+            - $secret_scp -i ~/ssh-key date
+            - $secret_ssh -i ~/ssh-key ls
 #          on:
 #            branch: master
