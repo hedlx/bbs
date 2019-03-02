@@ -1,29 +1,23 @@
-echo '$ pwd'
-pwd
-echo "rc: $?"
+#!/bin/sh
+# deploy.sh - push backend binary to the production server.
+# This file can be executed by travis or locally.
 
-echo '$ ls backend/target/debug/backend'
-ls -l backend/target/debug/backend
-echo "rc: $?"
+set -e
 
-echo '$ date > date.txt'
-date > date.txt
-echo "rc: $?"
+die() { echo "$*"; exit 1; }
 
-echo '$ openssl'
-openssl aes-256-cbc -K $encrypted_db197bbd43df_key -iv $encrypted_db197bbd43df_iv -in travis/ssh-key.enc -out travis/ssh-key -d
-echo "rc: $?"
+bin=backend/target/debug/backend
+ssh_opts="-o Port=359 -o User=bbs-backend -o StrictHostKeyChecking=no -o IdentityFile=travis/ssh-key"
 
-chmod 600 travis/ssh-key
+[ -f "$bin" ] || die "No $bin"
 
-echo '$ ls -l travis/ssh-key'
-ls -l travis/ssh-key
-echo "rc: $?"
+if [ ! -f travis/ssh-key ];then
+	openssl aes-256-cbc -K $encrypted_db197bbd43df_key -iv $encrypted_db197bbd43df_iv -in travis/ssh-key.enc -out travis/ssh-key -d
+	chmod 600 travis/ssh-key
+fi
 
-echo '$ sha512sum travis/ssh-key'
-sha512sum travis/ssh-key
-echo "rc: $?"
-
-echo '$ ssh'
-ssh bbs-backend@hedlx.org -p 359 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i travis/ssh-key ls
-echo "rc: $?"
+eval "$(ssh-agent -s)"
+scp -C $ssh_opts $bin hedlx.org:backend.new
+scp -C $ssh_opts ./db/init/init.sql hedlx.org:init.sql.new
+ssh $ssh_opts hedlx.org ./deploy.sh
+eval "$(ssh-agent -ks)"
