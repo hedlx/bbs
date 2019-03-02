@@ -40,19 +40,22 @@ fn threads_list(
 
 #[get("/threads/<id>?<before>&<after>&<limit>")]
 fn thread_id(
-    id: u32,
+    db: Db,
+    id: i32,
     before: Option<u32>, // message id
     after: Option<u32>,  // message id
     limit: Option<u32>,
 ) -> Json<Vec<OutMessage>> {
     let limit = limit.unwrap_or(100);
-    match (before, after) {
-        (None, None) => {}       // latest elements
-        (Some(_), None) => {}    // before
-        (None, Some(_)) => {}    // after
-        (Some(_), Some(_)) => {} // range / 400
-    }
-    Json(vec![])
+    let msgs = match (before, after) {
+        (None, None) => { db.get_thread(id) } // all threads
+        (Some(_), None) => { Vec::new() }    // before
+        (None, Some(_)) => { Vec::new() }    // after
+        (Some(_), Some(_)) => { Vec::new() } // range / 400
+    };
+    Json(msgs)
+
+    // TODO: return 404 if thread does not exists
 }
 
 #[post("/threads", format = "json", data = "<msg>")]
@@ -62,8 +65,17 @@ fn thread_new(db: Db, msg: Json<Message>) -> &'static str {
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
-fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
-    "Hello, world!"
+fn thread_reply(
+    db: Db,
+    id: i32,
+    msg: Json<Message>,
+) -> &'static str {
+    if db.reply_thread(id, msg.0) {
+        "done"
+    } else {
+        "no such thread"
+        // TODO: 404 status code
+    }
 }
 
 fn main() {

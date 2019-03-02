@@ -5,6 +5,7 @@ use chrono::{NaiveDateTime, Utc};
 use diesel::sql_query;
 use diesel::sql_types::{Integer, Text, Timestamp};
 use diesel::RunQueryDsl;
+use diesel::OptionalExtension;
 use rocket_contrib::databases::diesel;
 
 #[database("db")]
@@ -63,6 +64,44 @@ impl Db {
         .unwrap();
     }
 
+    pub fn reply_thread(&self, thread_id: i32, msg: Message) -> bool {
+        let now = Utc::now().naive_utc();
+
+        let no = sql_query(r"
+            UPDATE threads
+               SET last_reply_no = last_reply_no+1,
+                   bump = $1
+             WHERE id = $2
+         RETURNING last_reply_no as id
+        ")
+        .bind::<Timestamp, _>(now)
+        .bind::<Integer, _>(thread_id)
+        .get_result::<Id>(&self.0)
+        .optional()
+        .unwrap();
+
+        let no = match no {
+            Some(no) => no.id,
+            None => return false,
+        };
+
+        sql_query(r"
+            INSERT INTO messages
+            ( thread_id, no, sender, text, ts )
+            VALUES (
+                $1, $2, 'sender', $3, $4
+            )
+        ")
+        .bind::<Integer, _>(thread_id)
+        .bind::<Integer, _>(no)
+        .bind::<Text, _>(msg.text)
+        .bind::<Timestamp, _>(now)
+        .execute(&self.0)
+        .unwrap();
+
+        true
+    }
+
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
         let threads = sql_query(r"
             SELECT id, last_reply_no, bump
@@ -103,5 +142,28 @@ impl Db {
             trip: op.trip.unwrap_or("".to_string()),
             text: op.text,
         }
+    }
+
+    pub fn get_thread(&self, thread_id: i32) -> Vec<OutMessage> {
+        let messages = sql_query(r"
+            SELECT *
+              FROM messages
+             WHERE thread_id = $1
+        ")
+        .bind::<Integer, _>(thread_id)
+        .get_results::<DbMessage>(&self.0)
+        .unwrap();
+
+        messages
+            .iter()
+            .map(|mut msg| {
+                OutMessage {
+                    no:   msg.no as u32,
+                    name: msg.name.clone().unwrap_or("Anonymous".to_string()),
+                    trip: msg.trip.clone().unwrap_or("".to_string()),
+                    text: msg.text.clone(),
+                }
+            })
+            .collect()
     }
 }
