@@ -17,5 +17,6 @@ matrix:
             - date > ~/date.txt
             - $secret_scp -i ~/ssh-key date
             - $secret_ssh -i ~/ssh-key ls
-#          on:
-#            branch: master
+          on:
+            all_branches: true
+            #branch: master
