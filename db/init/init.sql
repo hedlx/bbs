@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS CASCADE threads;
-DROP TABLE IF EXISTS CASCADE messages;
+DROP TABLE IF EXISTS threads CASCADE;
+DROP TABLE IF EXISTS messages CASCADE;
 
 CREATE TABLE threads (
     id            SERIAL PRIMARY KEY,
@@ -22,6 +22,7 @@ CREATE TABLE messages (
     FOREIGN KEY (thread_id) REFERENCES threads(id)
 );
 
+/*
 CREATE TABLE media (
     message_id    INTEGER,
     fname         VARCHAR NOT NULL, -- url
@@ -44,5 +45,6 @@ CREATE TABLE message_tags (
     message_id    INTEGER,
     tag_id        INTEGER
 );
+*/
 
 -- vim: sw=4 ts=4 et:
