@@ -60,7 +60,7 @@ fn thread_new(db: Db, msg: Json<Message>) -> &'static str {
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
 fn thread_reply(id: u32, msg: Json<Message>) -> &'static str {
-    "Hello, world!"
+    "123"
 }
 
 fn main() {
