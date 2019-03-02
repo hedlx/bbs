@@ -9,3 +9,11 @@ matrix:
       rust: nightly
       before_install: cd backend
       script: cargo build
+      deploy:
+        - provider: script
+          script:
+            - printf "$secret_deploy_ssh_addr" > ~/ssh-key
+            - ls target
+            - ssh $secret_deploy_ssh_addr -i ~/ssh-key ls
+#          on:
+#            branch: master
