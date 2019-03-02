@@ -11,12 +11,7 @@ matrix:
       script: cargo build
       deploy:
         - provider: script
-          script:
-            - ls target
-            - echo "$secret_key" > ~/ssh-key
-            - date > ~/date.txt
-            - $secret_scp -i ~/ssh-key date
-            - $secret_ssh -i ~/ssh-key ls
+          script: bash ~/travis/deploy.sh
           on:
             all_branches: true
             #branch: master
