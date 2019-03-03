@@ -2,10 +2,11 @@ use super::data::{Message, OutMessage, Thread};
 use super::schema::{messages, threads};
 use chrono::{NaiveDateTime, Utc};
 
-use diesel::sql_query;
+use diesel::{insert_into, sql_query};
 use diesel::sql_types::{Integer, Text, Timestamp};
 use diesel::RunQueryDsl;
 use diesel::OptionalExtension;
+use diesel::Connection;
 use rocket_contrib::databases::diesel;
 
 #[database("db")]
@@ -17,9 +18,10 @@ struct Id {
     id: i32,
 }
 
-#[derive(QueryableByName)]
+#[derive(QueryableByName, Insertable)]
 #[table_name = "messages"]
 struct DbMessage {
+    thread_id: i32,
     no: i32,
     name: Option<String>,
     trip: Option<String>,
@@ -34,72 +36,80 @@ struct DbThread {
     bump: NaiveDateTime,
 }
 
+#[derive(Insertable)]
+#[table_name = "threads"]
+struct DbNewThread {
+    last_reply_no: i32,
+    bump: NaiveDateTime,
+}
+
+
 // TODO: wrap into transactions
 
 impl Db {
     pub fn new_thread(&self, msg: Message) {
         let now = Utc::now().naive_utc();
 
-        let thread_id = sql_query(r"
-            INSERT INTO threads(last_reply_no, bump)
-            VALUES (0, $1)
-            RETURNING id
-        ")
-        .bind::<Timestamp, _>(now)
-        .get_result::<Id>(&self.0)
-        .unwrap()
-        .id;
+        self.0.transaction::<_, diesel::result::Error, _>(|| {
+            let thread_id =
+            insert_into(super::schema::threads::dsl::threads).values(
+                &DbNewThread{
+                    last_reply_no: 0,
+                    bump: now,
+                })
+                .returning(super::schema::threads::dsl::id)
+                .get_result(&self.0)?;
 
-        sql_query(r"
-            INSERT INTO messages
-            ( thread_id, no, sender, text, ts )
-            VALUES (
-                $1, 0, 'sender', $2, $3
-            )
-        ")
-        .bind::<Integer, _>(thread_id)
-        .bind::<Text, _>(msg.text)
-        .bind::<Timestamp, _>(now)
-        .execute(&self.0)
-        .unwrap();
+            insert_into(super::schema::messages::dsl::messages).values(
+                &DbMessage{
+                    thread_id: thread_id,
+                    no: 0,
+                    name: Some(msg.name),
+                    trip: Some(msg.secret),
+                    text: msg.text,
+                })
+                .execute(&self.0)?;
+
+            Ok(())
+        }).unwrap()
     }
 
     pub fn reply_thread(&self, thread_id: i32, msg: Message) -> bool {
         let now = Utc::now().naive_utc();
 
-        let no = sql_query(r"
-            UPDATE threads
-               SET last_reply_no = last_reply_no+1,
-                   bump = $1
-             WHERE id = $2
-         RETURNING last_reply_no as id
-        ")
-        .bind::<Timestamp, _>(now)
-        .bind::<Integer, _>(thread_id)
-        .get_result::<Id>(&self.0)
-        .optional()
-        .unwrap();
+        self.0.transaction::<_, diesel::result::Error, _>(|| {
+            let no = sql_query(r"
+                UPDATE threads
+                   SET last_reply_no = last_reply_no+1,
+                       bump = $1
+                 WHERE id = $2
+             RETURNING last_reply_no as id
+            ")
+            .bind::<Timestamp, _>(now)
+            .bind::<Integer, _>(thread_id)
+            .get_result::<Id>(&self.0)
+            .optional()?;
 
-        let no = match no {
-            Some(no) => no.id,
-            None => return false,
-        };
+            let no = match no {
+                Some(no) => no.id,
+                None => return Ok(false),
+            };
 
-        sql_query(r"
-            INSERT INTO messages
-            ( thread_id, no, sender, text, ts )
-            VALUES (
-                $1, $2, 'sender', $3, $4
-            )
-        ")
-        .bind::<Integer, _>(thread_id)
-        .bind::<Integer, _>(no)
-        .bind::<Text, _>(msg.text)
-        .bind::<Timestamp, _>(now)
-        .execute(&self.0)
-        .unwrap();
+            sql_query(r"
+                INSERT INTO messages
+                ( thread_id, no, sender, text, ts )
+                VALUES (
+                    $1, $2, 'sender', $3, $4
+                )
+            ")
+            .bind::<Integer, _>(thread_id)
+            .bind::<Integer, _>(no)
+            .bind::<Text, _>(msg.text)
+            .bind::<Timestamp, _>(now)
+            .execute(&self.0)?;
 
-        true
+            Ok(true)
+        }).unwrap()
     }
 
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
