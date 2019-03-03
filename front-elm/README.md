@@ -102,7 +102,10 @@ As an exception you can expose values when provider module functions form domain
 
 ## Learn ELM
 [Gentle Introduction](https://elmprogramming.com/)
+
 [Elm Language Guide](https://guide.elm-lang.org/)
+
 [Packages](https://package.elm-lang.org/)
+
 [Elm Search (Hoogle-like search by function signature or name)](https://klaftertief.github.io/elm-search/)
 

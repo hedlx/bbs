@@ -7,6 +7,7 @@ import Model exposing (Flags, Model)
 import Msg exposing (Msg)
 import Subscriptions
 import Update
+import Url
 import View
 
 
@@ -17,18 +18,16 @@ main =
         , view = View.view
         , update = Update.update
         , subscriptions = Subscriptions.subscriptions
-        , onUrlRequest = onUrlRequest
-        , onUrlChange = onUrlChange
+        , onUrlRequest = Msg.LinkClicked
+        , onUrlChange = Msg.UrlChanged
         }
 
 
 init flags url key =
-    ( Model.empty, Commands.getThreads )
-
-
-onUrlRequest urlRequest =
-    Msg.Empty
-
-
-onUrlChange url =
-    Msg.Empty
+    let
+        model =
+            Model.init flags url key
+    in
+    ( model
+    , Commands.init model.page
+    )

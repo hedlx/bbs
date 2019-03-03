@@ -3,10 +3,12 @@ module Update exposing (update)
 import Msg
 import Update.Extra exposing (andThen)
 import Update.Plugins as Plugins
+import Update.Route as Route
 
 
 update msg =
     mainUpdate msg
+        >> andThen (Route.update msg)
         >> andThen (Plugins.update msg)
 
 

@@ -1,4 +1,4 @@
-module View.Icons exposing (hedlx, search, settings)
+module View.Icons exposing (add, hedlx, search, settings)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -19,6 +19,10 @@ search =
 
 settings =
     Octicons.gear options
+
+
+add =
+    Octicons.plus options
 
 
 hedlx =

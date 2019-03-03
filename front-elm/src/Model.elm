@@ -1,9 +1,13 @@
-module Model exposing (Flags, Model, empty)
+module Model exposing (Flags, Model, init)
 
+import Browser.Navigation as Nav
 import Json.Encode as Encode
+import Model.Page exposing (Page)
 import Model.Theme as Theme exposing (Theme)
 import Model.Thread as Thread exposing (Thread)
+import Route
 import Spinner
+import Url exposing (Url)
 
 
 type alias Flags =
@@ -11,15 +15,19 @@ type alias Flags =
 
 
 type alias Model =
-    { isLoading : Bool
+    { page : Page
+    , key : Nav.Key
+    , isLoading : Bool
     , theme : Theme
     , threads : List Thread
     , spinner : Spinner.Model
     }
 
 
-empty =
-    { isLoading = True
+init flags url key =
+    { page = Route.route url
+    , key = key
+    , isLoading = True
     , theme = Theme.empty
     , threads = []
     , spinner = Spinner.init
