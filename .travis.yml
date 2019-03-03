@@ -16,6 +16,21 @@ matrix:
       deploy:
         provider: script
         skip_cleanup: true
-        script: cd "$TRAVIS_BUILD_DIR"; bash ./travis/deploy.sh
+        script: cd "$TRAVIS_BUILD_DIR"; bash ./travis/deploy.sh rust
+        on:
+          branch: master
+
+    - language: node_js
+      node_js: 11
+      cache:
+        directories:
+        - $TRAVIS_BUILD_DIR/front-elm/node_modules
+      before_install: cd front-elm
+      install: npm install
+      script: npm run make
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script: cd "$TRAVIS_BUILD_DIR"; bash travis/deploy.sh elm
         on:
           branch: master
