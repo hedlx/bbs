@@ -15,7 +15,7 @@ use rocket_contrib::json::Json;
 mod data;
 mod db;
 mod schema;
-use data::{Message, OutMessage, Thread};
+use data::{NewMessage, Message, Thread};
 use db::Db;
 
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
@@ -45,7 +45,7 @@ fn thread_id(
     before: Option<u32>, // message id
     after: Option<u32>,  // message id
     limit: Option<u32>,
-) -> Json<Vec<OutMessage>> {
+) -> Json<Vec<Message>> {
     let limit = limit.unwrap_or(100);
     let msgs = match (before, after) {
         (None, None) => { db.get_thread(id) } // all threads
@@ -59,7 +59,7 @@ fn thread_id(
 }
 
 #[post("/threads", format = "json", data = "<msg>")]
-fn thread_new(db: Db, msg: Json<Message>) -> &'static str {
+fn thread_new(db: Db, msg: Json<NewMessage>) -> &'static str {
     db.new_thread(msg.0);
     "done"
 }
@@ -68,7 +68,7 @@ fn thread_new(db: Db, msg: Json<Message>) -> &'static str {
 fn thread_reply(
     db: Db,
     id: i32,
-    msg: Json<Message>,
+    msg: Json<NewMessage>,
 ) -> &'static str {
     if db.reply_thread(id, msg.0) {
         "done"

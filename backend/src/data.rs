@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
-pub struct Message {
+pub struct NewMessage {
     pub name: String,
     pub secret: String, // used to produce tripcode
     pub text: String,
 }
 
 #[derive(Serialize)]
-pub struct OutMessage {
+pub struct Message {
     pub no: u32,
     pub name: String,
     pub trip: String,
@@ -18,6 +18,6 @@ pub struct OutMessage {
 #[derive(Serialize)]
 pub struct Thread {
     pub id: u32,
-    pub op: OutMessage,
-    pub last: Vec<OutMessage>,
+    pub op: Message,
+    pub last: Vec<Message>,
 }

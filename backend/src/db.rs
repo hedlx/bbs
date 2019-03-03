@@ -1,4 +1,4 @@
-use super::data::{Message, OutMessage, Thread};
+use super::data::{NewMessage, Message, Thread};
 use super::schema::{messages, threads};
 use chrono::{NaiveDateTime, Utc};
 
@@ -47,7 +47,7 @@ struct DbNewThread {
 // TODO: wrap into transactions
 
 impl Db {
-    pub fn new_thread(&self, msg: Message) {
+    pub fn new_thread(&self, msg: NewMessage) {
         let now = Utc::now().naive_utc();
 
         self.0.transaction::<_, diesel::result::Error, _>(|| {
@@ -74,7 +74,7 @@ impl Db {
         }).unwrap()
     }
 
-    pub fn reply_thread(&self, thread_id: i32, msg: Message) -> bool {
+    pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> bool {
         let now = Utc::now().naive_utc();
 
         self.0.transaction::<_, diesel::result::Error, _>(|| {
@@ -135,7 +135,7 @@ impl Db {
             .collect()
     }
 
-    fn get_op(&self, thread_id: i32) -> OutMessage {
+    fn get_op(&self, thread_id: i32) -> Message {
         let op = sql_query(r"
             SELECT *
               FROM messages
@@ -146,7 +146,7 @@ impl Db {
         .get_result::<DbMessage>(&self.0)
         .unwrap();
 
-        OutMessage {
+        Message {
             no: op.no as u32,
             name: op.name.unwrap_or("Anonymous".to_string()),
             trip: op.trip.unwrap_or("".to_string()),
@@ -154,7 +154,7 @@ impl Db {
         }
     }
 
-    pub fn get_thread(&self, thread_id: i32) -> Vec<OutMessage> {
+    pub fn get_thread(&self, thread_id: i32) -> Vec<Message> {
         let messages = sql_query(r"
             SELECT *
               FROM messages
@@ -167,7 +167,7 @@ impl Db {
         messages
             .iter()
             .map(|mut msg| {
-                OutMessage {
+                Message {
                     no:   msg.no as u32,
                     name: msg.name.clone().unwrap_or("Anonymous".to_string()),
                     trip: msg.trip.clone().unwrap_or("".to_string()),
