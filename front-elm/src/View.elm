@@ -16,7 +16,7 @@ view model =
         style =
             Style.fromTheme model.theme
     in
-    { title = "Hedlx BBS"
+    { title = "Hedlx BBS (test)"
     , body =
         [ Tachyons.tachyons.css
         , Page.view style model
