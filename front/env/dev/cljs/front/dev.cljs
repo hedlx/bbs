@@ -5,4 +5,4 @@
 
 (devtools/install!)
 (enable-console-print!)
-(core/init!)
+(core/init! "http://hedlx.org:8000")

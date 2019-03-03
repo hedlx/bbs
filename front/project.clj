@@ -8,6 +8,7 @@
                  [reagent "0.8.1"]
                  [reagent-utils "0.3.2"]
                  [re-frame "0.10.6"]
+                 [day8.re-frame/http-fx "0.1.6"]
                  [org.clojure/clojurescript "1.10.520"
                   :scope "provided"]
                  [binaryage/devtools "0.9.10"]
@@ -49,11 +50,8 @@
               :output-dir "resources/public/js/out"
               :source-map true
               :optimizations :none
-              :pretty-print  true}}
-            }
-   }
+              :pretty-print  true}}}}
 
   :figwheel
-  {
-    :css-dirs ["resources/public/css"] }
-)
+  {:css-dirs ["resources/public/css"]
+   :nrepl-port 7002})
