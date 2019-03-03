@@ -13,7 +13,7 @@ pub struct Message {
     pub name: String,
     pub trip: String,
     pub text: String,
-    pub ts: i32,
+    pub ts: i64,
 }
 
 #[derive(Serialize)]

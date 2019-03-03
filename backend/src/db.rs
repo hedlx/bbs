@@ -199,6 +199,6 @@ fn db_msg_to_msg(msg: &DbMessage) -> Message {
         name: msg.name.clone().unwrap_or("Anonymous".to_string()),
         trip: msg.trip.clone().unwrap_or("".to_string()),
         text: msg.text.clone(),
-        ts: 0,
+        ts: msg.ts.timestamp(),
     }
 }
