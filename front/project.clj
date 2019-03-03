@@ -30,28 +30,31 @@
    {"resources/public/css/site.min.css" "resources/public/css/site.css"}}
 
   :cljsbuild
-  {:builds {:min
-            {:source-paths ["src/cljs" "src/cljc" "env/prod/cljs"]
-             :compiler
-             {:output-to        "target/cljsbuild/public/js/app.js"
-              :output-dir       "target/cljsbuild/public/js"
-              :source-map       "target/cljsbuild/public/js/app.js.map"
-              :optimizations :advanced
-              :infer-externs true
-              :pretty-print  false}}
-            :app
-            {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-             :figwheel {:on-jsload "front.core/mount-root"
-                        :open-urls ["http://localhost:3449/"]}
-             :compiler
-             {:main "front.dev"
-              :asset-path "/js/out"
-              :output-to "resources/public/js/app.js"
-              :output-dir "resources/public/js/out"
-              :source-map true
-              :optimizations :none
-              :pretty-print  true}}}}
+  {:builds {
+    :min
+    {:source-paths ["src/cljs" "src/cljc" "env/prod/cljs"]
+     :compiler
+     {:main          "front.prod"
+      :output-to     "resources/public/js/app.js"
+      :optimizations :advanced
+      :source-map    false
+      :pretty-print  false}}
+
+    :app
+    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
+     :figwheel {:on-jsload "front.core/mount-root"
+                :open-urls ["http://localhost:3449/"]}
+     :compiler
+     {:main "front.dev"
+      :asset-path "/js/out"
+      :output-to "resources/public/js/app.js"
+      :output-dir "resources/public/js/out"
+      :source-map true
+      :optimizations :none
+      :pretty-print  true}}}}
 
   :figwheel
-  {:css-dirs ["resources/public/css"]
-   :nrepl-port 7002})
+  {:css-dirs ["resources/public/css"]}
+
+  :clean-targets ^{:protect false} ["resources/public/js"])
+
