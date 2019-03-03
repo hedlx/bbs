@@ -2,6 +2,8 @@ module Update.Route exposing (update)
 
 import Browser
 import Browser.Navigation as Nav
+import Commands
+import Model.Page
 import Msg
 import Route
 import Url
@@ -18,7 +20,16 @@ update msg model =
                     ( model, Nav.load href )
 
         Msg.UrlChanged url ->
-            ( { model | page = Route.route url }, Cmd.none )
+            let
+                page =
+                    Route.route url
+            in
+            ( { model
+                | page = page
+                , isLoading = Model.Page.isLoadingRequired page
+              }
+            , Commands.init page
+            )
 
         _ ->
             ( model, Cmd.none )

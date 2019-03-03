@@ -2,11 +2,21 @@
 
 This is a Hedlx BBS frontend.
 
+## Setup
+
+1. Install `npm`, `npx` and `git`
+1. Clone this repository
+1. Run `npm install` in the repository root directory
+1. Run `npm run make` to compile application
+1. Use a web server to serve files from `static` directory
+1. Configure your web server to serve `static/index.html` on 404 errors
+1. **Done!**
+
 ## Development
 
 #### Getting Started
 
-1. Install `npm` and `git`
+1. Install `npm`, `npx` and `git`
 1. Clone this repository
 1. Run `npm install` in the repository root directory
 1. Run `npm run watch` to start live server

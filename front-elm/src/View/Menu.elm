@@ -17,7 +17,7 @@ view style model =
 
 
 btnIndex style =
-    a [ href "/" ]
+    a [ href "/" ] 
         [ div [ style.iconicButtonLink, title "Return the Main Page" ] [ Icons.hedlx ] ]
 
 

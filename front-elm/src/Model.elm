@@ -2,7 +2,7 @@ module Model exposing (Flags, Model, init)
 
 import Browser.Navigation as Nav
 import Json.Encode as Encode
-import Model.Page exposing (Page)
+import Model.Page as Page exposing (Page)
 import Model.Theme as Theme exposing (Theme)
 import Model.Thread as Thread exposing (Thread)
 import Route
@@ -25,29 +25,14 @@ type alias Model =
 
 
 init flags url key =
-    { page = Route.route url
+    let
+        page =
+            Route.route url
+    in
+    { page = page
     , key = key
-    , isLoading = True
+    , isLoading = Page.isLoadingRequired page
     , theme = Theme.empty
     , threads = []
     , spinner = Spinner.init
     }
-
-
-
--- testThread =
---     { id = 1
---     , op =
---         { no = 0
---         , name = "Anon"
---         , trip = "123"
---         , text = "Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda"
---         }
---     , replies =
---         [ { no = 1
---           , name = "Anon"
---           , trip = "123"
---           , text = "Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda Hello Proda"
---           }
---         ]
---     }
