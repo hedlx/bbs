@@ -19,3 +19,18 @@ matrix:
         script: cd "$TRAVIS_BUILD_DIR"; bash ./travis/deploy.sh
         on:
           branch: master
+
+    - language: node_js
+      node_js: 11
+      cache:
+        directories:
+        - $TRAVIS_BUILD_DIR/front-elm/node_modules
+      before_install: cd front-elm
+      install: npm install
+      script: npm run make
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script: true
+        #on:
+        #  branch: master
