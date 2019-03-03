@@ -2,11 +2,14 @@ use super::data::{NewMessage, Message, Thread};
 use super::schema::{messages, threads};
 use chrono::{NaiveDateTime, Utc};
 
-use diesel::{insert_into, sql_query};
-use diesel::sql_types::{Integer, Text, Timestamp};
-use diesel::RunQueryDsl;
-use diesel::OptionalExtension;
 use diesel::Connection;
+use diesel::ExpressionMethods;
+use diesel::OptionalExtension;
+use diesel::QueryDsl;
+use diesel::QueryResult;
+use diesel::RunQueryDsl;
+use diesel::sql_types::{Integer, Text, Timestamp};
+use diesel::{insert_into, sql_query};
 use rocket_contrib::databases::diesel;
 
 #[database("db")]
@@ -18,14 +21,16 @@ struct Id {
     id: i32,
 }
 
-#[derive(QueryableByName, Insertable)]
+#[derive(QueryableByName, Insertable, Queryable)]
 #[table_name = "messages"]
 struct DbMessage {
     thread_id: i32,
     no: i32,
     name: Option<String>,
     trip: Option<String>,
+    sender: String,
     text: String,
+    ts: NaiveDateTime,
 }
 
 #[derive(QueryableByName)]
@@ -66,7 +71,9 @@ impl Db {
                     no: 0,
                     name: Some(msg.name),
                     trip: Some(msg.secret),
+                    sender: String::new(),
                     text: msg.text,
+                    ts: now,
                 })
                 .execute(&self.0)?;
 
@@ -130,7 +137,7 @@ impl Db {
             .map(|thread| Thread {
                 id: thread.id as u32,
                 op: self.get_op(thread.id),
-                last: Vec::new(),
+                last: self.get_last(thread.id).unwrap(),
             })
             .collect()
     }
@@ -145,13 +152,20 @@ impl Db {
         .bind::<Integer, _>(thread_id)
         .get_result::<DbMessage>(&self.0)
         .unwrap();
+        db_msg_to_msg( &op )
+    }
 
-        Message {
-            no: op.no as u32,
-            name: op.name.unwrap_or("Anonymous".to_string()),
-            trip: op.trip.unwrap_or("".to_string()),
-            text: op.text,
-        }
+    fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
+        use super::schema::messages::dsl as d;
+        let result = d::messages
+            .filter(d::thread_id.eq(thread_id))
+            .filter(d::no.gt(0))
+            .limit(5)
+            .get_results::<DbMessage>(&self.0)?
+            .iter()
+            .map(|msg| { db_msg_to_msg(msg) })
+            .collect();
+        Ok(result)
     }
 
     pub fn get_thread(&self, thread_id: i32) -> Vec<Message> {
@@ -172,8 +186,19 @@ impl Db {
                     name: msg.name.clone().unwrap_or("Anonymous".to_string()),
                     trip: msg.trip.clone().unwrap_or("".to_string()),
                     text: msg.text.clone(),
+                    ts: 0,
                 }
             })
             .collect()
+    }
+}
+
+fn db_msg_to_msg(msg: &DbMessage) -> Message {
+    Message {
+        no: msg.no as u32,
+        name: msg.name.clone().unwrap_or("Anonymous".to_string()),
+        trip: msg.trip.clone().unwrap_or("".to_string()),
+        text: msg.text.clone(),
+        ts: 0,
     }
 }

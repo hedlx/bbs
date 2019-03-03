@@ -18,5 +18,8 @@ stdenv.mkDerivation {
 
     postgresql.lib
     postgresql
+
+    # front-elm
+    nodejs-10_x
   ];
 }
