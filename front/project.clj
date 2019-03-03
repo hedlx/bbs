@@ -37,7 +37,6 @@
      {:main          "front.prod"
       :output-to     "resources/public/js/app.js"
       :optimizations :advanced
-      :source-map    false
       :pretty-print  false}}
 
     :app
