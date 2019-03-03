@@ -16,7 +16,7 @@ matrix:
       deploy:
         provider: script
         skip_cleanup: true
-        script: cd "$TRAVIS_BUILD_DIR"; bash ./travis/deploy.sh
+        script: cd "$TRAVIS_BUILD_DIR"; bash ./travis/deploy.sh rust
         on:
           branch: master
 
@@ -31,6 +31,6 @@ matrix:
       deploy:
         provider: script
         skip_cleanup: true
-        script: true
-        #on:
-        #  branch: master
+        script: cd "$TRAVIS_BUILD_DIR"; bash travis/deploy.sh elm
+        on:
+          branch: 2019-03-04-elm-travis
