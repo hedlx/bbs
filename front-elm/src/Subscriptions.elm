@@ -8,5 +8,4 @@ import Subscriptions.Plugins as Plugins
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Plugins.subscriptions model
-        ]
+        [ Plugins.subscriptions model ]

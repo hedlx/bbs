@@ -5,6 +5,7 @@ import Json.Encode as Encode
 import Model.Page as Page exposing (Page)
 import Model.Theme as Theme exposing (Theme)
 import Model.Thread as Thread exposing (Thread)
+import Model.ThreadForm as ThreadForm exposing (ThreadForm)
 import Route
 import Spinner
 import Url exposing (Url)
@@ -15,7 +16,8 @@ type alias Flags =
 
 
 type alias Model =
-    { page : Page
+    { appPath : String
+    , page : Page
     , key : Nav.Key
     , isLoading : Bool
     , theme : Theme
@@ -29,7 +31,8 @@ init flags url key =
         page =
             Route.route url
     in
-    { page = page
+    { appPath = Debug.log url.path url.path
+    , page = page
     , key = key
     , isLoading = Page.isLoadingRequired page
     , theme = Theme.empty

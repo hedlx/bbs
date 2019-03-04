@@ -4,29 +4,17 @@ import Msg
 import Update.Extra exposing (andThen)
 import Update.Plugins as Plugins
 import Update.Route as Route
+import Update.ServerReply as ServerReply
+import Update.ThreadForm as ThreadForm
 
 
 update msg =
     mainUpdate msg
+        >> andThen (ServerReply.update msg)
         >> andThen (Route.update msg)
+        >> andThen (ThreadForm.update msg)
         >> andThen (Plugins.update msg)
 
 
 mainUpdate msg model =
-    case msg of
-        Msg.GotThreads result ->
-            case result of
-                Ok threads ->
-                    ( { model
-                        | isLoading = False
-                        , threads = threads
-                      }
-                    , Cmd.none
-                    )
-
-                -- TODO: handle error
-                Err _ ->
-                    ( model, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
+    ( model, Cmd.none )

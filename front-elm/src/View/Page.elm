@@ -24,8 +24,8 @@ pageContent style model =
             Model.Page.Index ->
                 Threads.view style model.threads
 
-            Model.Page.NewThread ->
-                ThreadForm.view style
+            Model.Page.NewThread form ->
+                ThreadForm.view style form
 
             Model.Page.NotFound ->
                 h1 [] [ text "Page Not Found" ]

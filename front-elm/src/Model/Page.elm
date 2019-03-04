@@ -1,10 +1,12 @@
-module Model.Page exposing (Page(..), isLoadingRequired)
+module Model.Page exposing (Page(..), index, isLoadingRequired, newThread, notFound)
+
+import Model.ThreadForm as ThreadForm exposing (ThreadForm)
 
 
 type Page
     = NotFound
     | Index
-    | NewThread
+    | NewThread ThreadForm
 
 
 isLoadingRequired page =
@@ -15,5 +17,17 @@ isLoadingRequired page =
         Index ->
             True
 
-        NewThread ->
+        NewThread _ ->
             False
+
+
+index =
+    Index
+
+
+newThread =
+    NewThread ThreadForm.empty
+
+
+notFound =
+    NotFound

@@ -1,17 +1,26 @@
 module Route exposing (route)
 
+import Dict
+import Env
 import Model.Page as Page exposing (Page)
+import Regex
 import Url exposing (Url)
 
 
 route : Url -> Page
-route url =
-    case url.path of
-        "/" ->
+route { fragment } =
+    case fragment of
+        Nothing ->
             Page.Index
 
-        "/new" ->
-            Page.NewThread
+        Just "/" ->
+            Page.index
 
-        _ ->
-            Page.NotFound
+        Just "" ->
+            Page.index
+
+        Just "/new" ->
+            Page.newThread
+
+        Just _ ->
+            Page.notFound

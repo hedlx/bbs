@@ -9,7 +9,16 @@ import Url exposing (Url)
 
 type Msg
     = Empty
+      -- Routes
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
+      -- HTTP Requests
     | GotThreads (Result Http.Error (List Thread))
+    | ThreadCreated (Result Http.Error ())
+      -- Forms
+    | FormNameChanged String
+    | FormPassChanged String
+    | FormTextChanged String
+    | FormSubmit
+      -- Plugins
     | SpinnerMsg Spinner.Msg

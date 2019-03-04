@@ -14,7 +14,7 @@ update msg model =
         Msg.LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.key (Url.toString url) )
+                    ( model, Commands.redirect url.path model )
 
                 Browser.External href ->
                     ( model, Nav.load href )
