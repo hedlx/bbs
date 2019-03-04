@@ -5,7 +5,7 @@
 
 (defn get-base-url []
   (let [[prot _ addr] (str/split (-> js/window .-location .-href) "/")]
-    (str prot "//" addr)))
+    (str prot "//" addr "/api")))
 
 ;;ignore println statements in prod
 (set! *print-fn* (fn [& _]))
