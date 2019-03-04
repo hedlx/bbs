@@ -4,6 +4,12 @@ matrix:
       jdk: oraclejdk8
       before_install: cd front
       script: lein cljsbuild once min
+      deploy:
+        provider: script
+        skip_cleanup: true
+        script: cd "$TRAVIS_BUILD_DIR"; bash travis/deploy.sh clojure
+        on:
+          branch: master
 
     - language: rust
       rust: nightly
