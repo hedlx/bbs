@@ -11,24 +11,28 @@ import View.Threads as Threads
 view style model =
     div [ style.page ]
         [ Menu.view style model
-        , pageContent style model
+        , content style model
         ]
 
 
-pageContent style model =
+content style model =
+    let
+        pageView =
+            case model.page of
+                Model.Page.Index ->
+                    Threads.view style model.threads
+
+                Model.Page.NewThread form ->
+                    ThreadForm.view style form
+
+                Model.Page.NotFound ->
+                    h1 [] [ text "Page Not Found" ]
+    in
     if model.isLoading then
         loadingSpinner model.spinner
 
     else
-        case model.page of
-            Model.Page.Index ->
-                Threads.view style model.threads
-
-            Model.Page.NewThread form ->
-                ThreadForm.view style form
-
-            Model.Page.NotFound ->
-                h1 [] [ text "Page Not Found" ]
+        pageView
 
 
 loadingSpinner spinner =

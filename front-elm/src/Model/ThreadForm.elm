@@ -27,22 +27,28 @@ type alias ThreadForm_ =
 
 
 encode (ThreadForm form) =
+    let
+        fixedName =
+            if String.isEmpty (String.trim form.name) then
+                "Anonymous"
+
+            else
+                form.name
+    in
     Encode.object
-        [ ( "name", Encode.string form.name )
+        [ ( "name", Encode.string fixedName )
         , ( "secret", Encode.string form.pass )
         , ( "text", Encode.string form.text )
         ]
 
 
 isEmpty (ThreadForm form) =
-    String.isEmpty form.name
-        && String.isEmpty form.text
+    String.isEmpty form.text
         && String.isEmpty form.pass
 
 
 isValid (ThreadForm form) =
-    not (String.isEmpty (String.trim form.name))
-        && not (String.isEmpty (String.trim form.text))
+    not (String.isEmpty (String.trim form.text))
 
 
 empty =

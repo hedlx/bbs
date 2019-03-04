@@ -20,6 +20,10 @@ type alias Theme =
     , fgMenu : String
     , bgMenu : String
     , fgButton : String
+    , bgButton : String
+    , fgInput : String
+    , bgInput : String
+    , bInput : String
     }
 
 

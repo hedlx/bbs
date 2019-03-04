@@ -5,5 +5,5 @@ import View.ThreadPreview as ThreadPreview
 
 
 view style threads =
-    div [ style.threads ] <|
+    div [ style.content ] <|
         List.map (ThreadPreview.view style) threads

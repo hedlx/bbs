@@ -19,4 +19,8 @@ theme =
     , fgMenu = light_silver
     , bgMenu = bg_black_30
     , fgButton = white_80
+    , bgButton = bg_dark_gray
+    , fgInput = light_silver
+    , bgInput = bg_black_30
+    , bInput = b__white_10
     }
