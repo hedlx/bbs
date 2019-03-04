@@ -1,42 +1,25 @@
 (ns front.router
   (:require
-    [reagent.core :as reagent]
-    [reitit.frontend :as reitit]
-    [clerk.core :as clerk]
-    [accountant.core :as accountant]
+    [secretary.core :as secretary :refer-macros [defroute]]
+    [goog.events :as events]
     [re-frame.core :as rf]
-    [front.pages.threads :as threads]))
+    [front.pages.threads :as threads])
+  (:import [goog History]
+           [goog.history EventType]))
 
 
-(def router
-  (reitit/router
-    [["/" :threads]]))
-
-(defn path-for [route & [params]]
-  (if params
-    (:path (reitit/match-by-name router route params))
-    (:path (reitit/match-by-name router route))))
+(defn hook-browser-navigation! []
+  (doto (History.)
+    (events/listen EventType.NAVIGATE #(secretary/dispatch! (.-token %)))
+    (.setEnabled true)))
 
 (defn page-for [route]
   (case route
     :threads #'threads/page
     :undefined :div))
 
-(defn init-router! [] 
-  (clerk/initialize!)
-  (accountant/configure-navigation!
-   {:nav-handler
-    (fn [path]
-      (let [match (reitit/match-by-path router path)
-            current-page (:name (:data  match))
-            route-params (:path-params match)]
-        (reagent/after-render clerk/after-render!)
-        (rf/dispatch
-          [:change-location {:current-page current-page
-                             :route-params route-params}])
-        (clerk/navigate-page! path)))
-
-    :path-exists?
-    (fn [path]
-      (boolean (reitit/match-by-path router path)))})
-  (accountant/dispatch-current!))
+(defn init-router! []
+  (secretary/set-config! :prefix "#")
+  (defroute "/" [] (rf/dispatch [:change-location {:current-page :threads}]))
+  (defroute "/test" [] (rf/dispatch [:change-location {:current-page :threads}]))
+  (hook-browser-navigation!))

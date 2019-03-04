@@ -6,16 +6,12 @@
 
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [reagent "0.8.1"]
-                 [reagent-utils "0.3.2"]
+                 [clj-commons/secretary "1.2.4"]
                  [re-frame "0.10.6"]
                  [day8.re-frame/http-fx "0.1.6"]
                  [org.clojure/clojurescript "1.10.520"
                   :scope "provided"]
-                 [binaryage/devtools "0.9.10"]
-                 [metosin/reitit "0.2.13"]
-                 [pez/clerk "1.0.0"]
-                 [venantius/accountant "0.2.4"
-                  :exclusions [org.clojure/tools.reader]]]
+                 [binaryage/devtools "0.9.10"]]
 
   :plugins [[lein-environ "1.1.0"]
             [lein-cljsbuild "1.1.7"]
@@ -56,4 +52,3 @@
   {:css-dirs ["resources/public/css"]}
 
   :clean-targets ^{:protect false} ["resources/public/js"])
-
