@@ -45,17 +45,16 @@ fn thread_id(
     before: Option<u32>, // message id
     after: Option<u32>,  // message id
     limit: Option<u32>,
-) -> Json<Vec<Message>> {
+) -> Option<Json<Vec<Message>>> {
     let limit = limit.unwrap_or(100);
-    let msgs = match (before, after) {
-        (None, None) => { db.get_thread(id) } // all threads
-        (Some(_), None) => { Vec::new() }    // before
-        (None, Some(_)) => { Vec::new() }    // after
-        (Some(_), Some(_)) => { Vec::new() } // range / 400
-    };
-    Json(msgs)
-
-    // TODO: return 404 if thread does not exists
+    match (before, after) {
+        (None, None) => {
+            db.get_thread_messages(id).map(Json)
+        }
+        (Some(_), None) => { None }    // before
+        (None, Some(_)) => { None }    // after
+        (Some(_), Some(_)) => { None } // range / 400
+    }
 }
 
 #[post("/threads", format = "json", data = "<msg>")]

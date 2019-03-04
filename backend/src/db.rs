@@ -168,7 +168,10 @@ impl Db {
         Ok(result)
     }
 
-    pub fn get_thread(&self, thread_id: i32) -> Vec<Message> {
+    pub fn get_thread_messages(
+        &self,
+        thread_id: i32,
+    ) -> Option<Vec<Message>> {
         let messages = sql_query(r"
             SELECT *
               FROM messages
@@ -178,7 +181,7 @@ impl Db {
         .get_results::<DbMessage>(&self.0)
         .unwrap();
 
-        messages
+        let messages: Vec<Message> = messages
             .iter()
             .map(|mut msg| {
                 Message {
@@ -189,7 +192,13 @@ impl Db {
                     ts: 0,
                 }
             })
-            .collect()
+            .collect();
+
+        if messages.is_empty() {
+            None
+        } else {
+            Some(messages)
+        }
     }
 }
 
