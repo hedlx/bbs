@@ -37,44 +37,44 @@ view ts =
                 |> String.fromInt
                 >> String.pad 2 '0'
     in
-    text <| String.concat [ day, " ", month, " ", year, "  ", hours, ":", minutes, ":", seconds, " UTC" ]
+    text <| String.concat [ day, "-", month, "-", year, "  ", hours, ":", minutes, ":", seconds ]
 
 
 toMonthName : Month -> String
 toMonthName month =
     case month of
         Jan ->
-            "Jan"
+            "01"
 
         Feb ->
-            "Feb"
+            "02"
 
         Mar ->
-            "Mar"
+            "03"
 
         Apr ->
-            "Apr"
+            "04"
 
         May ->
-            "May"
+            "05"
 
         Jun ->
-            "Jun"
+            "06"
 
         Jul ->
-            "Jul"
+            "07"
 
         Aug ->
-            "Aug"
+            "08"
 
         Sep ->
-            "Sep"
+            "09"
 
         Oct ->
-            "Oct"
+            "10"
 
         Nov ->
-            "Nov"
+            "11"
 
         Dec ->
-            "Dec"
+            "12"

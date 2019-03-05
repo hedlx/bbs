@@ -1,10 +1,11 @@
 module View.Post exposing (view)
 
 import Html exposing (..)
-import Html.Extra exposing (..)
 import Html.Attributes exposing (..)
-import View.Time as Time
+import Html.Extra exposing (..)
 import Tachyons.Classes as TC
+import View.Time as Time
+
 
 view style isOp threadID post =
     let
@@ -33,7 +34,7 @@ view style isOp threadID post =
             span [ localStyle.postHeadElement ] [ span [ localStyle.postName ] [ text post.name ], trip ]
 
         time =
-            span [ localStyle.postHeadElement ] [ Time.view post.ts ]
+            span [ localStyle.postHeadElement ] [ Time.view (1000 * post.ts) ]
 
         postHead =
             div [ localStyle.postHead ]
