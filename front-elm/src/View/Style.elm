@@ -20,14 +20,14 @@ type alias Style =
     , threadPreview : Attr
     , threadForm : Attr
     , previewPosts : Attr
+    , threadNo : Attr
+    , postNo : Attr
     , op : Attr
-    , opHead : Attr
-    , opName : Attr
-    , opTrip : Attr
-    , opBody : Attr
     , post : Attr
     , postHead : Attr
+    , postHeadElement : Attr
     , postName : Attr
+    , opName : Attr
     , postTrip : Attr
     , postBody : Attr
     , textButton : Attr
@@ -60,15 +60,15 @@ fromTheme theme =
     , threadPreview = classes [ pa1 ]
     , threadForm = classes [ pa3 ]
     , previewPosts = classes [ pa3 ]
+    , threadNo = classes [ theme.fgThreadNo ]
+    , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
-    , opHead = classes [ pa1, theme.fgPostHead, theme.bgPost ]
-    , opName = classes [ theme.fgOpName ]
-    , opTrip = classes [ f6, theme.fontMono, theme.fgPostTrip ]
-    , opBody = classes [ pa1, theme.fgPost, theme.bgPost ]
     , post = classes [ pa2, br1, theme.bgPost ]
-    , postHead = classes [ pa1, theme.fgPostHead, theme.bgPost ]
+    , postHead = classes [ f6, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
+    , postHeadElement = classes [ mr2 ]
     , postName = classes [ theme.fgPostName ]
-    , postTrip = classes [ f6, theme.fontMono, theme.fgPostTrip ]
+    , opName = classes [ theme.fgOpName ]
+    , postTrip = classes [ theme.fgPostTrip ]
     , postBody = classes [ pa1, theme.fgPost, theme.bgPost ]
     , textButton = classes <| [ b__solid, pa2, br1, outline_0, theme.bInput ]
     , textButtonEnabled = classes [ dim, pointer, theme.bgButton, theme.fgButton ]

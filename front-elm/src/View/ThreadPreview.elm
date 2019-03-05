@@ -8,19 +8,19 @@ import View.Post as Post
 
 view style thread =
     div [ style.threadPreview ]
-        [ op style thread.op
-        , repliesList style thread.replies
+        [ opPost style thread
+        , repliesList style thread
         ]
 
 
-op style post =
-    Post.view style True post
+opPost style { id, op } =
+    Post.view style True id op
 
 
-repliesList style replies =
+repliesList style { id, replies } =
     if List.isEmpty replies then
         nothing
 
     else
         div [ style.previewPosts ] <|
-            List.map (Post.view style False) replies
+            List.map (Post.view style False id) replies

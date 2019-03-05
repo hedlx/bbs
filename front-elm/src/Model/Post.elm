@@ -1,6 +1,7 @@
 module Model.Post exposing (Post, decoder)
 
 import Json.Decode as Decode
+import Json.Decode.Extra as DecodeExt
 
 
 type alias Post =
@@ -15,12 +16,7 @@ type alias Post =
 decoder =
     Decode.map5 Post
         (Decode.field "no" Decode.int)
-        (optField "name" "Anonymous" Decode.string)
-        (optField "trip" "" Decode.string)
+        (DecodeExt.withDefault "Anonymous" <| Decode.field "name" Decode.string)
+        (DecodeExt.withDefault "" <| Decode.field "trip" Decode.string)
         (Decode.field "text" Decode.string)
         (Decode.field "ts" Decode.int)
-
-
-optField fieldId defaultValue decoderField =
-    Decode.maybe (Decode.field fieldId decoderField)
-        |> Decode.map (Maybe.withDefault defaultValue)

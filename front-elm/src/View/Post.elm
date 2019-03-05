@@ -2,9 +2,11 @@ module View.Post exposing (view)
 
 import Html exposing (..)
 import Html.Extra exposing (..)
+import Html.Attributes exposing (..)
+import View.Time as Time
+import Tachyons.Classes as TC
 
-
-view style isOp post =
+view style isOp threadID post =
     let
         localStyle =
             if isOp then
@@ -13,17 +15,31 @@ view style isOp post =
             else
                 style
 
+        no =
+            if isOp then
+                span [ localStyle.postHeadElement, localStyle.threadNo ] [ text <| ("[" ++ String.fromInt threadID) ++ "]" ]
+
+            else
+                span [ localStyle.postHeadElement, localStyle.postNo ] [ text <| ("#" ++ String.fromInt post.no) ]
+
         trip =
             if String.isEmpty post.trip then
                 nothing
 
             else
-                span [ localStyle.postTrip ] [ text (" [" ++ post.trip ++ "] ") ]
+                span [ localStyle.postTrip ] [ text ("(" ++ post.trip ++ ")") ]
+
+        name =
+            span [ localStyle.postHeadElement ] [ span [ localStyle.postName ] [ text post.name ], trip ]
+
+        time =
+            span [ localStyle.postHeadElement ] [ Time.view post.ts ]
 
         postHead =
             div [ localStyle.postHead ]
-                [ span [ localStyle.postName ] [ text post.name ]
-                , trip
+                [ no
+                , name
+                , time
                 ]
 
         postBody =
@@ -37,7 +53,4 @@ toOpStyle style =
     { style
         | post = style.op
         , postName = style.opName
-        , postTrip = style.opTrip
-        , postHead = style.opHead
-        , postBody = style.opBody
     }

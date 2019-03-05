@@ -13,6 +13,8 @@ type alias Theme =
     , bg : String
     , fgAlert : String
     , fgOpName : String
+    , fgThreadNo : String
+    , fgPostNo : String
     , fgPost : String
     , fgPostHead : String
     , fgPostName : String
