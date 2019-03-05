@@ -18,8 +18,11 @@
     :threads #'threads/page
     :undefined :div))
 
+;; That's a shame
+(def routes (atom {}))
+
 (defn init-router! []
   (secretary/set-config! :prefix "#")
-  (defroute "/" [] (rf/dispatch [:change-location {:current-page :threads}]))
-  (defroute "/test" [] (rf/dispatch [:change-location {:current-page :threads}]))
+  (defroute threads "/" [] (rf/dispatch [:change-location {:current-page :threads}]))
+  (swap! routes assoc :threads threads)
   (hook-browser-navigation!))

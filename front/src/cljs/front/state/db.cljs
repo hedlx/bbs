@@ -6,4 +6,6 @@
                  :threads-error nil
                  :thread-posts []
                  :current-page :undefined
-                 :route-params []})
+                 :route-params []
+
+                 :routes {}})

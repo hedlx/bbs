@@ -11,5 +11,5 @@
 
 (defn page []
   (fn []
-    [:div {:class "w-100 flex flex-column"}
+    [:div {:class "flex flex-column items-start w-100"}
       (map render-thread @(subscribe [:threads]))]))
