@@ -162,8 +162,8 @@ impl Db {
 fn db_msg_to_msg(msg: DbMessage) -> Message {
     Message {
         no: msg.no as u32,
-        name: msg.name.unwrap_or("Anonymous".to_string()),
-        trip: msg.trip.unwrap_or("".to_string()),
+        name: msg.name,
+        trip: msg.trip,
         text: msg.text,
         ts: msg.ts.timestamp(),
     }

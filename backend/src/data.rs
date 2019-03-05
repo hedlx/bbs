@@ -15,8 +15,8 @@ pub struct NewMessage {
 #[derive(Serialize)]
 pub struct Message {
     pub no: u32,
-    pub name: String,
-    pub trip: String,
+    pub name: Option<String>,
+    pub trip: Option<String>,
     pub text: String,
     pub ts: i64,
 }
