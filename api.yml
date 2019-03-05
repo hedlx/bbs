@@ -1,0 +1,213 @@
+openapi: 3.0.0
+servers:
+  - description: default
+    url: https://bbs.hedlx.org/api
+info:
+  description: Shallow BBS API definition
+  version: "0.1"
+  title: Hedλx BBS API
+
+paths:
+  /threads:
+    get:
+      summary: Get threads ordered by bumpness.
+      operationId: getThreads
+      parameters:
+        - in: query
+          name: before
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: NYI
+        - in: query
+          name: after
+          schema:
+            type: integer
+            format: int32
+          description: NYI
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          description: NYI
+        - in: query
+          name: tag
+          schema:
+            type: string
+          description: NYI
+      responses:
+        '200':
+          description: Thread object including OP and latest replies.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Thread'
+        '400':
+          description: bad input parameter
+    post:
+      summary: Create new thread.
+      operationId: createThread
+      responses:
+        '200':
+          description: thread created
+        '400':
+          description: invalid input
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMessage'
+  /threads/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: Thread id
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+    get:
+      summary: Get thread.
+      operationId: getThread
+      parameters:
+        - in: query
+          name: before
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: NYI
+        - in: query
+          name: after
+          schema:
+            type: integer
+            format: int32
+          description: NYI
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+          description: NYI
+      responses:
+        '200':
+          description: array of message objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '400':
+          description: bad input parameter
+    post:
+      summary: Post reply to the thread.
+      operationId: answerThread
+      responses:
+        '200':
+          description: message created
+        '400':
+          description: invalid input
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewMessage'
+    delete:
+      summary: Delete thread.
+      responses:
+        200: { description: Deleted. }
+        404: { description: No such thread. }
+  /threads/{id}/replies/{no}:
+    parameters:
+      - name: id
+        in: path
+        description: Thread id.
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+      - name: no
+        in: path
+        description: Message number. OP can not be deleted.
+        required: true
+        schema: { type: integer, format: int64, minimum: 1 }
+    delete:
+      summary: Delete reply.
+      parameters:
+        - in: query
+          name: password
+          description: Shit.
+          required: true
+          schema: { type: string }
+      responses:
+        200: { description: Deleted. }
+        404: { description: No such thread or post. }
+
+components:
+  schemas:
+    Thread:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3
+        op:
+          $ref: '#/components/schemas/Message'
+        last:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    NewMessage:
+      type: object
+      required:
+        - text
+      properties:
+        name:
+          type: string
+          example: Anonymous
+        secret:
+          type: string
+          example: mytripcode
+          description: Used to generate tripcode.
+        password:
+          type: string
+          example: mypassword
+          description: Password to delete this message.
+        text:
+          type: string
+          example: Incredibly long post text.
+    Message:
+      required:
+        - no
+        - text
+        - ts
+      properties:
+        no:
+          type: integer
+          example: 0
+          description: Message number within thread. 0 is OP.
+        name:
+          type: string
+          example: Anonymous
+        trip:
+          type: string
+          example: n4Z4Jfg2UgAg
+        text:
+          type: string
+          example: Incredibly long post text.
+        ts:
+          type: integer
+          example: 1136239445
+          description: Timestamp.
+      type: object
+  parameters:
+    id:
+      in: query
+      name: id
+      description: Thread id
+      schema:
+        type: integer
+        format: int64
