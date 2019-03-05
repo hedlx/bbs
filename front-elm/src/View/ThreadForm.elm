@@ -3,6 +3,7 @@ module View.ThreadForm exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Extra exposing (..)
 import Model.ThreadForm
 import Msg
 
@@ -21,19 +22,14 @@ meta style form =
     div [ style.formMetaPane ] <|
         nameInput style form
             ++ passInput style form
-            ++ [ button
-                    [ onClick Msg.FormSubmit
-                    , style.textButton
-                    , style.formButton
-                    , style.formMetaElement
-                    , disabled << not <| Model.ThreadForm.isValid form
-                    ]
-                    [ text "Create" ]
-               ]
+            ++ [ buttonCreate style form ]
+            ++ problems style form
+            ++ [ div [ style.flexFiller ] [] ]
+            ++ info style form
 
 
 nameInput style form =
-    [ label [ style.formMetaElement ] [ text "Name" ]
+    [ formLabel style "Name"
     , input
         [ type_ "text"
         , value <| Model.ThreadForm.name form
@@ -47,7 +43,7 @@ nameInput style form =
 
 
 passInput style form =
-    [ label [ style.formMetaElement ] [ text "Password" ]
+    [ formLabel style "Tripcode Secret"
     , input
         [ type_ "text"
         , value <| Model.ThreadForm.pass form
@@ -61,7 +57,7 @@ passInput style form =
 
 postBody style form =
     div [ style.formBodyPane ]
-        [ label [ style.formMetaElement ] [ text "Post Body" ]
+        [ formLabel style "Comment"
         , textarea
             [ value <| Model.ThreadForm.text form
             , style.textArea
@@ -71,3 +67,64 @@ postBody style form =
             ]
             []
         ]
+
+
+buttonCreate style form =
+    let
+        disabledAttrs =
+            if Model.ThreadForm.isValid form then
+                [ disabled False, style.textButtonEnabled ]
+
+            else
+                [ disabled True, style.textButtonDisabled ]
+    in
+    button
+        ([ onClick Msg.FormSubmit
+         , style.textButton
+         , style.formButton
+         , style.formMetaElement
+         ]
+            ++ disabledAttrs
+        )
+        [ text "Create" ]
+
+
+problems style form =
+    let
+        textCantBeBlank =
+            viewIf (Model.ThreadForm.isTextBlank form) <|
+                formProblem style "Comment can't be empty"
+    in
+    [ textCantBeBlank ]
+
+
+info style form =
+    let
+        postBodyText =
+            Model.ThreadForm.text form
+
+        charsCount =
+            String.fromInt << String.length <| postBodyText
+
+        words =
+            String.words (String.trim postBodyText)
+                |> List.filter (not << String.isEmpty)
+
+        wordsCount =
+            String.fromInt (List.length words)
+    in
+    [ formInfo style "Symbols" (charsCount ++ " / Inf")
+    , formInfo style "Words" (wordsCount ++ " / Inf")
+    ]
+
+
+formLabel style str =
+    label [ style.formMetaElement ] [ text str ]
+
+
+formProblem style str =
+    div [ style.formMetaElement, style.alert ] [ text str ]
+
+
+formInfo style strLabel strVal =
+    div [ style.formMetaElement ] [ text <| strLabel ++ ": ", text strVal ]

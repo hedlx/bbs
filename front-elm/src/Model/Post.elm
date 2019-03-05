@@ -8,12 +8,19 @@ type alias Post =
     , name : String
     , trip : String
     , text : String
+    , ts : Int
     }
 
 
 decoder =
-    Decode.map4 Post
+    Decode.map5 Post
         (Decode.field "no" Decode.int)
-        (Decode.field "name" Decode.string)
-        (Decode.field "trip" Decode.string)
+        (optField "name" "Anonymous" Decode.string)
+        (optField "trip" "" Decode.string)
         (Decode.field "text" Decode.string)
+        (Decode.field "ts" Decode.int)
+
+
+optField fieldId defaultValue decoderField =
+    Decode.maybe (Decode.field fieldId decoderField)
+        |> Decode.map (Maybe.withDefault defaultValue)

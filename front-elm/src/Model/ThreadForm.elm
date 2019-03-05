@@ -3,6 +3,7 @@ module Model.ThreadForm exposing
     , empty
     , encode
     , isEmpty
+    , isTextBlank
     , isValid
     , name
     , pass
@@ -47,8 +48,12 @@ isEmpty (ThreadForm form) =
         && String.isEmpty form.pass
 
 
-isValid (ThreadForm form) =
-    not (String.isEmpty (String.trim form.text))
+isTextBlank (ThreadForm form) =
+    String.isEmpty (String.trim form.text)
+
+
+isValid tform =
+    not (isTextBlank tform)
 
 
 empty =

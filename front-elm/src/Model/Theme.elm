@@ -11,6 +11,7 @@ type alias Theme =
     , fontMono : String
     , fg : String
     , bg : String
+    , fgAlert : String
     , fgOpName : String
     , fgPost : String
     , fgPostHead : String
@@ -21,6 +22,8 @@ type alias Theme =
     , bgMenu : String
     , fgButton : String
     , bgButton : String
+    , fgButtonDisabled : String
+    , bgButtonDisabled : String
     , fgInput : String
     , bgInput : String
     , bInput : String
