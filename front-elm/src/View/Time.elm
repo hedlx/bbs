@@ -7,7 +7,7 @@ import Time exposing (Month(..))
 view ts =
     let
         posixTime =
-            Time.millisToPosix ts
+            Time.millisToPosix (1000 * ts)
 
         day =
             Time.toDay Time.utc posixTime
@@ -37,7 +37,7 @@ view ts =
                 |> String.fromInt
                 >> String.pad 2 '0'
     in
-    text <| String.concat [ day, "-", month, "-", year, "  ", hours, ":", minutes, ":", seconds ]
+    text <| String.concat [ year, "-", month, "-", day, " ", hours, ":", minutes, ":", seconds ]
 
 
 toMonthName : Month -> String

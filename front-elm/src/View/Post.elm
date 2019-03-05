@@ -18,33 +18,36 @@ view style isOp threadID post =
 
         no =
             if isOp then
-                span [ localStyle.postHeadElement, localStyle.threadNo ] [ text <| ("[" ++ String.fromInt threadID) ++ "]" ]
+                div [ localStyle.postHeadElement, localStyle.threadNo ] [ text <| ("[" ++ String.fromInt threadID) ++ "]" ]
 
             else
-                span [ localStyle.postHeadElement, localStyle.postNo ] [ text <| ("#" ++ String.fromInt post.no) ]
+                div [ localStyle.postHeadElement, localStyle.postNo ] [ text <| ("#" ++ String.fromInt post.no) ]
 
         trip =
             if String.isEmpty post.trip then
                 nothing
 
             else
-                span [ localStyle.postTrip ] [ text ("(" ++ post.trip ++ ")") ]
+                span [ localStyle.postTrip ] [ text ("!" ++ post.trip) ]
 
         name =
-            span [ localStyle.postHeadElement ] [ span [ localStyle.postName ] [ text post.name ], trip ]
+            span [ localStyle.postName ] [ text <| String.left 32 post.name ]
+
+        nameTrip =
+            div [ localStyle.postHeadElement ] [ name, trip ]
 
         time =
-            span [ localStyle.postHeadElement ] [ Time.view (1000 * post.ts) ]
+            div [ localStyle.postHeadElement ] [ Time.view post.ts ]
 
         postHead =
             div [ localStyle.postHead ]
                 [ no
-                , name
+                , nameTrip
                 , time
                 ]
 
         postBody =
-            div [ localStyle.postBody ] [ text post.text ]
+            div [ localStyle.postBody, Html.Attributes.style "word-break" "break-word" ] [ text post.text ]
     in
     div [ style.post ]
         [ postHead, postBody ]
