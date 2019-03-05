@@ -173,10 +173,14 @@ fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) ->
     DbMessage{
         thread_id: thread_id,
         no: no,
-        name: msg.name,
-        trip: msg.secret.map(super::tripcode::generate),
+        name: trim(msg.name),
+        trip: trim(msg.secret).map(super::tripcode::generate),
         sender: String::new(),
         text: msg.text,
         ts: ts,
     }
+}
+
+fn trim(a: Option<String>) -> Option<String> {
+    a.map(|s|s.trim().to_owned()).filter(|s|!s.is_empty())
 }
