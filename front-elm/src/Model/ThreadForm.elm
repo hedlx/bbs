@@ -34,7 +34,7 @@ encode (ThreadForm form) =
                 "Anonymous"
 
             else
-                form.name
+                String.trim form.name
     in
     Encode.object
         [ ( "name", Encode.string fixedName )
@@ -77,7 +77,7 @@ pass (ThreadForm form) =
 
 
 setName newName (ThreadForm form) =
-    ThreadForm { form | name = String.trim newName }
+    ThreadForm { form | name = String.left 32 <| String.trimLeft newName }
 
 
 setText newText (ThreadForm form) =
