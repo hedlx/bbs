@@ -65,16 +65,8 @@ impl Db {
                 .returning(super::schema::threads::dsl::id)
                 .get_result(&self.0)?;
 
-            insert_into(super::schema::messages::dsl::messages).values(
-                &DbMessage{
-                    thread_id: thread_id,
-                    no: 0,
-                    name: Some(msg.name),
-                    trip: Some(msg.secret),
-                    sender: String::new(),
-                    text: msg.text,
-                    ts: now,
-                })
+            insert_into(super::schema::messages::dsl::messages)
+                .values(&msg_to_db_msg(msg, now, thread_id, 0))
                 .execute(&self.0)?;
 
             Ok(())
@@ -102,18 +94,9 @@ impl Db {
                 None => return Ok(false),
             };
 
-            sql_query(r"
-                INSERT INTO messages
-                ( thread_id, no, sender, text, ts )
-                VALUES (
-                    $1, $2, 'sender', $3, $4
-                )
-            ")
-            .bind::<Integer, _>(thread_id)
-            .bind::<Integer, _>(no)
-            .bind::<Text, _>(msg.text)
-            .bind::<Timestamp, _>(now)
-            .execute(&self.0)?;
+            insert_into(super::schema::messages::dsl::messages)
+                .values(&msg_to_db_msg(msg, now, thread_id, no))
+                .execute(&self.0)?;
 
             Ok(true)
         }).unwrap()
@@ -209,5 +192,17 @@ fn db_msg_to_msg(msg: &DbMessage) -> Message {
         trip: msg.trip.clone().unwrap_or("".to_string()),
         text: msg.text.clone(),
         ts: msg.ts.timestamp(),
+    }
+}
+
+fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) -> DbMessage {
+    DbMessage{
+        thread_id: thread_id,
+        no: no,
+        name: msg.name,
+        trip: msg.secret.map(super::tripcode::generate),
+        sender: String::new(),
+        text: msg.text,
+        ts: ts,
     }
 }

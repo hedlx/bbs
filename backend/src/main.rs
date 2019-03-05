@@ -1,5 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
+extern crate base64;
 extern crate chrono;
 #[macro_use]
 extern crate diesel;
@@ -9,12 +10,14 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 extern crate serde;
+extern crate sha2;
 
 use rocket_contrib::json::Json;
 
 mod data;
 mod db;
 mod schema;
+mod tripcode;
 use data::{NewMessage, Message, Thread};
 use db::Db;
 

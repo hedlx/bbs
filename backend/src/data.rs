@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct NewMessage {
-    pub name: String,
-    pub secret: String, // used to produce tripcode
+    pub name: Option<String>,
+    pub secret: Option<String>, // used to produce tripcode
+    pub password: Option<String>, // used to delete
     pub text: String,
 }
 
