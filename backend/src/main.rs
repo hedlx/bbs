@@ -80,12 +80,27 @@ fn thread_reply(
     }
 }
 
+#[delete("/threads/<id>/replies/<no>")]
+fn thread_reply_delete(
+    db: Db,
+    id: i32,
+    no: i32,
+) -> Option<&'static str> {
+    Some("NIY")
+}
+
 fn main() {
     rocket::ignite()
         .attach(Db::fairing())
         .mount(
             "/",
-            routes![threads_list, thread_id, thread_new, thread_reply],
+            routes![
+                thread_id,
+                thread_new,
+                thread_reply,
+                thread_reply_delete,
+                threads_list,
+            ],
         )
         .launch();
 }
