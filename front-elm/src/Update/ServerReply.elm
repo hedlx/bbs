@@ -10,16 +10,26 @@ update msg model =
         Msg.GotThreads result ->
             case result of
                 Ok threads ->
-                    ( { model
-                        | isLoading = False
-                        , threads = List.reverse threads
-                      }
-                    , Cmd.none
-                    )
+                    let
+                        newPage =
+                            Page.mapIndex (\_ -> Page.Content <| List.reverse threads) model.page
+                    in
+                    ( { model | page = newPage }, Cmd.none )
 
-                -- TODO: handle error
                 Err _ ->
-                    ( model, Cmd.none )
+                    Debug.todo "handle GotThreads error"
+
+        Msg.GotThread result ->
+            case result of
+                Ok thread ->
+                    let
+                        newPage =
+                            Page.mapThread (\_ -> Page.Content thread) model.page
+                    in
+                    ( { model | page = newPage }, Cmd.none )
+
+                Err _ ->
+                    Debug.todo "handle GotThread error"
 
         Msg.ThreadCreated result ->
             case result of

@@ -1,33 +1,81 @@
-module Model.Page exposing (Page(..), index, isLoadingRequired, newThread, notFound)
+module Model.Page exposing
+    ( Page(..)
+    , State(..)
+    , mapContent
+    , mapIndex
+    , mapLoading
+    , mapThread
+    , withLoadingDefault
+    )
 
+import Model.Thread
 import Model.ThreadForm as ThreadForm exposing (ThreadForm)
 
 
 type Page
     = NotFound
-    | Index
+    | Index (State () (List Model.Thread.Thread))
+    | Thread (State Int Model.Thread.Thread)
     | NewThread ThreadForm
 
 
-isLoadingRequired page =
-    case page of
-        NotFound ->
-            False
+type State a b
+    = Loading a
+    | Content b
 
-        Index ->
+
+mapContent f state =
+    case state of
+        Content data ->
+            Content (f data)
+
+        Loading loadData ->
+            Loading loadData
+
+
+mapLoading f state =
+    case state of
+        Loading data ->
+            Loading (f data)
+
+        Content data ->
+            Content data
+
+
+withLoadingDefault placeholder state =
+    case state of
+        Loading _ ->
+            placeholder
+
+        Content data ->
+            data
+
+
+mapIndex f page =
+    case page of
+        Index maybeThreads ->
+            Index (f maybeThreads)
+
+        _ ->
+            page
+
+
+mapThread f page =
+    case page of
+        Thread state ->
+            Thread (f state)
+
+        _ ->
+            page
+
+
+isLoading page =
+    case page of
+        Index (Loading _) ->
             True
 
-        NewThread _ ->
+        Thread (Loading _) ->
+            True
+
+        _ ->
             False
-
-
-index =
-    Index
-
-
-newThread =
-    NewThread ThreadForm.empty
-
-
-notFound =
-    NotFound

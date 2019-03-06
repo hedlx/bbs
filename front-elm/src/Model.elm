@@ -19,9 +19,7 @@ type alias Model =
     { appPath : String
     , page : Page
     , key : Nav.Key
-    , isLoading : Bool
     , theme : Theme
-    , threads : List Thread
     , spinner : Spinner.Model
     }
 
@@ -34,8 +32,6 @@ init flags url key =
     { appPath = url.path
     , page = page
     , key = key
-    , isLoading = Page.isLoadingRequired page
     , theme = Theme.empty
-    , threads = []
     , spinner = Spinner.init
     }

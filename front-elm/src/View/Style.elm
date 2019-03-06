@@ -23,6 +23,7 @@ type alias Style =
     , threadNo : Attr
     , postNo : Attr
     , op : Attr
+    , thread : Attr
     , post : Attr
     , postHead : Attr
     , postHeadElement : Attr
@@ -59,11 +60,12 @@ fromTheme theme =
     , alert = classes [ theme.fgAlert ]
     , threadPreview = classes [ mb3 ]
     , threadForm = classes [ pa3 ]
-    , previewPosts = classes [ pl5, pt3 ]
-    , threadNo = classes [ theme.fgThreadNo ]
+    , previewPosts = classes [ pl5 ]
+    , threadNo = classes [  theme.fgThreadNo ]
     , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
-    , post = classes [ pa2, br1, theme.bgPost ]
+    , thread = classes []
+    , post = classes [ mt3, pa2, br1, theme.bgPost ]
     , postHead = classes [ f6, overflow_hidden, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
     , postHeadElement = classes [ dib, mr2 ]
     , postName = classes [ dib, theme.fgPostName ]

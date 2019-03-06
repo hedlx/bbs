@@ -14,6 +14,7 @@ type Msg
     | UrlChanged Url
       -- HTTP Requests
     | GotThreads (Result Http.Error (List Thread))
+    | GotThread (Result Http.Error Thread)
     | ThreadCreated (Result Http.Error ())
       -- Forms
     | FormNameChanged String

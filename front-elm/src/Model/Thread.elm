@@ -1,4 +1,4 @@
-module Model.Thread exposing (Thread, decoder)
+module Model.Thread exposing (Thread, decoder, decoderPostList, fromPostList)
 
 import Json.Decode as Decode
 import Json.Decode.Extra as DecodeExt
@@ -19,3 +19,33 @@ decoder =
         (DecodeExt.withDefault "" <| Decode.field "topic" Decode.string)
         (Decode.field "op" Post.decoder)
         (Decode.field "last" <| Decode.list Post.decoder)
+
+
+decoderPostList : Int -> Decode.Decoder Thread
+decoderPostList threadID =
+    Decode.list Post.decoder
+        |> Decode.andThen
+            (fromPostList threadID
+                >> Maybe.map Decode.succeed
+                >> Maybe.withDefault (Decode.fail "Can't build thread from list")
+            )
+
+
+fromPostList : Int -> List Post -> Maybe Thread
+fromPostList threadID lsPost =
+    let
+        maybeOp =
+            List.head lsPost
+
+        replies =
+            List.tail lsPost |> Maybe.withDefault []
+    in
+    maybeOp
+        |> Maybe.map
+            (\op ->
+                { id = threadID
+                , topic = ""
+                , op = op
+                , replies = replies
+                }
+            )

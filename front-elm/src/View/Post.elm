@@ -16,9 +16,14 @@ view style isOp threadID post =
             else
                 style
 
+        strThreadID =
+            String.fromInt threadID
+
         no =
             if isOp then
-                div [ localStyle.postHeadElement, localStyle.threadNo ] [ text <| ("[" ++ String.fromInt threadID) ++ "]" ]
+                a [ href ("threads/" ++ strThreadID) ]
+                    [ div [ localStyle.postHeadElement, localStyle.threadNo ] [ text "[", span [ class TC.underline ] [ text strThreadID ], text "]" ]
+                    ]
 
             else
                 div [ localStyle.postHeadElement, localStyle.postNo ] [ text <| ("#" ++ String.fromInt post.no) ]

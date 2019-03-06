@@ -24,10 +24,7 @@ update msg model =
                 page =
                     Route.route url
             in
-            ( { model
-                | page = page
-                , isLoading = Model.Page.isLoadingRequired page
-              }
+            ( { model | page = page }
             , Commands.init page
             )
 

@@ -4,6 +4,8 @@ import Html exposing (..)
 import Model.Page
 import Spinner
 import View.Menu as Menu
+import View.NotFound as NotFound
+import View.Thread as Thread
 import View.ThreadForm as ThreadForm
 import View.Threads as Threads
 
@@ -16,27 +18,25 @@ view style model =
 
 
 content style model =
-    let
-        pageView =
-            case model.page of
-                Model.Page.Index ->
-                    Threads.view style model.threads
+    case model.page of
+        Model.Page.Index state ->
+            Model.Page.mapContent (Threads.view style) state
+                |> loadingSpinner model.spinner
 
-                Model.Page.NewThread form ->
-                    ThreadForm.view style form
+        Model.Page.Thread state ->
+            Model.Page.mapContent (Thread.view style) state
+                |> loadingSpinner model.spinner
 
-                Model.Page.NotFound ->
-                    h1 [] [ text "Page Not Found" ]
-    in
-    if model.isLoading then
-        loadingSpinner model.spinner
+        Model.Page.NewThread form ->
+            ThreadForm.view style form
 
-    else
-        pageView
+        Model.Page.NotFound ->
+            NotFound.view style
 
 
 loadingSpinner spinner =
     Spinner.view loadingSpinnerCfg spinner
+        |> Model.Page.withLoadingDefault
 
 
 loadingSpinnerCfg =
@@ -45,5 +45,13 @@ loadingSpinnerCfg =
             Spinner.defaultConfig
     in
     { defaultCfg
-        | direction = Spinner.Counterclockwise
+        | lines = 11
+        , length = 30
+        , width = 30
+        , radius = 90
+        , scale = 0.5
+        , corners = 1
+        , opacity = 0.1
+        , direction = Spinner.Counterclockwise
+        , hwaccel = True
     }
