@@ -6,7 +6,7 @@
   (fn [{:keys [post]}]
     (let [{:keys [id op]} post
           {:keys [name text] :or {:name "Anonymous"}} op]
-      [:div {:class "flex flex-column pa3 br2 bg-dark-pink ba b--pink"}
+      [:div {:class "flex flex-column min-w5 pa3 br2 bg-dark-pink ba b--pink"}
         [:div {:class "flex pb2"}
           [:div {:class "b pr2"} name]
           [:div {:class "pr2"} id]]

@@ -11,6 +11,10 @@
   :threads-loading?
   (fn [_ _] (subscribe [:threads-root]))
   (fn [root _] (:loading? root)))
+(reg-sub
+  :threads-error
+  (fn [_ _] (subscribe [:threads-root]))
+  (fn [root _] (:error root)))
 
 (reg-sub :router #(:router %))
 (reg-sub
