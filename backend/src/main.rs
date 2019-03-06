@@ -13,6 +13,8 @@ extern crate serde;
 extern crate sha2;
 
 use rocket_contrib::json::Json;
+use rocket::http::{Status, ContentType};
+use serde::Serialize;
 
 mod data;
 mod db;
@@ -22,6 +24,11 @@ use data::{NewMessage, Message, Thread};
 use db::Db;
 
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
+
+type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
+fn error(status: Status, error: &'static str) -> Error {
+    rocket::response::status::Custom(status, json!({"error": error}))
+}
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
 fn threads_list(
@@ -63,7 +70,7 @@ fn thread_id(
 #[post("/threads", format = "json", data = "<msg>")]
 fn thread_new(db: Db, msg: Json<NewMessage>) -> &'static str {
     db.new_thread(msg.0);
-    "done"
+    "{}"
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
@@ -71,12 +78,11 @@ fn thread_reply(
     db: Db,
     id: i32,
     msg: Json<NewMessage>,
-) -> &'static str {
+) -> Result<&'static str, Error> {
     if db.reply_thread(id, msg.0) {
-        "done"
+        Ok("{}")
     } else {
-        "no such thread"
-        // TODO: 404 status code
+        Err(error(Status::NotFound, "no such thread"))
     }
 }
 
