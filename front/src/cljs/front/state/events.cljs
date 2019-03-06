@@ -14,9 +14,9 @@
 (reg-event-fx
   :change-location
   (fn [{:keys [db]} [_ {:keys [current-page route-params]}]]
-    (let [router-fx (assoc db
-                      :current-page current-page
-                      :route-params route-params)]
+    (let [router-fx (-> db
+                        (assoc-in [:router :current-page] current-page)
+                        (assoc-in [:router :params] route-params))]
       (case current-page
         :threads {:db router-fx
                   :dispatch [:load-threads]}))))
@@ -30,18 +30,20 @@
                   :response-format (json-response-format {:keywords? true})
                   :on-success [:threads-fetch-success]
                   :on-failure [:threads-fetch-error]}
-     :db (assoc db :threads-loading? true)}))
+     :db (assoc-in db [:threads :loading?] true)}))
 
 (reg-event-db
   :threads-fetch-success
   (fn [db [_ threads]]
-    (assoc db :threads threads
-              :threads-loading? false
-              :threads-error nil)))
+    (-> db
+        (assoc-in [:threads :list] threads)
+        (assoc-in [:threads :loading?] false)
+        (assoc-in [:threads :error] nil))))
 
 (reg-event-db
   :threads-fetch-error
   (fn [db [_ error]]
-    (assoc db :threads []
-              :threads-loading? false
-              :threads-error error)))
+    (-> db
+        (assoc-in [:threads :list] [])
+        (assoc-in [:threads :loading?] false)
+        (assoc-in [:threads :error] error))))

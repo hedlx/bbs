@@ -7,6 +7,6 @@
 (defn c []
   (fn []
     [:div {:class "flex flex-column"}
-     [:div {:class "black hover-dark-gray"
+     [:div {:class "black dim pointer"
             :on-click #(secretary/dispatch! ((:threads @routes)))}
       [logo/c]]]))

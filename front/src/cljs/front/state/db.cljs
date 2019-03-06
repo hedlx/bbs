@@ -1,11 +1,9 @@
 (ns front.state.db)
 
 
-(def default-db {:threads []
-                 :threads-loading? true
-                 :threads-error nil
+(def default-db {:threads {:list []
+                           :loading? false
+                           :error nil}
                  :thread-posts []
-                 :current-page :undefined
-                 :route-params []
-
-                 :routes {}})
+                 :router {:current-page :undefined
+                          :params []}})
