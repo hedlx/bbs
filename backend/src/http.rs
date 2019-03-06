@@ -1,12 +1,12 @@
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
-use rocket_contrib::json::Json;
-use rocket::http::{Status, ContentType};
-use serde::Serialize;
-use super::events::validate_message;
-
 use data::{NewMessage, Message, Thread};
 use db::Db;
+use rocket::http::{Status, ContentType};
+use rocket_contrib::json::Json;
+use serde::Serialize;
+use super::events::validate_message;
+use super::limits::{Limits, LIMITS};
 
 type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
 fn error(status: Status, message: &'static str, code: &'static str) -> Error {
@@ -85,12 +85,18 @@ fn thread_reply_delete(
     Some("NIY")
 }
 
+#[get("/limits")]
+fn limits() -> Json<Limits> {
+    Json(LIMITS)
+}
+
 pub fn start() {
     rocket::ignite()
         .attach(Db::fairing())
         .mount(
             "/",
             routes![
+                limits,
                 thread_id,
                 thread_new,
                 thread_reply,

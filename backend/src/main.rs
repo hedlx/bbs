@@ -10,12 +10,14 @@ extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
 extern crate serde;
+extern crate serde_json;
 extern crate sha2;
 
 mod data;
 mod db;
 mod events;
 mod http;
+mod limits;
 mod schema;
 mod tripcode;
 
