@@ -14,6 +14,7 @@ extern crate sha2;
 
 mod data;
 mod db;
+mod events;
 mod http;
 mod schema;
 mod tripcode;

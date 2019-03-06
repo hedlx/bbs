@@ -3,6 +3,7 @@
 use rocket_contrib::json::Json;
 use rocket::http::{Status, ContentType};
 use serde::Serialize;
+use super::events::validate_message;
 
 use data::{NewMessage, Message, Thread};
 use db::Db;
@@ -50,9 +51,11 @@ fn thread_id(
 }
 
 #[post("/threads", format = "json", data = "<msg>")]
-fn thread_new(db: Db, msg: Json<NewMessage>) -> &'static str {
-    db.new_thread(msg.0);
-    "{}"
+fn thread_new(db: Db, msg: Json<NewMessage>) -> Result<&'static str, Error> {
+    let msg = validate_message(msg.0)
+        .map_err(|x| error(Status::BadRequest, x))?;
+    db.new_thread(msg);
+    Ok("{}")
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
@@ -61,7 +64,9 @@ fn thread_reply(
     id: i32,
     msg: Json<NewMessage>,
 ) -> Result<&'static str, Error> {
-    if db.reply_thread(id, msg.0) {
+    let msg = validate_message(msg.0)
+        .map_err(|x| error(Status::BadRequest, x))?;
+    if db.reply_thread(id, msg) {
         Ok("{}")
     } else {
         Err(error(Status::NotFound, "no such thread"))
