@@ -9,10 +9,10 @@ use data::{NewMessage, Message, Thread};
 use db::Db;
 
 type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
-fn error(status: Status, text: &'static str, code: &'static str) -> Error {
+fn error(status: Status, message: &'static str, code: &'static str) -> Error {
     rocket::response::status::Custom(
         status,
-        json!({"error": {"text": text, "code": code}}),
+        json!({"message": message, "code": code}),
     )
 }
 
