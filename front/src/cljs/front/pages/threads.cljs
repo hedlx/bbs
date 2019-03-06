@@ -10,11 +10,14 @@
   [:div {:class "pa1"}
         [thread-comp/c {:thread thread}]])
 
+(defn- render-threads [threads]
+  (map render-thread threads))
+
 (defn- render-content [threads loading? error]
   (cond
-    loading? [spinner-overlay/c]
+    (and (empty? threads) loading?) [spinner-overlay/c]
     error    [:div "ERROR"] ;TODO: you know
-    :default (map render-thread threads)))
+    :default (render-threads threads)))
 
 (defn page []
   (fn []
