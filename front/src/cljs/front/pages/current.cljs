@@ -1,9 +1,16 @@
 (ns front.pages.current
   (:require
     [re-frame.core :refer [subscribe]]
-    [front.router :refer [page-for]]
-    [front.components.control-panel :as control-panel]))
+    [front.components.control-panel :as control-panel]
+    [front.pages.thread :as thread]
+    [front.pages.threads :as threads]))
 
+
+(defn page-for [route]
+  (case route
+    :threads #'threads/page
+    :thread #'thread/page
+    :undefined :div))
 
 (defn page []
   (fn []

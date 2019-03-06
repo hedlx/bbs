@@ -2,9 +2,7 @@
   (:require
     [secretary.core :as secretary :refer-macros [defroute]]
     [goog.events :as events]
-    [re-frame.core :as rf]
-    [front.pages.threads :as threads]
-    [front.pages.thread :as thread])
+    [re-frame.core :as rf])
   (:import [goog History]
            [goog.history EventType]))
 
@@ -13,12 +11,6 @@
   (doto (History.)
     (events/listen EventType.NAVIGATE #(secretary/dispatch! (.-token %)))
     (.setEnabled true)))
-
-(defn page-for [route]
-  (case route
-    :threads #'threads/page
-    :thread #'thread/page
-    :undefined :div))
 
 ;; That's a shame
 (def routes (atom {}))
