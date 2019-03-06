@@ -1,13 +1,12 @@
 (ns front.components.control-panel
   (:require [front.components.logo :as logo]
             [front.components.spinner :as spinner]
-            [front.router :refer [routes]]
-            [re-frame.core :refer [subscribe]]
-            [secretary.core :as secretary]))
+            [front.router :refer [push!]]
+            [re-frame.core :refer [subscribe]]))
 
 (defn render-logo []
   [:div {:class "black dim pointer"
-         :on-click #(secretary/dispatch! ((:threads @routes)))}
+         :on-click #(push! :threads)}
    [logo/c]])
 
 (defn c []
