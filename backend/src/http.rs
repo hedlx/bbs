@@ -9,8 +9,11 @@ use data::{NewMessage, Message, Thread};
 use db::Db;
 
 type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
-fn error(status: Status, error: &'static str) -> Error {
-    rocket::response::status::Custom(status, json!({"error": error}))
+fn error(status: Status, text: &'static str, code: &'static str) -> Error {
+    rocket::response::status::Custom(
+        status,
+        json!({"error": {"text": text, "code": code}}),
+    )
 }
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
@@ -53,7 +56,7 @@ fn thread_id(
 #[post("/threads", format = "json", data = "<msg>")]
 fn thread_new(db: Db, msg: Json<NewMessage>) -> Result<&'static str, Error> {
     let msg = validate_message(msg.0)
-        .map_err(|x| error(Status::BadRequest, x))?;
+        .map_err(|(e,c)| error(Status::BadRequest, e, c))?;
     db.new_thread(msg);
     Ok("{}")
 }
@@ -65,11 +68,11 @@ fn thread_reply(
     msg: Json<NewMessage>,
 ) -> Result<&'static str, Error> {
     let msg = validate_message(msg.0)
-        .map_err(|x| error(Status::BadRequest, x))?;
+        .map_err(|(e,c)| error(Status::BadRequest, e, c))?;
     if db.reply_thread(id, msg) {
         Ok("{}")
     } else {
-        Err(error(Status::NotFound, "no such thread"))
+        Err(error(Status::NotFound, "No such thread.", "thread.not_found"))
     }
 }
 
