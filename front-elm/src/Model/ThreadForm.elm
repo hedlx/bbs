@@ -1,5 +1,7 @@
 module Model.ThreadForm exposing
     ( ThreadForm
+    , countChars
+    , countWords
     , empty
     , encode
     , isEmpty
@@ -14,6 +16,7 @@ module Model.ThreadForm exposing
     )
 
 import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 type ThreadForm
@@ -86,3 +89,19 @@ setText newText (ThreadForm form) =
 
 setPass newPass (ThreadForm form) =
     ThreadForm { form | pass = String.trim newPass }
+
+
+countChars (ThreadForm form) =
+    String.length <| form.text
+
+
+countWords (ThreadForm form) =
+    let
+        words =
+            String.words (String.trim form.text)
+                |> List.filter isWord
+    in
+    List.length words
+
+isWord str =
+    not (String.isEmpty str)

@@ -34,7 +34,7 @@ type alias Style =
     , textButtonEnabled : Attr
     , textButtonDisabled : Attr
     , iconicButton : Attr
-    , iconicButtonLink : Attr
+    , menuButton : Attr
     , flexFiller : Attr
     , formContainer : Attr
     , formMetaPane : Attr
@@ -59,7 +59,7 @@ fromTheme theme =
     , alert = classes [ theme.fgAlert ]
     , threadPreview = classes [ mb3 ]
     , threadForm = classes [ pa3 ]
-    , previewPosts = classes [ pl5, pt3]
+    , previewPosts = classes [ pl5, pt3 ]
     , threadNo = classes [ theme.fgThreadNo ]
     , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
@@ -69,12 +69,12 @@ fromTheme theme =
     , postName = classes [ dib, theme.fgPostName ]
     , opName = classes [ theme.fgOpName ]
     , postTrip = classes [ theme.fgPostTrip ]
-    , postBody = classes [ pa1, overflow_hidden, theme.fgPost, theme.bgPost ]
+    , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
     , textButton = classes <| [ b__solid, pa2, br1, outline_0, theme.bInput ]
     , textButtonEnabled = classes [ dim, pointer, theme.bgButton, theme.fgButton ]
     , textButtonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
-    , iconicButton = classes [ bg_transparent, b__none, dim, pt3, pb3, outline_0, theme.fgButton ]
-    , iconicButtonLink = classes [ pointer, bg_transparent, b__none, dim, pt3, pb3, outline_0, theme.fgButton ]
+    , iconicButton = classes [ bg_transparent, b__none, dim, outline_0, theme.fgButton ]
+    , menuButton = classes [ pa3 ]
     , flexFiller = classes [ flex_grow_1 ]
     , formContainer = classes [ h_100, w_100, flex, flex_row ]
     , formMetaPane = classes [ pl3, pr3, flex, flex_column ]

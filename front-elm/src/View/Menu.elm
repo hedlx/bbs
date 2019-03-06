@@ -18,13 +18,13 @@ view style model =
 
 btnIndex style =
     a [ href "/" ]
-        [ div [ style.iconicButtonLink, title "Main Page" ] [ Icons.hedlx ] ]
+        [ div [ style.iconicButton, style.menuButton, title "Main Page" ] [ Icons.hedlx ] ]
 
 
 btnNewThread style =
     a [ href "/new" ]
-        [ div [ style.iconicButton, title "Create Thread" ] [ Icons.add ] ]
+        [ div [ style.iconicButton, style.menuButton, title "Create Thread" ] [ Icons.add ] ]
 
 
 btnSettings style =
-    div [ style.iconicButton, title "Settings" ] [ Icons.settings ]
+    div [ style.iconicButton, style.menuButton, title "Settings" ] [ Icons.settings ]

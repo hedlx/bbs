@@ -99,22 +99,8 @@ problems style form =
 
 
 info style form =
-    let
-        postBodyText =
-            Model.ThreadForm.text form
-
-        charsCount =
-            String.fromInt << String.length <| postBodyText
-
-        words =
-            String.words (String.trim postBodyText)
-                |> List.filter (not << String.isEmpty)
-
-        wordsCount =
-            String.fromInt (List.length words)
-    in
-    [ formInfo style "Symbols" (charsCount ++ " / Inf")
-    , formInfo style "Words" (wordsCount ++ " / Inf")
+    [ formInfo style "Symbols" (String.fromInt (Model.ThreadForm.countChars form) ++ " / Inf")
+    , formInfo style "Words" (String.fromInt (Model.ThreadForm.countWords form) ++ " / Inf")
     ]
 
 

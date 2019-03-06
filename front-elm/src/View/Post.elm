@@ -47,7 +47,7 @@ view style isOp threadID post =
                 ]
 
         postBody =
-            div [ localStyle.postBody, Html.Attributes.style "word-break" "break-word" ] [ text post.text ]
+            div [ localStyle.postBody, Html.Attributes.style "white-space" "pre-wrap" ] [ text post.text ]
     in
     div [ style.post ]
         [ postHead, postBody ]

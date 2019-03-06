@@ -31,7 +31,7 @@ init flags url key =
         page =
             Route.route url
     in
-    { appPath = Debug.log url.path url.path
+    { appPath = url.path
     , page = page
     , key = key
     , isLoading = Page.isLoadingRequired page
