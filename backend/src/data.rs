@@ -1,13 +1,13 @@
+use super::schema::{messages, threads};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use super::schema::{messages, threads};
 
 /* REST-related */
 
 #[derive(Deserialize)]
 pub struct NewMessage {
     pub name: Option<String>,
-    pub secret: Option<String>, // used to produce tripcode
+    pub secret: Option<String>,   // used to produce tripcode
     pub password: Option<String>, // used to delete
     pub text: String,
 }

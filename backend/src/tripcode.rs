@@ -1,5 +1,5 @@
-use sha2::{Sha256, Digest};
 use base64;
+use sha2::{Digest, Sha256};
 
 pub fn generate(s: String) -> String {
     let mut hasher = Sha256::new();

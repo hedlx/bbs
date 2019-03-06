@@ -1,19 +1,16 @@
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
-use data::{NewMessage, Message, Thread};
-use db::Db;
-use rocket::http::{Status, ContentType};
-use rocket_contrib::json::Json;
-use serde::Serialize;
 use super::events::validate_message;
 use super::limits::{Limits, LIMITS};
+use data::{Message, NewMessage, Thread};
+use db::Db;
+use rocket::http::{ContentType, Status};
+use rocket_contrib::json::Json;
+use serde::Serialize;
 
 type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
 fn error(status: Status, message: &'static str, code: &'static str) -> Error {
-    rocket::response::status::Custom(
-        status,
-        json!({"message": message, "code": code}),
-    )
+    rocket::response::status::Custom(status, json!({"message": message, "code": code}))
 }
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
@@ -44,44 +41,36 @@ fn thread_id(
 ) -> Option<Json<Vec<Message>>> {
     let limit = limit.unwrap_or(100);
     match (before, after) {
-        (None, None) => {
-            db.get_thread_messages(id).map(Json)
-        }
-        (Some(_), None) => { None }    // before
-        (None, Some(_)) => { None }    // after
-        (Some(_), Some(_)) => { None } // range / 400
+        (None, None) => db.get_thread_messages(id).map(Json),
+        (Some(_), None) => None,    // before
+        (None, Some(_)) => None,    // after
+        (Some(_), Some(_)) => None, // range / 400
     }
 }
 
 #[post("/threads", format = "json", data = "<msg>")]
 fn thread_new(db: Db, msg: Json<NewMessage>) -> Result<&'static str, Error> {
-    let msg = validate_message(msg.0)
-        .map_err(|(e,c)| error(Status::BadRequest, e, c))?;
+    let msg = validate_message(msg.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
     db.new_thread(msg);
     Ok("{}")
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
-fn thread_reply(
-    db: Db,
-    id: i32,
-    msg: Json<NewMessage>,
-) -> Result<&'static str, Error> {
-    let msg = validate_message(msg.0)
-        .map_err(|(e,c)| error(Status::BadRequest, e, c))?;
+fn thread_reply(db: Db, id: i32, msg: Json<NewMessage>) -> Result<&'static str, Error> {
+    let msg = validate_message(msg.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
     if db.reply_thread(id, msg) {
         Ok("{}")
     } else {
-        Err(error(Status::NotFound, "No such thread.", "thread.not_found"))
+        Err(error(
+            Status::NotFound,
+            "No such thread.",
+            "thread.not_found",
+        ))
     }
 }
 
 #[delete("/threads/<id>/replies/<no>")]
-fn thread_reply_delete(
-    db: Db,
-    id: i32,
-    no: i32,
-) -> Option<&'static str> {
+fn thread_reply_delete(db: Db, id: i32, no: i32) -> Option<&'static str> {
     Some("NIY")
 }
 

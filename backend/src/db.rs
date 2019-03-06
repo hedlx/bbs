@@ -1,14 +1,14 @@
-use super::data::{NewMessage, Message, Thread, DbMessage, DbThread, DbNewThread};
+use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, Thread};
 use super::schema::{messages, threads};
 use chrono::{NaiveDateTime, Utc};
 
+use diesel::sql_types::{Integer, Text, Timestamp};
 use diesel::Connection;
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::QueryResult;
 use diesel::RunQueryDsl;
-use diesel::sql_types::{Integer, Text, Timestamp};
 use diesel::{insert_into, sql_query};
 use rocket_contrib::databases::diesel;
 
@@ -28,9 +28,8 @@ impl Db {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
-            let thread_id =
-            insert_into(super::schema::threads::dsl::threads).values(
-                &DbNewThread{
+            let thread_id = insert_into(super::schema::threads::dsl::threads)
+                .values(&DbNewThread {
                     last_reply_no: 0,
                     bump: now,
                 })
@@ -44,7 +43,8 @@ impl Db {
                 .execute(&self.0)?;
 
             Ok(db_msg_to_msg(result))
-        }).unwrap()
+        })
+        .unwrap()
     }
 
     pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> bool {
@@ -73,7 +73,8 @@ impl Db {
                 .execute(&self.0)?;
 
             Ok(true)
-        }).unwrap()
+        })
+        .unwrap()
     }
 
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
@@ -96,7 +97,8 @@ impl Db {
             })
             .collect();
             Ok(threads)
-        }).unwrap()
+        })
+        .unwrap()
     }
 
     /* Private methods. */
@@ -111,7 +113,7 @@ impl Db {
         .bind::<Integer, _>(thread_id)
         .get_result::<DbMessage>(&self.0)
         .unwrap();
-        db_msg_to_msg( op )
+        db_msg_to_msg(op)
     }
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
@@ -127,10 +129,7 @@ impl Db {
         Ok(result)
     }
 
-    pub fn get_thread_messages(
-        &self,
-        thread_id: i32,
-    ) -> Option<Vec<Message>> {
+    pub fn get_thread_messages(&self, thread_id: i32) -> Option<Vec<Message>> {
         let messages = sql_query(r"
             SELECT *
               FROM messages
@@ -140,10 +139,7 @@ impl Db {
         .get_results::<DbMessage>(&self.0)
         .unwrap();
 
-        let messages: Vec<Message> = messages
-            .into_iter()
-            .map(db_msg_to_msg)
-            .collect();
+        let messages: Vec<Message> = messages.into_iter().map(db_msg_to_msg).collect();
 
         if messages.is_empty() {
             None
@@ -153,7 +149,8 @@ impl Db {
     }
 
     fn transaction<T, F>(&self, f: F) -> Result<T, diesel::result::Error>
-    where F: FnOnce() -> Result<T, diesel::result::Error>,
+    where
+        F: FnOnce() -> Result<T, diesel::result::Error>,
     {
         self.0.transaction::<_, diesel::result::Error, _>(f)
     }
@@ -170,7 +167,7 @@ fn db_msg_to_msg(msg: DbMessage) -> Message {
 }
 
 fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) -> DbMessage {
-    DbMessage{
+    DbMessage {
         thread_id: thread_id,
         no: no,
         name: msg.name,
