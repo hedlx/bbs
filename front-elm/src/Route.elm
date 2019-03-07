@@ -5,17 +5,16 @@ import Env
 import Model.Page as Page exposing (..)
 import Model.PostForm as PostForm exposing (PostForm)
 import Regex
+import String.Extra
 import Url exposing (Url)
 import Url.Builder as Builder
 import Url.Parser as Parser exposing (..)
 
 
 routes =
-    [ top |> map (Index <| Loading ())
-    , s "new" |> map (NewThread PostForm.empty)
-    , s "threads" |> map (Index <| Loading ())
-    , s "threads" </> int |> map (\tID -> Thread <| Loading tID)
-    , s "threads" </> s "new" |> map (NewThread PostForm.empty)
+    [ oneOf [ top, s "threads" ] |> map (Index <| Loading ())
+    , oneOf [ s "new", s "threads" </> s "new" ] |> map (NewThread PostForm.empty)
+    , oneOf [ int, s "threads" </> int ] |> map (\tID -> Thread <| Loading tID)
     ]
 
 
@@ -28,7 +27,19 @@ route =
 
 link : Url -> List String -> String
 link urlApp ls =
-    Builder.relative (urlApp.path :: "#" :: ls) []
+    let
+        fixedAppPath =
+            String.split "/" urlApp.path
+                |> List.filter (not << String.Extra.isBlank)
+
+        fixedPath =
+            ls
+                |> List.concatMap (String.split "/")
+                >> List.filter (not << String.Extra.isBlank)
+    in
+    Builder.relative fixedAppPath []
+        ++ "#"
+        ++ Builder.relative fixedPath []
 
 
 replacePathWithFragment url =
