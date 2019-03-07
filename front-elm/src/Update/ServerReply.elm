@@ -31,7 +31,7 @@ update msg model =
         Msg.ThreadCreated result ->
             case result of
                 Ok () ->
-                    ( model, Commands.redirect [ "threads" ] model )
+                    ( model, Commands.redirect [] model )
 
                 Err _ ->
                     Debug.todo "handle ThreadCreated error"
@@ -39,7 +39,7 @@ update msg model =
         Msg.PostCreated threadID result ->
             case result of
                 Ok () ->
-                    ( model, Commands.redirect [ "threads", String.fromInt threadID ] model )
+                    ( model, Commands.redirect [ String.fromInt threadID ] model )
 
                 Err _ ->
                     Debug.todo "handle PostCreated error"

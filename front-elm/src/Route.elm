@@ -1,4 +1,4 @@
-module Route exposing (link, route)
+module Route exposing (internalLink, route)
 
 import Dict
 import Env
@@ -12,34 +12,32 @@ import Url.Parser as Parser exposing (..)
 
 
 routes =
-    [ oneOf [ top, s "threads" ] |> map (Index <| Loading ())
-    , oneOf [ s "new", s "threads" </> s "new" ] |> map (NewThread PostForm.empty)
-    , oneOf [ int, s "threads" </> int ] |> map (\tID -> Thread <| Loading tID)
-    ]
+    oneOf
+        [ oneOf [ top, s "threads" ] |> map (Index <| Loading ())
+        , oneOf [ s "new", s "threads" </> s "new" ] |> map (NewThread PostForm.empty)
+        , oneOf [ int, s "threads" </> int ] |> map (\tID -> Thread <| Loading tID)
+        ]
 
 
 route : Url -> Page
 route =
     replacePathWithFragment
-        >> parse (oneOf routes)
+        >> parse routes
         >> Maybe.withDefault NotFound
 
 
-link : Url -> List String -> String
-link urlApp ls =
+internalLink : List String -> String
+internalLink ls =
     let
-        fixedAppPath =
-            String.split "/" urlApp.path
-                |> List.filter (not << String.Extra.isBlank)
-
         fixedPath =
-            ls
-                |> List.concatMap (String.split "/")
-                >> List.filter (not << String.Extra.isBlank)
+            List.concatMap (String.split "/") ls
+                |> List.filter (not << String.Extra.isBlank)
     in
-    Builder.relative fixedAppPath []
-        ++ "#"
-        ++ Builder.relative fixedPath []
+    if List.isEmpty fixedPath then
+        ""
+
+    else
+        "#" ++ Builder.relative fixedPath []
 
 
 replacePathWithFragment url =

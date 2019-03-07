@@ -1,5 +1,6 @@
 module View.PostForm exposing (view)
 
+import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -97,7 +98,7 @@ buttonCreate style form =
          ]
             ++ disabledAttrs
         )
-        [ text "Create" ]
+        [ text "Post" ]
 
 
 problems style form =
@@ -110,8 +111,13 @@ problems style form =
 
 
 info style form =
-    [ formInfo style "Symbols" (String.fromInt (Model.PostForm.countChars form) ++ " / Inf")
-    , formInfo style "Words" (String.fromInt (Model.PostForm.countWords form) ++ " / Inf")
+    [ formInfo style
+        "Symbols"
+        (String.fromInt (Model.PostForm.countChars form)
+            ++ " / "
+            ++ String.fromInt Env.maxPostLength
+        )
+    , formInfo style "Words" (String.fromInt (Model.PostForm.countWords form))
     ]
 
 

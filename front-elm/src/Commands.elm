@@ -8,6 +8,7 @@ import Model.Post
 import Model.Thread
 import Model.Threads
 import Msg
+import Route
 import Url
 import Url.Builder
 
@@ -25,7 +26,7 @@ init page =
 
 
 redirect pagePath model =
-    Nav.pushUrl model.key <| String.join "/" (model.cfg.urlApp.path :: "#" :: pagePath)
+    Nav.pushUrl model.key <| model.cfg.urlApp.path ++ Route.internalLink pagePath
 
 
 getThreads =

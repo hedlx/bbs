@@ -18,12 +18,12 @@ view style model =
 
 
 btnIndex style { cfg } =
-    a [ href <| Route.link cfg.urlApp [] ]
+    a [ href <| Route.internalLink [] ]
         [ div [ style.iconicButton, style.menuButton, title "Main Page" ] [ Icons.hedlx ] ]
 
 
 btnNewThread style { cfg } =
-    a [ href <| Route.link cfg.urlApp [ "new" ] ]
+    a [ href <| Route.internalLink [ "new" ] ]
         [ div [ style.iconicButton, style.menuButton, title "Create Thread" ] [ Icons.add ] ]
 
 

@@ -17,6 +17,7 @@ module Model.PostForm exposing
     , trip
     )
 
+import Env
 import Json.Decode as Decode
 import Json.Encode as Encode
 
@@ -89,11 +90,11 @@ pass (PostForm form) =
 
 
 setName newName (PostForm form) =
-    PostForm { form | name = String.left 32 <| String.trimLeft newName }
+    PostForm { form | name = String.left Env.maxNameLength <| String.trimLeft newName }
 
 
 setText newText (PostForm form) =
-    PostForm { form | text = newText }
+    PostForm { form | text = String.left Env.maxPostLength <| newText }
 
 
 setTrip newTrip (PostForm form) =

@@ -21,7 +21,7 @@ view style cfg isOp threadID post =
             String.fromInt threadID
 
         threadLink =
-            a [ href <| Route.link cfg.urlApp [ strThreadID ] ]
+            a [ href <| Route.internalLink [ strThreadID ] ]
 
         no =
             if isOp then
