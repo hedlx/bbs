@@ -8,6 +8,10 @@
   (fn [_ _] (subscribe [:threads-root]))
   (fn [root _] (:list root)))
 (reg-sub
+  :sorted-threads
+  (fn [_ _] (subscribe [:threads]))
+  (fn [threads _] (sort-by #(-> % :last last :ts) > threads)))
+(reg-sub
   :threads-loading?
   (fn [_ _] (subscribe [:threads-root]))
   (fn [root _] (:loading? root)))

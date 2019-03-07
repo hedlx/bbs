@@ -2,13 +2,16 @@
   (:require
     [front.components.post :as post]
     [front.components.spinner-overlay :as spinner-overlay]
-    [re-frame.core :refer [subscribe]]))
+    [re-frame.core :refer [subscribe]]
+    [clojure.string :as str]))
 
 
 (defn- render-post [post]
-  ^{:key (:no post)}
-  [:div {:class "pa1"}
-   [post/c (assoc post :id (:no post))]])
+  (let [id (:no post)
+        op? (zero? id)]
+    ^{:key id}
+    [:div {:class (str/join " " ["pa1" (when op? "w-100")])}
+     [post/c (assoc post :id id :op? op?)]]))
 
 (defn- render-posts [posts]
   (map render-post posts))
