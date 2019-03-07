@@ -8,7 +8,7 @@ import View.Post as Post
 
 view style thread =
     div [ style.content, style.thread ] <|
-        [ Post.view style True thread.id thread.op ]
+        [ Post.view style False thread.id thread.op ]
             ++ posts style thread
 
 

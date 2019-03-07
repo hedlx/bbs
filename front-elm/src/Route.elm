@@ -1,4 +1,4 @@
-module Route exposing (route)
+module Route exposing (link, route)
 
 import Dict
 import Env
@@ -24,6 +24,11 @@ route =
     replacePathWithFragment
         >> parse (oneOf routes)
         >> Maybe.withDefault NotFound
+
+
+link : List String -> String
+link ls =
+    String.join "/" ("/#" :: ls)
 
 
 replacePathWithFragment url =

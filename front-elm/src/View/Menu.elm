@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Msg
+import Route
 import View.Icons as Icons
 
 
@@ -17,12 +18,12 @@ view style model =
 
 
 btnIndex style =
-    a [ href "/" ]
+    a [ href <| Route.link [] ]
         [ div [ style.iconicButton, style.menuButton, title "Main Page" ] [ Icons.hedlx ] ]
 
 
 btnNewThread style =
-    a [ href "/new" ]
+    a [ href <| Route.link [ "new" ] ]
         [ div [ style.iconicButton, style.menuButton, title "Create Thread" ] [ Icons.add ] ]
 
 

@@ -31,6 +31,7 @@ type alias Style =
     , opName : Attr
     , postTrip : Attr
     , postBody : Attr
+    , fgButton : Attr
     , textButton : Attr
     , textButtonEnabled : Attr
     , textButtonDisabled : Attr
@@ -44,6 +45,7 @@ type alias Style =
     , formButton : Attr
     , textInput : Attr
     , textArea : Attr
+    , hypertextLink : Attr
     }
 
 
@@ -58,21 +60,22 @@ fromTheme theme =
     , menu = classes [ pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
     , content = classes [ pa3, h_100, overflow_x_hidden, overflow_y_auto ]
     , alert = classes [ theme.fgAlert ]
-    , threadPreview = classes [ mb3 ]
+    , threadPreview = classes []
     , threadForm = classes [ pa3 ]
     , previewPosts = classes [ pl5 ]
-    , threadNo = classes [  theme.fgThreadNo ]
+    , threadNo = classes [ theme.fgThreadNo ]
     , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
     , thread = classes []
-    , post = classes [ mt3, pa2, br1, theme.bgPost ]
+    , post = classes [ mb3, pa2, br1, theme.bgPost ]
     , postHead = classes [ f6, overflow_hidden, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
     , postHeadElement = classes [ dib, mr2 ]
     , postName = classes [ dib, theme.fgPostName ]
     , opName = classes [ theme.fgOpName ]
     , postTrip = classes [ theme.fgPostTrip ]
     , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
-    , textButton = classes <| [ b__solid, pa2, br1, outline_0, theme.bInput ]
+    , fgButton = classes [ theme.fgButton ]
+    , textButton = classes [ b__solid, pa2, br1, outline_0, theme.bInput ]
     , textButtonEnabled = classes [ dim, pointer, theme.bgButton, theme.fgButton ]
     , textButtonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
     , iconicButton = classes [ bg_transparent, b__none, dim, outline_0, theme.fgButton ]
@@ -85,4 +88,5 @@ fromTheme theme =
     , formButton = classes [ mt3, mb4 ]
     , textInput = classes [ pa1, br1, b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
     , textArea = classes [ pa1, br1, b__solid, bw1, w_100, theme.fgInput, theme.bgInput, theme.bInput ]
+    , hypertextLink = classes [ underline, theme.fgButton, dim ]
     }

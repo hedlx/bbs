@@ -3,6 +3,7 @@ module View.Post exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
+import Route
 import Tachyons.Classes as TC
 import View.Time as Time
 
@@ -19,14 +20,17 @@ view style isOp threadID post =
         strThreadID =
             String.fromInt threadID
 
+        threadLink =
+            a [ href <| Route.link [ "threads", strThreadID ] ]
+
         no =
             if isOp then
-                a [ href ("threads/" ++ strThreadID) ]
-                    [ div [ localStyle.postHeadElement, localStyle.threadNo ] [ text "[", span [ class TC.underline ] [ text strThreadID ], text "]" ]
-                    ]
+                threadLink [ btnHead localStyle strThreadID ]
 
             else
-                div [ localStyle.postHeadElement, localStyle.postNo ] [ text <| ("#" ++ String.fromInt post.no) ]
+                headElement localStyle
+                    [ localStyle.postNo ]
+                    [ text <| ("#" ++ String.fromInt post.no) ]
 
         trip =
             if String.isEmpty post.trip then
@@ -39,23 +43,49 @@ view style isOp threadID post =
             span [ localStyle.postName ] [ text <| String.left 32 post.name ]
 
         nameTrip =
-            div [ localStyle.postHeadElement ] [ name, trip ]
+            headElement localStyle [] [ name, trip ]
 
         time =
-            div [ localStyle.postHeadElement ] [ Time.view post.ts ]
+            headElement localStyle [] [ Time.view post.ts ]
+
+        reply =
+            if isOp then
+                threadLink [ btnHead localStyle "Reply" ]
+
+            else
+                nothing
 
         postHead =
             div [ localStyle.postHead ]
                 [ no
                 , nameTrip
                 , time
+                , reply
                 ]
 
         postBody =
-            div [ localStyle.postBody, Html.Attributes.style "white-space" "pre-wrap" ] [ text post.text ]
+            div
+                [ localStyle.postBody
+                , Html.Attributes.style "white-space" "pre-line"
+                , Html.Attributes.style "word-wrap" "break-word"
+                ]
+                [ text post.text ]
     in
     div [ style.post ]
         [ postHead, postBody ]
+
+
+headElement style attrs =
+    div <| [ style.postHeadElement ] ++ attrs
+
+
+btnHead style btnText =
+    headElement style
+        []
+        [ span [ style.fgButton ] [ text "[" ]
+        , span [ style.hypertextLink ] [ text btnText ]
+        , span [ style.fgButton ] [ text "]" ]
+        ]
 
 
 toOpStyle style =
