@@ -18,7 +18,7 @@ matrix:
         - $HOME/.cargo
         - $TRAVIS_BUILD_DIR/backend/target
       before_install: cd backend
-      script: cargo build
+      script: cargo build --release
       deploy:
         provider: script
         skip_cleanup: true
