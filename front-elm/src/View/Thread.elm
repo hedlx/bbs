@@ -8,15 +8,15 @@ import View.Post as Post
 import View.PostForm as PostForm
 
 
-view style ( thread, postForm ) =
+view style cfg ( thread, postForm ) =
     div [ style.content, style.thread ] <|
-        [ Post.view style False thread.id thread.op ]
-            ++ posts style thread
+        [ Post.view style cfg False thread.id thread.op ]
+            ++ posts style cfg thread
             ++ [ replyForm style postForm ]
 
 
-posts style { id, replies } =
-    List.map (Html.Lazy.lazy4 Post.view style False id) replies
+posts style cfg { id, replies } =
+    List.map (Html.Lazy.lazy5 Post.view style cfg False id) replies
 
 
 replyForm style form =

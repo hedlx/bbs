@@ -6,21 +6,21 @@ import Model.Thread
 import View.Post as Post
 
 
-view style thread =
+view style cfg thread =
     div [ style.threadPreview ]
-        [ opPost style thread
-        , repliesList style thread
+        [ opPost style cfg thread
+        , repliesList style cfg thread
         ]
 
 
-opPost style { id, op } =
-    Post.view style True id op
+opPost style cfg { id, op } =
+    Post.view style cfg True id op
 
 
-repliesList style { id, replies } =
+repliesList style cfg { id, replies } =
     if List.isEmpty replies then
         nothing
 
     else
         div [ style.previewPosts ] <|
-            List.map (Post.view style False id) replies
+            List.map (Post.view style cfg False id) replies

@@ -26,9 +26,9 @@ route =
         >> Maybe.withDefault NotFound
 
 
-link : List String -> String
-link ls =
-    String.join "/" ("/#" :: ls)
+link : Url -> List String -> String
+link urlApp ls =
+    String.join "/" (urlApp.path :: "#" :: ls)
 
 
 replacePathWithFragment url =

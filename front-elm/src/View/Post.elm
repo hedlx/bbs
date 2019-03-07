@@ -8,7 +8,7 @@ import Tachyons.Classes as TC
 import View.Time as Time
 
 
-view style isOp threadID post =
+view style cfg isOp threadID post =
     let
         localStyle =
             if isOp then
@@ -21,7 +21,7 @@ view style isOp threadID post =
             String.fromInt threadID
 
         threadLink =
-            a [ href <| Route.link [ "threads", strThreadID ] ]
+            a [ href <| Route.link cfg.urlApp [ "threads", strThreadID ] ]
 
         no =
             if isOp then

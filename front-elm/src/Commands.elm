@@ -25,7 +25,7 @@ init page =
 
 
 redirect pagePath model =
-    Nav.pushUrl model.key (model.appPath ++ "#" ++ String.join "/" pagePath)
+    Nav.pushUrl model.key <| String.join "/" (model.cfg.urlApp.path :: "#" :: pagePath)
 
 
 getThreads =

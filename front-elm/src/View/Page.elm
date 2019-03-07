@@ -4,9 +4,9 @@ import Html exposing (..)
 import Model.Page
 import Spinner
 import View.Menu as Menu
+import View.NewThread as NewThread
 import View.NotFound as NotFound
 import View.Thread as Thread
-import View.NewThread as NewThread
 import View.Threads as Threads
 
 
@@ -20,11 +20,11 @@ view style model =
 content style model =
     case model.page of
         Model.Page.Index state ->
-            Model.Page.mapContent (Threads.view style) state
+            Model.Page.mapContent (Threads.view style model.cfg) state
                 |> loadingSpinner model.spinner
 
         Model.Page.Thread state ->
-            Model.Page.mapContent (Thread.view style) state
+            Model.Page.mapContent (Thread.view style model.cfg) state
                 |> loadingSpinner model.spinner
 
         Model.Page.NewThread form ->
