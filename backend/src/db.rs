@@ -100,6 +100,26 @@ impl Db {
         .unwrap()
     }
 
+    pub fn get_thread_messages(&self, thread_id: i32) -> Option<Vec<Message>> {
+        self.transaction(|| {
+            let messages = sql_query(r"
+                SELECT *
+                  FROM messages
+                 WHERE thread_id = $1
+            ")
+            .bind::<Integer, _>(thread_id)
+            .get_results::<DbMessage>(&self.0)?;
+
+            let messages: Vec<Message> = messages.into_iter().map(db_msg_to_msg).collect();
+
+            if messages.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(messages))
+            }
+        }).unwrap()
+    }
+
     pub fn delete_message(&self, thread_id: i32, no: i32, password: String) -> Option<Error> {
         self.transaction(|| {
             use super::schema::messages::dsl as d;
@@ -173,25 +193,6 @@ impl Db {
             .collect();
         result.reverse();
         Ok(result)
-    }
-
-    pub fn get_thread_messages(&self, thread_id: i32) -> Option<Vec<Message>> {
-        let messages = sql_query(r"
-            SELECT *
-              FROM messages
-             WHERE thread_id = $1
-        ")
-        .bind::<Integer, _>(thread_id)
-        .get_results::<DbMessage>(&self.0)
-        .unwrap();
-
-        let messages: Vec<Message> = messages.into_iter().map(db_msg_to_msg).collect();
-
-        if messages.is_empty() {
-            None
-        } else {
-            Some(messages)
-        }
     }
 
     fn transaction<T, F>(&self, f: F) -> Result<T, diesel::result::Error>
