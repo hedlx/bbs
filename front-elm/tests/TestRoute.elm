@@ -11,18 +11,18 @@ suite =
     describe "Routes"
         [ test "top-level " <|
             \_ ->
-                Expect.equal "" <|
+                Expect.equal "#" <|
                     Route.internalLink [ "/" ]
         , test "app path without /" <|
             \_ ->
-                Expect.equal "#resource" <|
+                Expect.equal "#/resource" <|
                     Route.internalLink [ "resource" ]
         , test "app path with /" <|
             \_ ->
-                Expect.equal "#resource" <|
+                Expect.equal "#/resource" <|
                     Route.internalLink [ "resource/" ]
         , test "paths with a lot of /" <|
             \_ ->
-                Expect.equal "#resource/1" <|
+                Expect.equal "#/resource/1" <|
                     Route.internalLink [ "/resource/", "/1" ]
         ]

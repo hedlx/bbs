@@ -26,7 +26,7 @@ init page =
 
 
 redirect pagePath model =
-    Nav.pushUrl model.key <| model.cfg.urlApp.path ++ Route.internalLink pagePath
+    Nav.pushUrl model.key <| Route.internalLink pagePath
 
 
 getThreads =

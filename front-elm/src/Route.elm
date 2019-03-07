@@ -33,11 +33,7 @@ internalLink ls =
             List.concatMap (String.split "/") ls
                 |> List.filter (not << String.Extra.isBlank)
     in
-    if List.isEmpty fixedPath then
-        ""
-
-    else
-        "#" ++ Builder.relative fixedPath []
+       Builder.relative ("#" :: fixedPath) []
 
 
 replacePathWithFragment url =
