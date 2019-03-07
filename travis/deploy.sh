@@ -21,13 +21,43 @@ rust)
 	bin=backend/target/debug/backend
 	[ -f "$bin" ] || die "No $bin"
 
-	scp -C $ssh_opts $bin hedlx.org:backend.new
-	scp -C $ssh_opts ./db/init/init.sql hedlx.org:init.sql.new
-	ssh $ssh_opts hedlx.org ./deploy.sh
+	rm -rf tmp
+	mkdir tmp
+	cp -lr -t tmp \
+		$bin ./backend/migrations
+	tar cz -C tmp . | ssh $ssh_opts hedlx.org '
+		set -e
+		rm -rf tmp/rust
+		mkdir -p tmp/rust
+		tar xzf - -C tmp/rust
+
+		sudo systemctl stop bbs-backend
+
+		mv tmp/rust/backend ./backend
+		fail=
+		~/.cargo/bin/diesel migration run \
+			--database-url \
+			postgres://bbs-backend@%2Fvar%2Frun%2Fpostgresql/bbs-staging \
+			--migration-dir tmp/rust/migrations || fail=1
+
+		sudo systemctl start bbs-backend
+
+		sleep 1
+		if systemctl is-active --quiet bbs-backend
+		then echo Service is running
+		else echo Service is not running; exit 1
+		fi
+
+		if [ "$fail" ]
+		then echo "Migration failed"; exit 1
+		fi
+	'
+	rm -rf tmp
 	;;
 elm)
 	[ -f "front-elm/static/index.html" ] || die "No front-elm/static/index.html"
 
+	# TODO move to ~/tmp/elm
 	ssh -C $ssh_opts hedlx.org 'rm -rf front-elm.tmp'
 	scp -C $ssh_opts -r front-elm/static hedlx.org:front-elm.tmp
 	ssh -C $ssh_opts hedlx.org 'cd front-elm.tmp && mv index.html main.js /srv/www/bbs/elm/ && echo moved'
@@ -35,6 +65,7 @@ elm)
 clojure)
 	[ -f "./front/resources/public/index.html" ] || die "No front/resources/public/index.html"
 	
+	# TODO move to ~/tmp/clojure
 	ssh -C $ssh_opts hedlx.org 'rm -rf front-clj.tmp'
 	scp -C $ssh_opts -r front/resources/public hedlx.org:front-clj.tmp
 	# TODO: atomic swap
