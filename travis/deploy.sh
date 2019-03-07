@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # deploy.sh - push things to the production server.
 # This file can be executed by travis or locally.
 
@@ -18,7 +18,8 @@ trap 'eval "$(ssh-agent -ks)"' EXIT
 
 case "$1" in
 rust)
-	bin=backend/target/debug/backend
+	bin=(backend/target/*/backend)
+	bin="${bin[0]}"
 	[ -f "$bin" ] || die "No $bin"
 
 	rm -rf tmp
