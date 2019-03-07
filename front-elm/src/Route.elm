@@ -28,7 +28,7 @@ route =
 
 link : Url -> List String -> String
 link urlApp ls =
-    String.join "/" (urlApp.path :: "#" :: ls)
+    Builder.relative (urlApp.path :: "#" :: ls) []
 
 
 replacePathWithFragment url =
