@@ -4,19 +4,20 @@ module Model.Page exposing
     , mapContent
     , mapIndex
     , mapLoading
+    , mapPostForm
     , mapThread
     , withLoadingDefault
     )
 
+import Model.PostForm as PostForm exposing (PostForm)
 import Model.Thread
-import Model.ThreadForm as ThreadForm exposing (ThreadForm)
 
 
 type Page
     = NotFound
     | Index (State () (List Model.Thread.Thread))
-    | Thread (State Int Model.Thread.Thread)
-    | NewThread ThreadForm
+    | Thread (State Int ( Model.Thread.Thread, PostForm ))
+    | NewThread PostForm
 
 
 type State a b
@@ -55,6 +56,18 @@ mapIndex f page =
     case page of
         Index maybeThreads ->
             Index (f maybeThreads)
+
+        _ ->
+            page
+
+
+mapPostForm f page =
+    case page of
+        NewThread form ->
+            NewThread (f form)
+
+        Thread (Content ( thread, form )) ->
+            Thread (Content ( thread, f form ))
 
         _ ->
             page

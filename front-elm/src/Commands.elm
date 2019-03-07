@@ -1,4 +1,4 @@
-module Commands exposing (createThread, getThreads, init, redirect)
+module Commands exposing (createPost, createThread, getThreads, init, redirect)
 
 import Browser.Navigation as Nav
 import Env
@@ -25,7 +25,7 @@ init page =
 
 
 redirect pagePath model =
-    Nav.pushUrl model.key (model.appPath ++ "#" ++ pagePath)
+    Nav.pushUrl model.key (model.appPath ++ "#" ++ String.join "/" pagePath)
 
 
 getThreads =
@@ -47,4 +47,12 @@ createThread jsonBody =
         { url = Url.Builder.crossOrigin Env.serverUrl [ "threads" ] []
         , body = Http.jsonBody jsonBody
         , expect = Http.expectWhatever Msg.ThreadCreated
+        }
+
+
+createPost threadID jsonBody =
+    Http.post
+        { url = Url.Builder.crossOrigin Env.serverUrl [ "threads", String.fromInt threadID ] []
+        , body = Http.jsonBody jsonBody
+        , expect = Http.expectWhatever (Msg.PostCreated threadID)
         }

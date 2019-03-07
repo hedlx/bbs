@@ -2,6 +2,7 @@ module Update.ServerReply exposing (update)
 
 import Commands
 import Model.Page as Page
+import Model.PostForm as PostForm
 import Msg
 
 
@@ -22,11 +23,7 @@ update msg model =
         Msg.GotThread result ->
             case result of
                 Ok thread ->
-                    let
-                        newPage =
-                            Page.mapThread (\_ -> Page.Content thread) model.page
-                    in
-                    ( { model | page = newPage }, Cmd.none )
+                    ( { model | page = Page.mapThread (updateThread thread) model.page }, Cmd.none )
 
                 Err _ ->
                     Debug.todo "handle GotThread error"
@@ -34,10 +31,27 @@ update msg model =
         Msg.ThreadCreated result ->
             case result of
                 Ok () ->
-                    ( model, Commands.redirect "/" model )
+                    ( model, Commands.redirect [ "threads" ] model )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    Debug.todo "handle ThreadCreated error"
+
+        Msg.PostCreated threadID result ->
+            case result of
+                Ok () ->
+                    ( model, Commands.redirect [ "threads", String.fromInt threadID ] model )
+
+                Err _ ->
+                    Debug.todo "handle PostCreated error"
 
         _ ->
             ( model, Cmd.none )
+
+
+updateThread thread state =
+    case state of
+        Page.Loading _ ->
+            Page.Content ( thread, PostForm.empty )
+
+        Page.Content ( _, postForm ) ->
+            Page.Content ( thread, postForm )

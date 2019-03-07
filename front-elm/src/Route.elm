@@ -3,7 +3,7 @@ module Route exposing (link, route)
 import Dict
 import Env
 import Model.Page as Page exposing (..)
-import Model.ThreadForm as ThreadForm exposing (ThreadForm)
+import Model.PostForm as PostForm exposing (PostForm)
 import Regex
 import Url exposing (Url)
 import Url.Builder as Builder
@@ -12,10 +12,10 @@ import Url.Parser as Parser exposing (..)
 
 routes =
     [ top |> map (Index <| Loading ())
-    , s "new" |> map (NewThread ThreadForm.empty)
+    , s "new" |> map (NewThread PostForm.empty)
     , s "threads" |> map (Index <| Loading ())
     , s "threads" </> int |> map (\tID -> Thread <| Loading tID)
-    , s "threads" </> s "new" |> map (NewThread ThreadForm.empty)
+    , s "threads" </> s "new" |> map (NewThread PostForm.empty)
     ]
 
 

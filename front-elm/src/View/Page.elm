@@ -6,7 +6,7 @@ import Spinner
 import View.Menu as Menu
 import View.NotFound as NotFound
 import View.Thread as Thread
-import View.ThreadForm as ThreadForm
+import View.NewThread as NewThread
 import View.Threads as Threads
 
 
@@ -28,7 +28,7 @@ content style model =
                 |> loadingSpinner model.spinner
 
         Model.Page.NewThread form ->
-            ThreadForm.view style form
+            NewThread.view style form
 
         Model.Page.NotFound ->
             NotFound.view style

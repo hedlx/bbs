@@ -1,29 +1,27 @@
-module View.ThreadForm exposing (view)
+module View.PostForm exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Extra exposing (..)
-import Model.ThreadForm
+import Model.PostForm
 import Msg
 
 
 view style form =
-    div [ style.content ]
-        [ div
-            [ style.formContainer ]
-            [ meta style form
-            , postBody style form
-            ]
+    div [ style.formContainer ]
+        [ meta style form
+        , postBody style form
         ]
 
 
 meta style form =
     div [ style.formMetaPane ] <|
         nameInput style form
+            ++ tripInput style form
             ++ passInput style form
             ++ [ buttonCreate style form ]
-            ++ problems style form
+            ++ [ problems style form ]
             ++ [ div [ style.flexFiller ] [] ]
             ++ info style form
 
@@ -32,7 +30,7 @@ nameInput style form =
     [ formLabel style "Name"
     , input
         [ type_ "text"
-        , value <| Model.ThreadForm.name form
+        , value <| Model.PostForm.name form
         , style.textInput
         , style.formMetaElement
         , onInput Msg.FormNameChanged
@@ -42,11 +40,24 @@ nameInput style form =
     ]
 
 
-passInput style form =
+tripInput style form =
     [ formLabel style "Tripcode Secret"
     , input
         [ type_ "text"
-        , value <| Model.ThreadForm.pass form
+        , value <| Model.PostForm.trip form
+        , style.textInput
+        , style.formMetaElement
+        , onInput Msg.FormTripChanged
+        ]
+        []
+    ]
+
+
+passInput style form =
+    [ formLabel style "Password"
+    , input
+        [ type_ "password"
+        , value <| Model.PostForm.pass form
         , style.textInput
         , style.formMetaElement
         , onInput Msg.FormPassChanged
@@ -59,7 +70,7 @@ postBody style form =
     div [ style.formBodyPane ]
         [ formLabel style "Comment"
         , textarea
-            [ value <| Model.ThreadForm.text form
+            [ value <| Model.PostForm.text form
             , style.textArea
             , style.flexFiller
             , onInput Msg.FormTextChanged
@@ -72,7 +83,7 @@ postBody style form =
 buttonCreate style form =
     let
         disabledAttrs =
-            if Model.ThreadForm.isValid form then
+            if Model.PostForm.isValid form then
                 [ disabled False, style.textButtonEnabled ]
 
             else
@@ -92,15 +103,15 @@ buttonCreate style form =
 problems style form =
     let
         textCantBeBlank =
-            viewIf (Model.ThreadForm.isTextBlank form) <|
+            viewIf (Model.PostForm.isTextBlank form) <|
                 formProblem style "Comment can't be empty"
     in
-    [ textCantBeBlank ]
+    div [ style.formProblems ] [ textCantBeBlank ]
 
 
 info style form =
-    [ formInfo style "Symbols" (String.fromInt (Model.ThreadForm.countChars form) ++ " / Inf")
-    , formInfo style "Words" (String.fromInt (Model.ThreadForm.countWords form) ++ " / Inf")
+    [ formInfo style "Symbols" (String.fromInt (Model.PostForm.countChars form) ++ " / Inf")
+    , formInfo style "Words" (String.fromInt (Model.PostForm.countWords form) ++ " / Inf")
     ]
 
 

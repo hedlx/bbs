@@ -1,5 +1,5 @@
-module Model.ThreadForm exposing
-    ( ThreadForm
+module Model.PostForm exposing
+    ( PostForm
     , countChars
     , countWords
     , empty
@@ -12,25 +12,28 @@ module Model.ThreadForm exposing
     , setName
     , setPass
     , setText
+    , setTrip
     , text
+    , trip
     )
 
-import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
-type ThreadForm
-    = ThreadForm ThreadForm_
+type PostForm
+    = PostForm PostForm_
 
 
-type alias ThreadForm_ =
+type alias PostForm_ =
     { name : String
-    , text : String
+    , trip : String
     , pass : String
+    , text : String
     }
 
 
-encode (ThreadForm form) =
+encode (PostForm form) =
     let
         fixedName =
             if String.isEmpty (String.trim form.name) then
@@ -41,67 +44,78 @@ encode (ThreadForm form) =
     in
     Encode.object
         [ ( "name", Encode.string fixedName )
-        , ( "secret", Encode.string form.pass )
+        , ( "secret", Encode.string form.trip )
+        , ( "password", Encode.string form.pass )
         , ( "text", Encode.string form.text )
         ]
 
 
-isEmpty (ThreadForm form) =
+isEmpty (PostForm form) =
     String.isEmpty form.text
         && String.isEmpty form.pass
 
 
-isTextBlank (ThreadForm form) =
+isTextBlank (PostForm form) =
     String.isEmpty (String.trim form.text)
 
 
-isValid tform =
-    not (isTextBlank tform)
+isValid postForm =
+    not (isTextBlank postForm)
 
 
 empty =
-    ThreadForm
+    PostForm
         { name = ""
-        , text = ""
+        , trip = ""
         , pass = ""
+        , text = ""
         }
 
 
-name (ThreadForm form) =
+name (PostForm form) =
     form.name
 
 
-text (ThreadForm form) =
+text (PostForm form) =
     form.text
 
 
-pass (ThreadForm form) =
+trip (PostForm form) =
+    form.trip
+
+
+pass (PostForm form) =
     form.pass
 
 
-setName newName (ThreadForm form) =
-    ThreadForm { form | name = String.left 32 <| String.trimLeft newName }
+setName newName (PostForm form) =
+    PostForm { form | name = String.left 32 <| String.trimLeft newName }
 
 
-setText newText (ThreadForm form) =
-    ThreadForm { form | text = newText }
+setText newText (PostForm form) =
+    PostForm { form | text = newText }
 
 
-setPass newPass (ThreadForm form) =
-    ThreadForm { form | pass = String.trim newPass }
+setTrip newTrip (PostForm form) =
+    PostForm { form | trip = String.trim newTrip }
 
 
-countChars (ThreadForm form) =
+setPass newPass (PostForm form) =
+    PostForm { form | pass = String.trim newPass }
+
+
+countChars (PostForm form) =
     String.length <| form.text
 
 
-countWords (ThreadForm form) =
+countWords (PostForm form) =
     let
         words =
             String.words (String.trim form.text)
                 |> List.filter isWord
     in
     List.length words
+
 
 isWord str =
     not (String.isEmpty str)

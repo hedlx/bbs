@@ -18,7 +18,7 @@ type alias Style =
     , content : Attr
     , alert : Attr
     , threadPreview : Attr
-    , threadForm : Attr
+    , postForm : Attr
     , previewPosts : Attr
     , threadNo : Attr
     , postNo : Attr
@@ -43,9 +43,11 @@ type alias Style =
     , formBodyPane : Attr
     , formMetaElement : Attr
     , formButton : Attr
+    , formProblems : Attr
     , textInput : Attr
     , textArea : Attr
     , hypertextLink : Attr
+    , replyForm : Attr
     }
 
 
@@ -61,7 +63,7 @@ fromTheme theme =
     , content = classes [ pa3, h_100, overflow_x_hidden, overflow_y_auto ]
     , alert = classes [ theme.fgAlert ]
     , threadPreview = classes []
-    , threadForm = classes [ pa3 ]
+    , postForm = classes [ pa3 ]
     , previewPosts = classes [ pl5 ]
     , threadNo = classes [ theme.fgThreadNo ]
     , postNo = classes [ theme.fgPostNo ]
@@ -86,7 +88,9 @@ fromTheme theme =
     , formBodyPane = classes [ pl3, pr3, flex_grow_1, flex, flex_column ]
     , formMetaElement = classes [ db, mb3, w_100 ]
     , formButton = classes [ mt3, mb4 ]
+    , formProblems = classes [ h3 ]
     , textInput = classes [ pa1, br1, b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
     , textArea = classes [ pa1, br1, b__solid, bw1, w_100, theme.fgInput, theme.bgInput, theme.bInput ]
     , hypertextLink = classes [ underline, theme.fgButton, dim ]
+    , replyForm = classes [ mt4 ]
     }

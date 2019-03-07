@@ -4,8 +4,6 @@ import Browser.Navigation as Nav
 import Json.Encode as Encode
 import Model.Page as Page exposing (Page)
 import Model.Theme as Theme exposing (Theme)
-import Model.Thread as Thread exposing (Thread)
-import Model.ThreadForm as ThreadForm exposing (ThreadForm)
 import Route
 import Spinner
 import Url exposing (Url)
