@@ -18,6 +18,7 @@ stdenv.mkDerivation {
 
     postgresql.lib
     postgresql
+    (nixpkgs.callPackage ./nix/pgquarrel.nix { postgresql = postgresql_11; })
 
     # front-clj
     leiningen
