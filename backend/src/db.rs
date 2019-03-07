@@ -162,14 +162,16 @@ impl Db {
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
         use super::schema::messages::dsl as d;
-        let result = d::messages
+        let mut result : Vec<Message> = d::messages
             .filter(d::thread_id.eq(thread_id))
             .filter(d::no.gt(0))
+            .order(d::no.desc())
             .limit(5)
             .get_results::<DbMessage>(&self.0)?
             .into_iter()
             .map(db_msg_to_msg)
             .collect();
+        result.reverse();
         Ok(result)
     }
 
