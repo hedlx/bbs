@@ -1,15 +1,14 @@
 use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, Thread};
-use super::schema::{messages, threads};
+use super::error::{error, Error, Status};
 use chrono::{NaiveDateTime, Utc};
-
-use diesel::sql_types::{Integer, Text, Timestamp};
+use diesel::sql_types::{Integer, Timestamp};
 use diesel::Connection;
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::QueryResult;
 use diesel::RunQueryDsl;
-use diesel::{insert_into, sql_query};
+use diesel::{insert_into, delete, sql_query};
 use rocket_contrib::databases::diesel;
 
 #[database("db")]
@@ -101,6 +100,51 @@ impl Db {
         .unwrap()
     }
 
+    pub fn delete_message(&self, thread_id: i32, no: i32, password: String) -> Option<Error> {
+        self.transaction(|| {
+            use super::schema::messages::dsl as d;
+            let message = d::messages
+                .filter(d::thread_id.eq(thread_id))
+                .filter(d::no.eq(no))
+                .get_result::<DbMessage>(&self.0)
+                .optional()?;
+
+            let message = match message {
+                Some(message) => message,
+                None => return Ok(Some(error(
+                    Status::NotFound,
+                    "No such message.",
+                    "message.not_found",
+                ))),
+            };
+
+            if message.password != Some(password) {
+                return Ok(Some(error(
+                    Status::Unauthorized,
+                    "Invalid password.",
+                    "message.bad_password",
+                )))
+            }
+
+            // TODO: simplify to `delete(message)`
+            delete(
+                d::messages
+                .filter(d::thread_id.eq(thread_id))
+                .filter(d::no.eq(no))
+            ).execute(&self.0)?;
+
+            Ok(None)
+        }).unwrap()
+    }
+
+    pub fn delete_thread(&self, _thread_id: i32, _password: String) -> Option<Error> {
+        Some(error(
+            Status::NotImplemented,
+            "Not implemented.",
+            "not_implemented",
+        ))
+    }
+
     /* Private methods. */
 
     fn get_op(&self, thread_id: i32) -> Message {
@@ -172,6 +216,7 @@ fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) ->
         no: no,
         name: msg.name,
         trip: msg.secret.map(super::tripcode::generate),
+        password: msg.password,
         sender: String::new(),
         text: msg.text,
         ts: ts,

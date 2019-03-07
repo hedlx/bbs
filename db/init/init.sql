@@ -1,6 +1,3 @@
-DROP TABLE IF EXISTS threads CASCADE;
-DROP TABLE IF EXISTS messages CASCADE;
-
 CREATE TABLE threads (
     id            SERIAL PRIMARY KEY,
     last_reply_no INTEGER NOT NULL,
@@ -13,6 +10,7 @@ CREATE TABLE messages (
 
     name          VARCHAR,
     trip          VARCHAR,
+    password      VARCHAR,
 
     sender        TEXT NOT NULL,         -- IP address or telegram id
     text          TEXT NOT NULL,

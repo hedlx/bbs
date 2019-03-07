@@ -1,17 +1,12 @@
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
+use super::error::{error, Error};
 use super::events::validate_message;
 use super::limits::{Limits, LIMITS};
 use data::{Message, NewMessage, Thread};
 use db::Db;
-use rocket::http::{ContentType, Status};
+use rocket::http::Status;
 use rocket_contrib::json::Json;
-use serde::Serialize;
-
-type Error = rocket::response::status::Custom<rocket_contrib::json::JsonValue>;
-fn error(status: Status, message: &'static str, code: &'static str) -> Error {
-    rocket::response::status::Custom(status, json!({"message": message, "code": code}))
-}
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
 fn threads_list(
@@ -69,9 +64,25 @@ fn thread_reply(db: Db, id: i32, msg: Json<NewMessage>) -> Result<&'static str, 
     }
 }
 
-#[delete("/threads/<id>/replies/<no>")]
-fn thread_reply_delete(db: Db, id: i32, no: i32) -> Option<&'static str> {
-    Some("NIY")
+#[delete("/threads/<id>?<password>")]
+fn api_delete_thread(db: Db, id: i32, password: String) -> Result<&'static str, Error> {
+    match db.delete_thread(id, password) {
+        Some(err) => Err(err),
+        None => Ok("{}"),
+    }
+}
+
+#[delete("/threads/<id>/replies/<no>?<password>")]
+fn api_delete_thread_reply(
+    db: Db,
+    id: i32,
+    no: i32,
+    password: String,
+) -> Result<&'static str, Error> {
+    match db.delete_message(id, no, password) {
+        Some(err) => Err(err),
+        None => Ok("{}"),
+    }
 }
 
 #[get("/limits")]
@@ -85,11 +96,12 @@ pub fn start() {
         .mount(
             "/",
             routes![
+                api_delete_thread,
+                api_delete_thread_reply,
                 limits,
                 thread_id,
                 thread_new,
                 thread_reply,
-                thread_reply_delete,
                 threads_list,
             ],
         )

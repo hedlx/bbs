@@ -15,6 +15,7 @@ extern crate sha2;
 
 mod data;
 mod db;
+mod error;
 mod events;
 mod http;
 mod limits;

@@ -5,6 +5,7 @@ pub fn validate_message(mut msg: NewMessage) -> Result<NewMessage, (&'static str
     msg.text = msg.text.trim().to_owned();
     msg.name = trim(msg.name);
     msg.secret = trim(msg.secret);
+    msg.password = trim(msg.password);
     if msg.text.len() == 0 {
         return Err(("Text should not be empty.", "message.text_empty"));
     }

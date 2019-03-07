@@ -40,6 +40,7 @@ pub struct DbMessage {
     pub sender: String,
     pub text: String,
     pub ts: NaiveDateTime,
+    pub password: Option<String>,
 }
 
 #[derive(QueryableByName)]

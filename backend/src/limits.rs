@@ -1,5 +1,4 @@
 use serde::Serialize;
-use serde_json;
 
 macro_rules! mk_limits{
     ( $($id:ident : $type:ident = $value:expr,)* ) => {
