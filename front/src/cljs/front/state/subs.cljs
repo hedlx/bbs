@@ -10,7 +10,7 @@
 (reg-sub
   :sorted-threads
   (fn [_ _] (subscribe [:threads]))
-  (fn [threads _] (sort-by #(-> % :last last :ts) > threads)))
+  (fn [threads _] (reverse threads)))
 (reg-sub
   :threads-loading?
   (fn [_ _] (subscribe [:threads-root]))

@@ -19,7 +19,7 @@
 (defn- render-content [posts loading? error]
   (cond
     (and (empty? posts) loading?) [spinner-overlay/c]
-    error    [:div "ERROR"] ;TODO: you know
+    error [:div "ERROR"] ;TODO: you know
     :default (render-posts posts)))
 
 (defn page []
