@@ -2,7 +2,6 @@
   (:require
     [front.components.thread :as thread-comp]
     [front.components.spinner-overlay :as spinner-overlay]
-    [front.util.reagent :refer [fragment]]
     [re-frame.core :refer [subscribe]]))
 
 
