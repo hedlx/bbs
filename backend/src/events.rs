@@ -6,10 +6,7 @@ pub fn validate_thread(mut thr: NewThread) -> Result<NewThread, (&'static str, &
     thr.subject = trim(thr.subject);
     if let Some(subject) = thr.subject.clone() {
         if subject.len() > LIMITS.msg_subject_len {
-            return Err((
-                "Subject is too long.",
-                "message.subject_long",
-            ))
+            return Err(("Subject is too long.", "message.subject_long"));
         }
     }
     Ok(thr)
