@@ -4,20 +4,17 @@
 
 
 (defn- render-thread [thread]
-  (let [{:keys [id op]} thread
-        {:keys [no name text] :or {:name "Anonymous"}} op]
-    ^{:key no}
-    [post/c {:id id
-             :name name
-             :text text
-             :op? true
-             :show-link? @(subscribe [:threads-page?])}]))
+  (let [{:keys [id op]} thread]
+    ^{:key (:no op)}
+    [post/c (assoc op
+                   :id id
+                   :op? true
+                   :show-link? @(subscribe [:threads-page?]))]))
 
 (defn- render-post [post]
   ^{:key (:no post)}
   [:div {:class "pt1 pl3"}
    [post/c (assoc post :id (:no post))]])
-
 
 (defn c []
   (fn [{:keys [thread]}]
