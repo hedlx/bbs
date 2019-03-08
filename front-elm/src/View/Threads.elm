@@ -4,6 +4,6 @@ import Html exposing (..)
 import View.ThreadPreview as ThreadPreview
 
 
-view style cfg threads =
+view style threads =
     div [ style.content ] <|
-        List.map (ThreadPreview.view style cfg) threads
+        List.map (ThreadPreview.view style) threads

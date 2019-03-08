@@ -20,11 +20,11 @@ view style model =
 content style model =
     case model.page of
         Model.Page.Index state ->
-            Model.Page.mapContent (Threads.view style model.cfg) state
+            Model.Page.mapContent (Threads.view style) state
                 |> loadingSpinner model.spinner
 
         Model.Page.Thread state ->
-            Model.Page.mapContent (Thread.view style model.cfg) state
+            Model.Page.mapContent (Thread.view style) state
                 |> loadingSpinner model.spinner
 
         Model.Page.NewThread form ->

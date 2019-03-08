@@ -4,15 +4,19 @@ module Model.PostForm exposing
     , countWords
     , empty
     , encode
+    , hasSubj
     , isEmpty
     , isTextBlank
     , isValid
+    , limits
     , name
     , pass
     , setName
     , setPass
+    , setSubj
     , setText
     , setTrip
+    , subj
     , text
     , trip
     )
@@ -27,10 +31,19 @@ type PostForm
 
 
 type alias PostForm_ =
-    { name : String
+    { limits : Maybe Limits
+    , name : String
     , trip : String
     , pass : String
+    , subj : Maybe String
     , text : String
+    }
+
+
+type alias Limits =
+    { maxLenName : Int
+    , maxLensubj : Int
+    , maxLentext : Int
     }
 
 
@@ -42,13 +55,19 @@ encode (PostForm form) =
 
             else
                 String.trim form.name
+
+        formSubjOrEmpty =
+            form.subj
+                |> Maybe.map (\subjVal -> [ ( "subject", Encode.string subjVal ) ])
+                >> Maybe.withDefault []
     in
-    Encode.object
+    Encode.object <|
         [ ( "name", Encode.string fixedName )
         , ( "secret", Encode.string form.trip )
         , ( "password", Encode.string form.pass )
         , ( "text", Encode.string form.text )
         ]
+            ++ formSubjOrEmpty
 
 
 isEmpty (PostForm form) =
@@ -64,21 +83,27 @@ isValid postForm =
     not (isTextBlank postForm)
 
 
+hasSubj (PostForm form) =
+    form.subj /= Nothing
+
+
 empty =
     PostForm
-        { name = ""
+        { limits = Nothing
+        , name = ""
         , trip = ""
         , pass = ""
+        , subj = Nothing
         , text = ""
         }
 
 
+limits (PostForm form) =
+    form.limits
+
+
 name (PostForm form) =
     form.name
-
-
-text (PostForm form) =
-    form.text
 
 
 trip (PostForm form) =
@@ -89,12 +114,16 @@ pass (PostForm form) =
     form.pass
 
 
+subj (PostForm form) =
+    form.subj
+
+
+text (PostForm form) =
+    form.text
+
+
 setName newName (PostForm form) =
     PostForm { form | name = String.left Env.maxNameLength <| String.trimLeft newName }
-
-
-setText newText (PostForm form) =
-    PostForm { form | text = String.left Env.maxPostLength <| newText }
 
 
 setTrip newTrip (PostForm form) =
@@ -103,6 +132,14 @@ setTrip newTrip (PostForm form) =
 
 setPass newPass (PostForm form) =
     PostForm { form | pass = String.trim newPass }
+
+
+setSubj newSubj (PostForm form) =
+    PostForm { form | subj = Just newSubj }
+
+
+setText newText (PostForm form) =
+    PostForm { form | text = String.left Env.maxPostLength <| newText }
 
 
 countChars (PostForm form) =

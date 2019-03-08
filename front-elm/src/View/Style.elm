@@ -23,6 +23,7 @@ type alias Style =
     , postForm : Attr
     , previewPosts : Attr
     , threadNo : Attr
+    , threadSubject : Attr
     , postNo : Attr
     , op : Attr
     , thread : Attr
@@ -41,7 +42,7 @@ type alias Style =
     , formContainer : Attr
     , formMetaPane : Attr
     , formBodyPane : Attr
-    , formMetaElement : Attr
+    , formElement : Attr
     , formButton : Attr
     , formProblems : Attr
     , textInput : Attr
@@ -72,6 +73,7 @@ fromTheme theme =
     , postForm = classes [ pa3 ]
     , previewPosts = classes [ pl5 ]
     , threadNo = classes [ theme.fgThreadNo ]
+    , threadSubject = classes [ f4, theme.fgThreadSubject ]
     , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
     , thread = classes []
@@ -90,7 +92,7 @@ fromTheme theme =
     , formContainer = classes [ h_100, w_100, flex, flex_row ]
     , formMetaPane = classes [ pl3, pr3, flex, flex_column ]
     , formBodyPane = classes [ pl3, pr3, flex_grow_1, flex, flex_column ]
-    , formMetaElement = classes [ db, mb3, w_100 ]
+    , formElement = classes [ db, mb3, w_100 ]
     , formButton = classes [ mt3, mb4 ]
     , formProblems = classes [ h3 ]
     , textInput = classes [ pa1, br1, b__solid, theme.fgInput, theme.bgInput, theme.bInput ]

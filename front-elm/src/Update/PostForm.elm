@@ -17,6 +17,9 @@ update msg model =
         Msg.FormPassChanged newVal ->
             updateForm (PostForm.setPass newVal) model
 
+        Msg.FormSubjChanged newVal ->
+            updateForm (PostForm.setSubj newVal) model
+
         Msg.FormTextChanged newVal ->
             updateForm (PostForm.setText newVal) model
 

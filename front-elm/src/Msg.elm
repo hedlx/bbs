@@ -22,6 +22,7 @@ type Msg
     | FormNameChanged String
     | FormTripChanged String
     | FormPassChanged String
+    | FormSubjChanged String
     | FormTextChanged String
     | FormSubmit
       -- Plugins

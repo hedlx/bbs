@@ -1,4 +1,10 @@
-module View.Post exposing (view)
+module View.Post exposing
+    ( body
+    , btnHead
+    , headElement
+    , name
+    , time
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -8,71 +14,32 @@ import Tachyons.Classes as TC
 import View.Time as Time
 
 
-view style cfg isOp threadID post =
+name style post =
     let
-        localStyle =
-            if isOp then
-                toOpStyle style
-
-            else
-                style
-
-        strThreadID =
-            String.fromInt threadID
-
-        threadLink =
-            a [ href <| Route.internalLink [ strThreadID ] ]
-
-        no =
-            if isOp then
-                threadLink [ btnHead localStyle strThreadID ]
-
-            else
-                headElement localStyle
-                    [ localStyle.postNo ]
-                    [ text <| ("#" ++ String.fromInt post.no) ]
-
-        trip =
+        htmlTrip =
             if String.isEmpty post.trip then
                 nothing
 
             else
-                span [ localStyle.postTrip ] [ text ("!" ++ post.trip) ]
+                span [ style.postTrip ] [ text ("!" ++ post.trip) ]
 
-        name =
-            span [ localStyle.postName ] [ text <| String.left 32 post.name ]
-
-        nameTrip =
-            headElement localStyle [] [ name, trip ]
-
-        time =
-            headElement localStyle [] [ Time.view post.ts ]
-
-        reply =
-            if isOp then
-                threadLink [ btnHead localStyle "Reply" ]
-
-            else
-                nothing
-
-        postHead =
-            div [ localStyle.postHead ]
-                [ no
-                , nameTrip
-                , time
-                , reply
-                ]
-
-        postBody =
-            div
-                [ localStyle.postBody
-                , Html.Attributes.style "white-space" "pre-line"
-                , Html.Attributes.style "word-wrap" "break-word"
-                ]
-                [ text post.text ]
+        htmlName =
+            span [ style.postName ] [ text <| String.left 32 post.name ]
     in
-    div [ style.post ]
-        [ postHead, postBody ]
+    headElement style [] [ htmlName, htmlTrip ]
+
+
+time style post =
+    headElement style [] [ Time.view post.ts ]
+
+
+body style post =
+    div
+        [ style.postBody
+        , Html.Attributes.style "white-space" "pre-line"
+        , Html.Attributes.style "word-wrap" "break-word"
+        ]
+        [ text post.text ]
 
 
 headElement style attrs =
@@ -86,10 +53,3 @@ btnHead style btnText =
         , span [ style.hypertextLink ] [ text btnText ]
         , span [ style.fgButton ] [ text "]" ]
         ]
-
-
-toOpStyle style =
-    { style
-        | post = style.op
-        , postName = style.opName
-    }

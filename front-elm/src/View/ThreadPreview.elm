@@ -3,24 +3,21 @@ module View.ThreadPreview exposing (view)
 import Html exposing (..)
 import Html.Extra exposing (..)
 import Model.Thread
-import View.Post as Post
+import View.Post.Op as Op
+import View.Post.Reply as Reply
 
 
-view style cfg thread =
+view style thread =
     div [ style.threadPreview ]
-        [ opPost style cfg thread
-        , repliesList style cfg thread
+        [ Op.view style thread
+        , repliesList style thread
         ]
 
 
-opPost style cfg { id, op } =
-    Post.view style cfg True id op
-
-
-repliesList style cfg { id, replies } =
+repliesList style { id, replies } =
     if List.isEmpty replies then
         nothing
 
     else
         div [ style.previewPosts ] <|
-            List.map (Post.view style cfg False id) replies
+            List.map (Reply.view style) replies

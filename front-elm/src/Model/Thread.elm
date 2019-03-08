@@ -7,7 +7,7 @@ import Model.Post as Post exposing (Post)
 
 type alias Thread =
     { id : Int
-    , topic : String
+    , subject : Maybe String
     , op : Post
     , replies : List Post
     }
@@ -16,7 +16,7 @@ type alias Thread =
 decoder =
     Decode.map4 Thread
         (Decode.field "id" Decode.int)
-        (DecodeExt.withDefault "" <| Decode.field "topic" Decode.string)
+        (Decode.field "subject" (Decode.maybe Decode.string))
         (Decode.field "op" Post.decoder)
         (Decode.field "last" <| Decode.list Post.decoder)
 
@@ -44,7 +44,7 @@ fromPostList threadID lsPost =
         |> Maybe.map
             (\op ->
                 { id = threadID
-                , topic = ""
+                , subject = Nothing
                 , op = op
                 , replies = replies
                 }

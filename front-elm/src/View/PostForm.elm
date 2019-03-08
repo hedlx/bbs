@@ -33,7 +33,7 @@ nameInput style form =
         [ type_ "text"
         , value <| Model.PostForm.name form
         , style.textInput
-        , style.formMetaElement
+        , style.formElement
         , onInput Msg.FormNameChanged
         , placeholder "Anonymous"
         ]
@@ -47,7 +47,7 @@ tripInput style form =
         [ type_ "text"
         , value <| Model.PostForm.trip form
         , style.textInput
-        , style.formMetaElement
+        , style.formElement
         , onInput Msg.FormTripChanged
         ]
         []
@@ -60,7 +60,7 @@ passInput style form =
         [ type_ "password"
         , value <| Model.PostForm.pass form
         , style.textInput
-        , style.formMetaElement
+        , style.formElement
         , onInput Msg.FormPassChanged
         ]
         []
@@ -68,17 +68,41 @@ passInput style form =
 
 
 postBody style form =
-    div [ style.formBodyPane ]
-        [ formLabel style "Comment"
-        , textarea
-            [ value <| Model.PostForm.text form
-            , style.textArea
-            , style.flexFiller
-            , onInput Msg.FormTextChanged
-            , Html.Attributes.style "resize" "none"
+    div [ style.formBodyPane ] <|
+        postSubj style form
+            ++ postTextInput style form
+
+
+postSubj style form =
+    case Model.PostForm.subj form of
+        Just subjVal ->
+            [ formLabel style "Subject"
+            , input
+                [ type_ "text"
+                , value subjVal
+                , style.formElement
+                , style.textInput
+                , onInput Msg.FormSubjChanged
+                ]
+                []
             ]
+
+        Nothing ->
             []
+
+
+postTextInput style form =
+    [ formLabel style "Comment"
+    , textarea
+        [ value <| Model.PostForm.text form
+        , style.textArea
+        , style.flexFiller
+        , style.formElement
+        , onInput Msg.FormTextChanged
+        , Html.Attributes.style "resize" "none"
         ]
+        []
+    ]
 
 
 buttonCreate style form =
@@ -94,7 +118,7 @@ buttonCreate style form =
         ([ onClick Msg.FormSubmit
          , style.textButton
          , style.formButton
-         , style.formMetaElement
+         , style.formElement
          ]
             ++ disabledAttrs
         )
@@ -122,12 +146,12 @@ info style form =
 
 
 formLabel style str =
-    label [ style.formMetaElement ] [ text str ]
+    label [ style.formElement ] [ text str ]
 
 
 formProblem style str =
-    div [ style.formMetaElement, style.alert ] [ text str ]
+    div [ style.formElement, style.alert ] [ text str ]
 
 
 formInfo style strLabel strVal =
-    div [ style.formMetaElement ] [ text <| strLabel ++ ": ", text strVal ]
+    div [ style.formElement ] [ text <| strLabel ++ ": ", text strVal ]

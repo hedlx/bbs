@@ -13,9 +13,12 @@ import Url.Parser as Parser exposing (..)
 
 routes =
     oneOf
-        [ oneOf [ top, s "threads" ] |> map (Index <| Loading ())
-        , oneOf [ s "new", s "threads" </> s "new" ] |> map (NewThread PostForm.empty)
-        , oneOf [ int, s "threads" </> int ] |> map (\tID -> Thread <| Loading tID)
+        [ oneOf [ top, s "threads" ]
+            |> map (Index <| Loading ())
+        , oneOf [ s "new", s "threads" </> s "new" ]
+            |> map (NewThread (PostForm.setSubj "" PostForm.empty))
+        , oneOf [ int, s "threads" </> int ]
+            |> map (\tID -> Thread (Loading tID))
         ]
 
 
@@ -33,7 +36,7 @@ internalLink ls =
             List.concatMap (String.split "/") ls
                 |> List.filter (not << String.Extra.isBlank)
     in
-       Builder.relative ("#" :: fixedPath) []
+    Builder.relative ("#" :: fixedPath) []
 
 
 replacePathWithFragment url =
