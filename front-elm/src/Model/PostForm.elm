@@ -24,7 +24,7 @@ module Model.PostForm exposing
 import Env
 import Json.Decode as Decode
 import Json.Encode as Encode
-
+import Model.Limits exposing (Limits)
 
 type PostForm
     = PostForm PostForm_
@@ -37,13 +37,6 @@ type alias PostForm_ =
     , pass : String
     , subj : Maybe String
     , text : String
-    }
-
-
-type alias Limits =
-    { maxLenName : Int
-    , maxLensubj : Int
-    , maxLentext : Int
     }
 
 
