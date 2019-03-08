@@ -16,4 +16,5 @@ macro_rules! mk_limits{
 mk_limits! {
     msg_text_len: usize = 4096,
     msg_name_len: usize = 32,
+    msg_subject_len: usize = 64,
 }

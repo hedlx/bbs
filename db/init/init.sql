@@ -1,6 +1,7 @@
 CREATE TABLE threads (
     id            SERIAL PRIMARY KEY,
     last_reply_no INTEGER NOT NULL,
+    subject       TEXT,
     bump          TIMESTAMP NOT NULL
 );
 

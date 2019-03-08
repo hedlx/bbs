@@ -1,4 +1,4 @@
-use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, Thread};
+use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, NewThread, Thread};
 use super::error::{error, Error, Status};
 use chrono::{NaiveDateTime, Utc};
 use diesel::sql_types::{Integer, Timestamp};
@@ -23,19 +23,20 @@ struct Id {
 impl Db {
     /* NB: public methods must be wrapped in transactions. */
 
-    pub fn new_thread(&self, msg: NewMessage) -> Message {
+    pub fn new_thread(&self, thr: NewThread) -> Message {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
             let thread_id = insert_into(super::schema::threads::dsl::threads)
                 .values(&DbNewThread {
                     last_reply_no: 0,
+                    subject: thr.subject,
                     bump: now,
                 })
                 .returning(super::schema::threads::dsl::id)
                 .get_result(&self.0)?;
 
-            let result = msg_to_db_msg(msg, now, thread_id, 0);
+            let result = msg_to_db_msg(thr.msg, now, thread_id, 0);
 
             insert_into(super::schema::messages::dsl::messages)
                 .values(&result)
@@ -79,7 +80,7 @@ impl Db {
     pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
         self.transaction(|| {
             let threads = sql_query(r"
-                SELECT id, last_reply_no, bump
+                SELECT *
                   FROM threads
                  WHERE bump > $1
                  ORDER BY (bump, id) ASC
@@ -91,6 +92,7 @@ impl Db {
             .into_iter()
             .map(|thread| Thread {
                 id: thread.id as u32,
+                subject: thread.subject,
                 op: self.get_op(thread.id),
                 last: self.get_last(thread.id).unwrap(),
             })

@@ -1,0 +1,1 @@
+ALTER TABLE ONLY threads DROP COLUMN subject;

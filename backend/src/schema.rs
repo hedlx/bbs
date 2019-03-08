@@ -16,6 +16,7 @@ table! {
         id -> Int4,
         last_reply_no -> Int4,
         bump -> Timestamp,
+        subject -> Nullable<Text>,
     }
 }
 

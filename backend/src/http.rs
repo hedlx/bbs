@@ -1,9 +1,9 @@
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
 use super::error::{error, Error};
-use super::events::validate_message;
+use super::events::{validate_message, validate_thread};
 use super::limits::{Limits, LIMITS};
-use data::{Message, NewMessage, Thread};
+use data::{Message, NewMessage, NewThread, Thread};
 use db::Db;
 use rocket::http::Status;
 use rocket_contrib::json::Json;
@@ -43,10 +43,10 @@ fn thread_id(
     }
 }
 
-#[post("/threads", format = "json", data = "<msg>")]
-fn thread_new(db: Db, msg: Json<NewMessage>) -> Result<&'static str, Error> {
-    let msg = validate_message(msg.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
-    db.new_thread(msg);
+#[post("/threads", format = "json", data = "<thr>")]
+fn thread_new(db: Db, thr: Json<NewThread>) -> Result<&'static str, Error> {
+    let thr = validate_thread(thr.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
+    db.new_thread(thr);
     Ok("{}")
 }
 

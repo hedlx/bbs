@@ -12,6 +12,13 @@ pub struct NewMessage {
     pub text: String,
 }
 
+#[derive(Deserialize)]
+pub struct NewThread {
+    pub subject: Option<String>,
+    #[serde(flatten)]
+    pub msg: NewMessage,
+}
+
 #[derive(Serialize)]
 pub struct Message {
     pub no: u32,
@@ -24,6 +31,7 @@ pub struct Message {
 #[derive(Serialize)]
 pub struct Thread {
     pub id: u32,
+    pub subject: Option<String>,
     pub op: Message,
     pub last: Vec<Message>,
 }
@@ -48,6 +56,7 @@ pub struct DbMessage {
 pub struct DbThread {
     pub id: i32,
     pub last_reply_no: i32,
+    pub subject: Option<String>,
     pub bump: NaiveDateTime,
 }
 
@@ -55,5 +64,6 @@ pub struct DbThread {
 #[table_name = "threads"]
 pub struct DbNewThread {
     pub last_reply_no: i32,
+    pub subject: Option<String>,
     pub bump: NaiveDateTime,
 }

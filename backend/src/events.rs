@@ -1,5 +1,19 @@
-use super::data::NewMessage;
+use super::data::{NewMessage, NewThread};
 use super::limits::LIMITS;
+
+pub fn validate_thread(mut thr: NewThread) -> Result<NewThread, (&'static str, &'static str)> {
+    thr.msg = validate_message(thr.msg)?;
+    thr.subject = trim(thr.subject);
+    if let Some(subject) = thr.subject.clone() {
+        if subject.len() > LIMITS.msg_subject_len {
+            return Err((
+                "Subject is too long.",
+                "message.subject_long",
+            ))
+        }
+    }
+    Ok(thr)
+}
 
 pub fn validate_message(mut msg: NewMessage) -> Result<NewMessage, (&'static str, &'static str)> {
     msg.text = msg.text.trim().to_owned();
