@@ -2,6 +2,8 @@ openapi: 3.0.0
 servers:
   - description: default
     url: https://bbs.hedlx.org/api
+  - description: local
+    url: http://127.0.0.1:8001
 info:
   description: Shallow BBS API definition
   version: "0.1"
@@ -61,7 +63,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewMessage'
+              $ref: '#/components/schemas/NewThread'
   /threads/{id}:
     parameters:
       - name: id
@@ -118,9 +120,10 @@ paths:
             schema:
               $ref: '#/components/schemas/NewMessage'
     delete:
-      summary: Delete thread.
+      summary: Delete thread. [NYI]
       responses:
         200: { description: Deleted. }
+        403: { description: Invalid password. }
         404: { description: No such thread. }
   /threads/{id}/replies/{no}:
     parameters:
@@ -139,11 +142,12 @@ paths:
       parameters:
         - in: query
           name: password
-          description: Shit.
+          description: Password used to post the reply.
           required: true
           schema: { type: string }
       responses:
         200: { description: Deleted. }
+        403: { description: Invalid password. }
         404: { description: No such thread or post. }
 
 components:
@@ -179,6 +183,17 @@ components:
         text:
           type: string
           example: Incredibly long post text.
+    NewThread:
+      type: object
+      properties:
+        subject:
+          type: string
+          example: Selling my refrigerator
+          description: Subject of a thread.
+        password:
+          description: Password to delete this thread.
+      allOf:
+        - $ref: '#/components/schemas/NewMessage'
     Message:
       required:
         - no
