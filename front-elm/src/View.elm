@@ -14,7 +14,7 @@ view : Model -> Browser.Document Msg
 view model =
     let
         style =
-            Style.fromTheme model.theme
+            Style.fromTheme model.cfg.theme
     in
     { title = "Hedlx BBS"
     , body =

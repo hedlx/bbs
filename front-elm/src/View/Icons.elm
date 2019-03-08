@@ -1,4 +1,4 @@
-module View.Icons exposing (add, hedlx, search, settings)
+module View.Icons exposing (add, delete, hedlx, search, settings)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -23,6 +23,10 @@ settings =
 
 add =
     Octicons.plus options
+
+
+delete =
+    Octicons.trashcan options
 
 
 hedlx =

@@ -17,6 +17,8 @@ type alias Style =
     , menu : Attr
     , content : Attr
     , alert : Attr
+    , buttonEnabled : Attr
+    , buttonDisabled : Attr
     , threadPreview : Attr
     , postForm : Attr
     , previewPosts : Attr
@@ -33,8 +35,6 @@ type alias Style =
     , postBody : Attr
     , fgButton : Attr
     , textButton : Attr
-    , textButtonEnabled : Attr
-    , textButtonDisabled : Attr
     , iconicButton : Attr
     , menuButton : Attr
     , flexFiller : Attr
@@ -58,10 +58,16 @@ none =
 
 fromTheme : Theme -> Style
 fromTheme theme =
+    let
+        iconicButton =
+            [ bg_transparent, b__none, outline_0 ]
+    in
     { page = classes [ w_100, h_100, overflow_hidden, theme.bg, theme.fg, theme.font ]
     , menu = classes [ pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
     , content = classes [ pa3, h_100, overflow_x_hidden, overflow_y_auto ]
     , alert = classes [ theme.fgAlert ]
+    , buttonEnabled = classes [ pointer, dim, theme.bgButton, theme.fgButton ]
+    , buttonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
     , threadPreview = classes []
     , postForm = classes [ pa3 ]
     , previewPosts = classes [ pl5 ]
@@ -78,10 +84,8 @@ fromTheme theme =
     , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
     , fgButton = classes [ theme.fgButton ]
     , textButton = classes [ b__solid, pa2, br1, outline_0, theme.bInput ]
-    , textButtonEnabled = classes [ dim, pointer, theme.bgButton, theme.fgButton ]
-    , textButtonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
-    , iconicButton = classes [ bg_transparent, b__none, dim, outline_0, theme.fgButton ]
-    , menuButton = classes [ pa3 ]
+    , iconicButton = classes iconicButton
+    , menuButton = classes <| iconicButton ++ [ pa3 ]
     , flexFiller = classes [ flex_grow_1 ]
     , formContainer = classes [ h_100, w_100, flex, flex_row ]
     , formMetaPane = classes [ pl3, pr3, flex, flex_column ]

@@ -85,10 +85,10 @@ buttonCreate style form =
     let
         disabledAttrs =
             if Model.PostForm.isValid form then
-                [ disabled False, style.textButtonEnabled ]
+                [ disabled False, style.textButton, style.buttonEnabled ]
 
             else
-                [ disabled True, style.textButtonDisabled ]
+                [ disabled True, style.textButton, style.buttonDisabled ]
     in
     button
         ([ onClick Msg.FormSubmit
