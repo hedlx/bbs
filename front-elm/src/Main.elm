@@ -28,4 +28,4 @@ init flags url key =
         model =
             Model.init flags url key
     in
-    ( model, Commands.init model.page )
+    ( model, Commands.init model )

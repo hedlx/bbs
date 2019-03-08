@@ -2,6 +2,7 @@ module Route exposing (internalLink, route)
 
 import Dict
 import Env
+import Model.Config as Config exposing (Config)
 import Model.Page as Page exposing (..)
 import Model.PostForm as PostForm exposing (PostForm)
 import Regex
@@ -11,21 +12,27 @@ import Url.Builder as Builder
 import Url.Parser as Parser exposing (..)
 
 
-routes =
+routes cfg =
     oneOf
         [ oneOf [ top, s "threads" ]
             |> map (Index <| Loading ())
         , oneOf [ s "new", s "threads" </> s "new" ]
-            |> map (NewThread (PostForm.setSubj "" PostForm.empty))
+            |> map
+                (NewThread
+                    (PostForm.empty
+                        |> PostForm.setSubj ""
+                        >> PostForm.setLimits cfg.limits
+                    )
+                )
         , oneOf [ int, s "threads" </> int ]
             |> map (\tID -> Thread (Loading tID))
         ]
 
 
-route : Url -> Page
-route =
+route : Config -> Url -> Page
+route cfg =
     replacePathWithFragment
-        >> parse routes
+        >> parse (routes cfg)
         >> Maybe.withDefault NotFound
 
 

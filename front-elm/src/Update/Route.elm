@@ -21,12 +21,10 @@ update msg model =
 
         Msg.UrlChanged url ->
             let
-                page =
-                    Route.route url
+                newModel =
+                    { model | page = Route.route model.cfg url }
             in
-            ( { model | page = page }
-            , Commands.init page
-            )
+            ( newModel, Commands.init newModel )
 
         _ ->
             ( model, Cmd.none )

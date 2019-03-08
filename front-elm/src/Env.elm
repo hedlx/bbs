@@ -1,17 +1,5 @@
-module Env exposing
-    ( maxNameLength
-    , maxPostLength
-    , serverUrl
-    )
+module Env exposing (serverUrl)
 
 
 serverUrl =
     "https://bbs.hedlx.org:451/api"
-
-
-maxPostLength =
-    4096
-
-
-maxNameLength =
-    32

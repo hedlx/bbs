@@ -3,6 +3,7 @@ module Commands exposing (createPost, createThread, getThreads, init, redirect)
 import Browser.Navigation as Nav
 import Env
 import Http
+import Model.Limits
 import Model.Page as Page
 import Model.Post
 import Model.Thread
@@ -13,20 +14,38 @@ import Url
 import Url.Builder
 
 
-init page =
-    case page of
-        Page.Index (Page.Loading _) ->
-            getThreads
+init model =
+    let
+        pageSpecific =
+            case model.page of
+                Page.Index (Page.Loading _) ->
+                    getThreads
 
-        Page.Thread (Page.Loading tID) ->
-            getThread tID
+                Page.Thread (Page.Loading tID) ->
+                    getThread tID
 
-        _ ->
-            Cmd.none
+                _ ->
+                    Cmd.none
+
+        limitsInit =
+            if Model.Limits.hasUndefined model.cfg.limits then
+                getLimits
+
+            else
+                Cmd.none
+    in
+    Cmd.batch [ limitsInit, pageSpecific ]
 
 
 redirect pagePath model =
     Nav.pushUrl model.cfg.key <| Route.internalLink pagePath
+
+
+getLimits =
+    Http.get
+        { url = Url.Builder.crossOrigin Env.serverUrl [ "limits" ] []
+        , expect = Http.expectJson Msg.GotLimits Model.Limits.decoder
+        }
 
 
 getThreads =

@@ -11,6 +11,7 @@ module Model.PostForm exposing
     , limits
     , name
     , pass
+    , setLimits
     , setName
     , setPass
     , setSubj
@@ -24,14 +25,15 @@ module Model.PostForm exposing
 import Env
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Model.Limits exposing (Limits)
+import Model.Limits as Limits exposing (Limits)
+
 
 type PostForm
     = PostForm PostForm_
 
 
 type alias PostForm_ =
-    { limits : Maybe Limits
+    { limits : Limits
     , name : String
     , trip : String
     , pass : String
@@ -82,7 +84,7 @@ hasSubj (PostForm form) =
 
 empty =
     PostForm
-        { limits = Nothing
+        { limits = Limits.empty
         , name = ""
         , trip = ""
         , pass = ""
@@ -116,7 +118,7 @@ text (PostForm form) =
 
 
 setName newName (PostForm form) =
-    PostForm { form | name = String.left Env.maxNameLength <| String.trimLeft newName }
+    PostForm { form | name = limitString form.limits.maxLenName <| String.trimLeft newName }
 
 
 setTrip newTrip (PostForm form) =
@@ -128,11 +130,27 @@ setPass newPass (PostForm form) =
 
 
 setSubj newSubj (PostForm form) =
-    PostForm { form | subj = Just newSubj }
+    PostForm { form | subj = Just (limitString form.limits.maxLenSubj <| String.trimLeft newSubj) }
 
 
 setText newText (PostForm form) =
-    PostForm { form | text = String.left Env.maxPostLength <| newText }
+    PostForm { form | text = limitString form.limits.maxLenText newText }
+
+
+setLimits newLimits (PostForm form) =
+    PostForm
+        { form
+            | limits = newLimits
+            , name = limitString newLimits.maxLenName form.name
+            , subj = Maybe.map (limitString newLimits.maxLenSubj) form.subj
+            , text = limitString newLimits.maxLenText form.text
+        }
+
+
+limitString maybeLimit str =
+    maybeLimit
+        |> Maybe.map (\maxLen -> String.left maxLen str)
+        >> Maybe.withDefault str
 
 
 countChars (PostForm form) =

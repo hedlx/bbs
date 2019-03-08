@@ -34,6 +34,14 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        Msg.GotLimits result ->
+            case result of
+                Err _ ->
+                    ( model, Cmd.none )
+
+                Ok newLimits ->
+                    updateForm (PostForm.setLimits newLimits) model
+
         _ ->
             ( model, Cmd.none )
 

@@ -21,7 +21,11 @@ type alias Model =
 
 
 init flags url key =
-    { cfg = Config.init url key
-    , page = Route.route url
+    let
+        cfg =
+            Config.init url key
+    in
+    { cfg = cfg
+    , page = Route.route cfg url
     , spinner = Spinner.init
     }

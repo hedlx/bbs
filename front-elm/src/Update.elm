@@ -2,19 +2,18 @@ module Update exposing (update)
 
 import Msg
 import Update.Extra exposing (andThen)
+import Update.Main as Main
 import Update.Plugins as Plugins
-import Update.Route as Route
-import Update.ServerReply as ServerReply
 import Update.PostForm as PostForm
+import Update.Route as Route
+import Update.Thread as Thread
+import Update.Threads as Threads
 
 
 update msg =
-    mainUpdate msg
-        >> andThen (ServerReply.update msg)
+    Main.update msg
+        >> andThen (Threads.update msg)
+        >> andThen (Thread.update msg)
         >> andThen (Route.update msg)
         >> andThen (PostForm.update msg)
         >> andThen (Plugins.update msg)
-
-
-mainUpdate msg model =
-    ( model, Cmd.none )

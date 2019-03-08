@@ -1,8 +1,6 @@
-module Update.ServerReply exposing (update)
+module Update.Main exposing (update)
 
 import Commands
-import Model.Page as Page
-import Model.PostForm as PostForm
 import Msg
 
 
@@ -23,26 +21,6 @@ update msg model =
                 Err _ ->
                     Debug.todo "handle GotLimits error"
 
-        Msg.GotThreads result ->
-            case result of
-                Ok threads ->
-                    let
-                        newPage =
-                            Page.mapIndex (\_ -> Page.Content <| List.reverse threads) model.page
-                    in
-                    ( { model | page = newPage }, Cmd.none )
-
-                Err _ ->
-                    Debug.todo "handle GotThreads error"
-
-        Msg.GotThread result ->
-            case result of
-                Ok thread ->
-                    ( { model | page = Page.mapThread (updateThread thread) model.page }, Cmd.none )
-
-                Err _ ->
-                    Debug.todo "handle GotThread error"
-
         Msg.ThreadCreated result ->
             case result of
                 Ok () ->
@@ -61,12 +39,3 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
-
-
-updateThread thread state =
-    case state of
-        Page.Loading _ ->
-            Page.Content ( thread, PostForm.empty )
-
-        Page.Content ( _, postForm ) ->
-            Page.Content ( thread, postForm )

@@ -135,11 +135,18 @@ problems style form =
 
 
 info style form =
+    let
+        strMaxLenText =
+            Model.PostForm.limits form
+                |> .maxLenText
+                >> Maybe.map String.fromInt
+                >> Maybe.withDefault "..."
+    in
     [ formInfo style
         "Symbols"
         (String.fromInt (Model.PostForm.countChars form)
             ++ " / "
-            ++ String.fromInt Env.maxPostLength
+            ++ strMaxLenText
         )
     , formInfo style "Words" (String.fromInt (Model.PostForm.countWords form))
     ]
