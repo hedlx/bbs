@@ -12,6 +12,8 @@ extern crate rocket_contrib;
 extern crate serde;
 extern crate serde_json;
 extern crate sha2;
+#[macro_use]
+extern crate juniper;
 
 mod data;
 mod db;

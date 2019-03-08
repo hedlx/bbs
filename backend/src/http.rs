@@ -90,14 +90,44 @@ fn limits() -> Json<Limits> {
     Json(LIMITS)
 }
 
+use juniper::{Context as JuniperContext, RootNode, EmptyMutation};
+
+impl JuniperContext for Db {}
+
+pub struct QueryRoot;
+
+graphql_object!(QueryRoot: Db |&self| {
+    field some() -> i32 {
+        1234
+    }
+    field items() -> Vec<i32>
+    {
+        vec![1,2,3,4]
+    }
+});
+
+type Schema = RootNode<'static, QueryRoot, EmptyMutation<Db>>;
+
+#[post("/graphql", data = "<request>")]
+fn api_get_graphql(
+    db: Db,
+    //schema: rocket::State<Schema>,
+    request: juniper_rocket::GraphQLRequest,
+) -> juniper_rocket::GraphQLResponse {
+    let schema = Schema::new(QueryRoot, EmptyMutation::new());
+    request.execute(&schema, &db)
+}
+
 pub fn start() {
     rocket::ignite()
         .attach(Db::fairing())
+        //.manage(Schema::new(QueryRoot, EmptyMutation::new()))
         .mount(
             "/",
             routes![
                 api_delete_thread,
                 api_delete_thread_reply,
+                api_get_graphql,
                 limits,
                 thread_id,
                 thread_new,
