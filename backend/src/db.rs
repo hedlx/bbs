@@ -1,7 +1,7 @@
-use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, NewThread, Thread};
+use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, NewThread, ThreadPreview};
 use super::error::Error;
 use chrono::{NaiveDateTime, Utc};
-use diesel::sql_types::{Integer, Timestamp};
+use diesel::sql_types::{Integer, BigInt, Timestamp};
 use diesel::Connection;
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
@@ -18,6 +18,12 @@ pub struct Db(diesel::PgConnection);
 struct Id {
     #[sql_type = "Integer"]
     id: i32,
+}
+
+#[derive(QueryableByName)]
+struct Count {
+    #[sql_type = "BigInt"]
+    count: i64,
 }
 
 impl Db {
@@ -77,24 +83,33 @@ impl Db {
         .unwrap()
     }
 
-    pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<Thread> {
+    pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<ThreadPreview> {
         self.transaction(|| {
             let threads = sql_query(r"
-                SELECT *
-                  FROM threads
-                 WHERE bump > $1
+                SELECT t.*, op.*,
+                       (SELECT COUNT(*) FROM messages AS m WHERE m.thread_id = t.id)
+                  FROM threads as t
+                       LEFT JOIN messages AS op  ON t.id = op.thread_id
+                 WHERE t.bump > $1
+                   AND op.no = 0
                  ORDER BY (bump, id) ASC
                  LIMIT $2
             ")
             .bind::<Timestamp, _>(NaiveDateTime::from_timestamp(ts as i64, 0))
             .bind::<Integer, _>(limit as i32)
-            .load::<DbThread>(&self.0)?
+            .load::<(DbThread, DbMessage, Count)>(&self.0)?
             .into_iter()
-            .map(|thread| Thread {
-                id: thread.id as u32,
-                subject: thread.subject,
-                op: self.get_op(thread.id),
-                last: self.get_last(thread.id).unwrap(),
+            .map(|(thread, op, total)| {
+                let last = self.get_last(thread.id).unwrap();
+                let omitted = total.count as i32 - last.len() as i32 - 1;
+                ThreadPreview {
+                    id: thread.id as u32,
+                    subject: thread.subject,
+                    bump: thread.bump.timestamp(),
+                    op: db_msg_to_msg(op),
+                    last: last,
+                    omitted: omitted,
+                }
             })
             .collect();
             Ok(threads)
@@ -156,19 +171,6 @@ impl Db {
     }
 
     /* Private methods. */
-
-    fn get_op(&self, thread_id: i32) -> Message {
-        let op = sql_query(r"
-            SELECT *
-              FROM messages
-             WHERE thread_id = $1
-               AND no = 0
-        ")
-        .bind::<Integer, _>(thread_id)
-        .get_result::<DbMessage>(&self.0)
-        .unwrap();
-        db_msg_to_msg(op)
-    }
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
         use super::schema::messages::dsl as d;

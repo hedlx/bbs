@@ -29,11 +29,14 @@ pub struct Message {
 }
 
 #[derive(Serialize)]
-pub struct Thread {
+pub struct ThreadPreview {
     pub id: u32,
     pub subject: Option<String>,
+    pub bump: i64,
+
     pub op: Message,
     pub last: Vec<Message>,
+    pub omitted: i32,
 }
 
 /* DB-related */

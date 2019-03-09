@@ -3,7 +3,7 @@
 use super::error::Error;
 use super::events::{validate_message, validate_thread};
 use super::limits::{Limits, LIMITS};
-use data::{Message, NewMessage, NewThread, Thread};
+use data::{Message, NewMessage, NewThread, ThreadPreview};
 use db::Db;
 use rocket_contrib::json::Json;
 
@@ -14,7 +14,7 @@ fn threads_list(
     after: Option<u32>,  // timestamp
     limit: Option<u32>,
     tag: Option<String>,
-) -> Json<Vec<Thread>> {
+) -> Json<Vec<ThreadPreview>> {
     let limit = limit.unwrap_or(100);
     let resp = match (before, after) {
         (None, None) => db.get_threads_before(0, limit),
