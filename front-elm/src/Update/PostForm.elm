@@ -1,9 +1,13 @@
 module Update.PostForm exposing (update)
 
 import Commands
+import Env
+import File
+import File.Select as Select
 import Model.Page as Page
 import Model.PostForm as PostForm
 import Msg
+import Task
 
 
 update msg model =
@@ -22,6 +26,41 @@ update msg model =
 
         Msg.FormTextChanged newVal ->
             updateForm (PostForm.setText newVal) model
+
+        Msg.FormSelectFiles ->
+            ( model, Select.files Env.fileFormats Msg.FormFilesSelected )
+
+        Msg.FormFilesSelected file moreFiles ->
+            let
+                selectedFiles =
+                    file :: moreFiles
+            in
+            case model.page of
+                Page.NewThread form ->
+                    let
+                        ( newForm, loadPreviewsCmd ) =
+                            PostForm.addFiles selectedFiles form
+                    in
+                    ( { model | page = Page.NewThread newForm }, loadPreviewsCmd Msg.FormFilePreviewLoaded )
+
+                Page.Thread (Page.Content ( thread, form )) ->
+                    let
+                        ( newForm, loadPreviewsCmd ) =
+                            PostForm.addFiles selectedFiles form
+
+                        newContent =
+                            Page.Content ( thread, newForm )
+                    in
+                    ( { model | page = Page.Thread newContent }, loadPreviewsCmd Msg.FormFilePreviewLoaded )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Msg.FormFilePreviewLoaded fileID preview ->
+            updateForm (PostForm.setFilePreview fileID preview) model
+
+        Msg.FormRemoveFile fileID ->
+            updateForm (PostForm.removeFile fileID) model
 
         Msg.FormSubmit ->
             case model.page of

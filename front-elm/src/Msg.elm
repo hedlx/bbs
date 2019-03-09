@@ -1,6 +1,7 @@
 module Msg exposing (Msg(..))
 
 import Browser
+import File exposing (File)
 import Http
 import Model.Limits exposing (Limits)
 import Model.PostForm exposing (PostForm)
@@ -25,5 +26,12 @@ type Msg
     | FormPassChanged String
     | FormSubjChanged String
     | FormTextChanged String
+    | FormSelectFiles
+    | FormFilesSelected File (List File)
+    | FormFilePreviewLoaded Int String
+    | FormRemoveFile Int
     | FormSubmit
-      -- Plugins
+
+
+
+-- Plugins

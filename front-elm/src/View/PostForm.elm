@@ -1,12 +1,16 @@
 module View.PostForm exposing (view)
 
 import Env
+import File
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Extra exposing (..)
 import Model.PostForm
 import Msg
+import Tachyons
+import Tachyons.Classes as TC
+import View.Icons as Icons
 
 
 view style form =
@@ -71,6 +75,7 @@ postBody style form =
     div [ style.formBodyPane ] <|
         postSubj style form
             ++ postTextInput style form
+            ++ postFiles style form
 
 
 postSubj style form =
@@ -91,6 +96,47 @@ postSubj style form =
             []
 
 
+postFiles style form =
+    [ formLabel style "Attached Images"
+    , areaAttachedFiles style form
+    ]
+
+
+areaAttachedFiles style form =
+    div [ style.formAreaAttachedFiles, style.formElement ] <|
+        attachedFiles style form
+            ++ [ buttonSelectFiles style form ]
+
+
+attachedFiles style form =
+    List.map (attachedFile style) (Model.PostForm.files form)
+
+
+attachedFile style { id, file, preview } =
+    div [ style.formImagePreviewContainer, onClick <| Msg.FormRemoveFile id ]
+        [ img [ style.formImagePreview, src preview ] []
+        , div
+            [ style.formImagePreviewOverlay
+            , Html.Attributes.style "top" "50%"
+            , Html.Attributes.style "left" "50%"
+            , Html.Attributes.style "transform" "translate(-50%, -50%)"
+            ]
+            [ div [] [ text "Remove" ] ]
+        ]
+
+
+buttonSelectFiles style form =
+    div
+        [ onClick Msg.FormSelectFiles
+        , style.formButtonAddImage
+        , style.flexFiller
+        , style.buttonEnabled
+        ]
+        [ div [ Tachyons.classes [ TC.h_100, TC.flex, TC.flex_column, TC.justify_center ] ]
+            [ div [] [ text "Add Images" ] ]
+        ]
+
+
 postTextInput style form =
     [ formLabel style "Comment"
     , textarea
@@ -109,10 +155,10 @@ buttonCreate style form =
     let
         disabledAttrs =
             if Model.PostForm.isValid form then
-                [ disabled False, style.textButton, style.buttonEnabled ]
+                [ disabled False, style.buttonEnabled ]
 
             else
-                [ disabled True, style.textButton, style.buttonDisabled ]
+                [ disabled True, style.buttonDisabled ]
     in
     button
         ([ onClick Msg.FormSubmit

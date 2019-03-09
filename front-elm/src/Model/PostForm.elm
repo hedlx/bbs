@@ -1,9 +1,11 @@
 module Model.PostForm exposing
     ( PostForm
+    , addFiles
     , countChars
     , countWords
     , empty
     , encode
+    , files
     , hasSubj
     , isEmpty
     , isTextBlank
@@ -11,6 +13,8 @@ module Model.PostForm exposing
     , limits
     , name
     , pass
+    , removeFile
+    , setFilePreview
     , setLimits
     , setName
     , setPass
@@ -23,9 +27,11 @@ module Model.PostForm exposing
     )
 
 import Env
+import File exposing (File)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Limits as Limits exposing (Limits)
+import Model.PostForm.Files as Files exposing (Files)
 
 
 type PostForm
@@ -39,6 +45,7 @@ type alias PostForm_ =
     , pass : String
     , subj : Maybe String
     , text : String
+    , files : Files
     }
 
 
@@ -90,6 +97,7 @@ empty =
         , pass = ""
         , subj = Nothing
         , text = ""
+        , files = Files.empty
         }
 
 
@@ -117,6 +125,10 @@ text (PostForm form) =
     form.text
 
 
+files (PostForm form) =
+    Files.toList form.files
+
+
 setName newName (PostForm form) =
     PostForm { form | name = limitString form.limits.maxLenName <| String.trimLeft newName }
 
@@ -137,6 +149,18 @@ setText newText (PostForm form) =
     PostForm { form | text = limitString form.limits.maxLenText newText }
 
 
+addFiles filesToAdd (PostForm form) =
+    let
+        ( newFiles, loadPreviewsCmd ) =
+            Files.add filesToAdd form.files
+    in
+    ( PostForm { form | files = newFiles }, loadPreviewsCmd )
+
+
+setFilePreview fileID preview (PostForm form) =
+    PostForm { form | files = Files.updatePreview fileID preview form.files }
+
+
 setLimits newLimits (PostForm form) =
     PostForm
         { form
@@ -145,6 +169,10 @@ setLimits newLimits (PostForm form) =
             , subj = Maybe.map (limitString newLimits.maxLenSubj) form.subj
             , text = limitString newLimits.maxLenText form.text
         }
+
+
+removeFile fileID (PostForm form) =
+    PostForm { form | files = Files.remove fileID form.files }
 
 
 limitString maybeLimit str =

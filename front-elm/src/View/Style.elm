@@ -45,6 +45,11 @@ type alias Style =
     , formBodyPane : Attr
     , formElement : Attr
     , formButton : Attr
+    , formAreaAttachedFiles : Attr
+    , formImagePreviewContainer : Attr
+    , formImagePreview : Attr
+    , formImagePreviewOverlay : Attr
+    , formButtonAddImage : Attr
     , formProblems : Attr
     , textInput : Attr
     , textArea : Attr
@@ -96,6 +101,11 @@ fromTheme theme =
     , formBodyPane = classes [ pl3, flex_grow_1, flex, flex_column ]
     , formElement = classes [ db, mb3, w_100 ]
     , formButton = classes [ mt3, mb4 ]
+    , formAreaAttachedFiles = classes [ flex, justify_center ]
+    , formImagePreviewContainer = classes [ h4, mr2, relative, hide_child, pointer ]
+    , formImagePreview = classes [ h_inherit ]
+    , formImagePreviewOverlay = classes [ absolute, h_100, w_100, flex, justify_center, flex_column, tc, child, bg_black_70 ]
+    , formButtonAddImage = classes [ b__dashed, pa3, tc, br1, bw1, bg_transparent, theme.fgPost, theme.bInput ]
     , formProblems = classes [ h3 ]
     , textInput = classes [ pa1, br1, b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
     , textArea = classes [ pa1, br1, b__solid, bw1, w_100, theme.fgInput, theme.bgInput, theme.bInput ]
