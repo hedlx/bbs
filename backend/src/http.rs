@@ -1,11 +1,10 @@
 // TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
 
-use super::error::{error, Error};
+use super::error::Error;
 use super::events::{validate_message, validate_thread};
 use super::limits::{Limits, LIMITS};
 use data::{Message, NewMessage, NewThread, Thread};
 use db::Db;
-use rocket::http::Status;
 use rocket_contrib::json::Json;
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
@@ -45,44 +44,25 @@ fn thread_id(
 
 #[post("/threads", format = "json", data = "<thr>")]
 fn thread_new(db: Db, thr: Json<NewThread>) -> Result<&'static str, Error> {
-    let thr = validate_thread(thr.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
+    let thr = validate_thread(thr.0)?;
     db.new_thread(thr);
     Ok("{}")
 }
 
 #[post("/threads/<id>", format = "json", data = "<msg>")]
-fn thread_reply(db: Db, id: i32, msg: Json<NewMessage>) -> Result<&'static str, Error> {
-    let msg = validate_message(msg.0).map_err(|(e, c)| error(Status::BadRequest, e, c))?;
-    if db.reply_thread(id, msg) {
-        Ok("{}")
-    } else {
-        Err(error(
-            Status::NotFound,
-            "No such thread.",
-            "thread.not_found",
-        ))
-    }
+fn thread_reply(db: Db, id: i32, msg: Json<NewMessage>) -> Result<Error, Error> {
+    let msg = validate_message(msg.0)?;
+    Ok(db.reply_thread(id, msg))
 }
 
 #[delete("/threads/<id>?<password>")]
-fn api_delete_thread(db: Db, id: i32, password: String) -> Result<&'static str, Error> {
-    match db.delete_thread(id, password) {
-        Some(err) => Err(err),
-        None => Ok("{}"),
-    }
+fn api_delete_thread(db: Db, id: i32, password: String) -> Error {
+    db.delete_thread(id, password)
 }
 
 #[delete("/threads/<id>/replies/<no>?<password>")]
-fn api_delete_thread_reply(
-    db: Db,
-    id: i32,
-    no: i32,
-    password: String,
-) -> Result<&'static str, Error> {
-    match db.delete_message(id, no, password) {
-        Some(err) => Err(err),
-        None => Ok("{}"),
-    }
+fn api_delete_thread_reply(db: Db, id: i32, no: i32, password: String) -> Error {
+    db.delete_message(id, no, password)
 }
 
 #[get("/limits")]

@@ -1,37 +1,32 @@
 use super::data::{NewMessage, NewThread};
+use super::error::Error;
 use super::limits::LIMITS;
 
-pub fn validate_thread(mut thr: NewThread) -> Result<NewThread, (&'static str, &'static str)> {
+pub fn validate_thread(mut thr: NewThread) -> Result<NewThread, Error> {
     thr.msg = validate_message(thr.msg)?;
     thr.subject = trim(thr.subject);
     if let Some(subject) = thr.subject.clone() {
         if subject.len() > LIMITS.msg_subject_len {
-            return Err(("Subject is too long.", "message.subject_long"));
+            return Err(Error::MsgSubjLong);
         }
     }
     Ok(thr)
 }
 
-pub fn validate_message(mut msg: NewMessage) -> Result<NewMessage, (&'static str, &'static str)> {
+pub fn validate_message(mut msg: NewMessage) -> Result<NewMessage, Error> {
     msg.text = msg.text.trim().to_owned();
     msg.name = trim(msg.name);
     msg.secret = trim(msg.secret);
     msg.password = trim(msg.password);
     if msg.text.len() == 0 {
-        return Err(("Text should not be empty.", "message.text_empty"));
+        return Err(Error::MsgTextEmpt);
     }
     if msg.text.len() > LIMITS.msg_text_len {
-        return Err((
-            "Text should be no more than 4096 characters long.",
-            "message.text_long",
-        ));
+        return Err(Error::MsgTextLong);
     }
     if let Some(name) = msg.name.clone() {
         if name.len() > LIMITS.msg_name_len {
-            return Err((
-                "Name should be no more than 32 characters long.",
-                "message.name_long",
-            ));
+            return Err(Error::MsgNameLong);
         }
     }
     Ok(msg)

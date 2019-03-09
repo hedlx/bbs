@@ -1,5 +1,5 @@
 use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, NewThread, Thread};
-use super::error::{error, Error, Status};
+use super::error::Error;
 use chrono::{NaiveDateTime, Utc};
 use diesel::sql_types::{Integer, Timestamp};
 use diesel::Connection;
@@ -47,7 +47,7 @@ impl Db {
         .unwrap()
     }
 
-    pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> bool {
+    pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> Error {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
@@ -65,14 +65,14 @@ impl Db {
 
             let no = match no {
                 Some(no) => no.id,
-                None => return Ok(false),
+                None => return Ok(Error::ThrNotFound),
             };
 
             insert_into(super::schema::messages::dsl::messages)
                 .values(&msg_to_db_msg(msg, now, thread_id, no))
                 .execute(&self.0)?;
 
-            Ok(true)
+            Ok(Error::OK)
         })
         .unwrap()
     }
@@ -122,7 +122,7 @@ impl Db {
         }).unwrap()
     }
 
-    pub fn delete_message(&self, thread_id: i32, no: i32, password: String) -> Option<Error> {
+    pub fn delete_message(&self, thread_id: i32, no: i32, password: String) -> Error {
         self.transaction(|| {
             use super::schema::messages::dsl as d;
             let message = d::messages
@@ -133,19 +133,11 @@ impl Db {
 
             let message = match message {
                 Some(message) => message,
-                None => return Ok(Some(error(
-                    Status::NotFound,
-                    "No such message.",
-                    "message.not_found",
-                ))),
+                None => return Ok(Error::MsgNotFound),
             };
 
             if message.password != Some(password) {
-                return Ok(Some(error(
-                    Status::Unauthorized,
-                    "Invalid password.",
-                    "message.bad_password",
-                )))
+                return Ok(Error::MsgBadPwd)
             }
 
             // TODO: simplify to `delete(message)`
@@ -155,16 +147,12 @@ impl Db {
                 .filter(d::no.eq(no))
             ).execute(&self.0)?;
 
-            Ok(None)
+            Ok(Error::OK)
         }).unwrap()
     }
 
-    pub fn delete_thread(&self, _thread_id: i32, _password: String) -> Option<Error> {
-        Some(error(
-            Status::NotImplemented,
-            "Not implemented.",
-            "not_implemented",
-        ))
+    pub fn delete_thread(&self, _thread_id: i32, _password: String) -> Error {
+        Error::NotImpl
     }
 
     /* Private methods. */
