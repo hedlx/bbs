@@ -5,7 +5,6 @@ import Http
 import Model.Limits exposing (Limits)
 import Model.PostForm exposing (PostForm)
 import Model.Thread exposing (Thread)
-import Spinner
 import Url exposing (Url)
 
 
@@ -28,4 +27,3 @@ type Msg
     | FormTextChanged String
     | FormSubmit
       -- Plugins
-    | SpinnerMsg Spinner.Msg

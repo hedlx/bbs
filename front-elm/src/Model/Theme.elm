@@ -12,6 +12,7 @@ type alias Theme =
     , fg : String
     , bg : String
     , fgAlert : String
+    , fgSpinner : String
     , fgOpName : String
     , fgThreadNo : String
     , fgThreadSubject : String

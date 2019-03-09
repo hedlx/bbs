@@ -17,6 +17,7 @@ type alias Style =
     , menu : Attr
     , content : Attr
     , alert : Attr
+    , spinner : Attr
     , buttonEnabled : Attr
     , buttonDisabled : Attr
     , threadPreview : Attr
@@ -67,6 +68,7 @@ fromTheme theme =
     , menu = classes [ pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
     , content = classes [ pa3, h_100, overflow_x_hidden, overflow_y_auto ]
     , alert = classes [ theme.fgAlert ]
+    , spinner = classes [ theme.fgSpinner ]
     , buttonEnabled = classes [ pointer, dim, theme.bgButton, theme.fgButton ]
     , buttonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
     , threadPreview = classes []

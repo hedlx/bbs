@@ -11,6 +11,7 @@ theme =
     , fg = light_silver
     , bg = bg_near_black
     , fgAlert = red
+    , fgSpinner = light_silver
     , fgOpName = white
     , fgThreadNo = green
     , fgThreadSubject = pink
