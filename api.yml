@@ -195,6 +195,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/NewMessage'
     Message:
+      type: object
       required:
         - no
         - text
@@ -217,7 +218,31 @@ components:
           type: integer
           example: 1136239445
           description: Timestamp.
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/Media'
+    Media:
       type: object
+      properties:
+        url:
+          type: string
+          example: "/static/3bf42a118b678839ea24d9bf35c27b92.png"
+        name:
+          type: string
+          example: "original_filename.png"
+        size:
+          type: integer
+          example: 28324
+        width:
+          type: integer
+          example: 1024
+        height:
+          type: integer
+          example: 768
+        thumbnail:
+          type: string
+          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QA/4ePzL8AAAEjSURBVCjPhdE9S1txGIbxXyI2Qk5omzNkUjyDCG2hWLoa8A10Uyg4Kmh0zIewwxn78h0cCv0MSgrSSeneRIkICWTo4JDTIf8ORzlLwefZbq7lvm5iqaHwnx9KxSWpthmMXem4RqJp6SH7zEAQ9LTEahKJqrqWniAYMBH0rKPsozt9e2BNTzAhGDtSMoO24I+mZxZVtIwFggt1O7575Y2hM5EDt/bVXeRAquZMcKLim7bnOoJzNWkOHEv0BT/F3mrYdC/oSxwLZcW99t4vI9uqRVhGYqSLyBbmrICukSQHmqadyrCqYdEsMqemNclrtkS+yGQ+WPDbX19FjzVzUWuqDv1wYsqGXVEhqlD9Uk0MXhSqi7EylzpulMxb9k4FmU+emvsfZGeByM7aOMYAAAAASUVORK5CYII="
   parameters:
     id:
       in: query
