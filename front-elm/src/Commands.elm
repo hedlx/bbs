@@ -1,5 +1,6 @@
-module Commands exposing (createPost, createThread, getThreads, init, redirect)
+module Commands exposing (createPost, createThread, getThreads, init, redirect, scrollPageToTop)
 
+import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Env
 import Http
@@ -10,6 +11,7 @@ import Model.Thread
 import Model.Threads
 import Msg
 import Route
+import Task
 import Url
 import Url.Builder
 
@@ -39,6 +41,11 @@ init model =
 
 redirect pagePath model =
     Nav.pushUrl model.cfg.key <| Route.internalLink pagePath
+
+
+scrollPageToTop =
+    Dom.setViewportOf "page-content" 0.0 0.0
+        |> Task.attempt (\_ -> Msg.Empty)
 
 
 getLimits =

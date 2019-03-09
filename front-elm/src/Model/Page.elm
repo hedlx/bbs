@@ -1,6 +1,7 @@
 module Model.Page exposing
     ( Page(..)
     , State(..)
+    , isLoading
     , mapContent
     , mapIndex
     , mapLoading

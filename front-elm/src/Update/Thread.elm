@@ -1,5 +1,6 @@
 module Update.Thread exposing (update)
 
+import Commands
 import Model.Page as Page
 import Model.PostForm as PostForm
 import Msg
@@ -25,7 +26,7 @@ update msg model =
         Msg.GotThread result ->
             case result of
                 Ok thread ->
-                    ( { model | page = Page.mapThread (updateThread model.cfg thread) model.page }, Cmd.none )
+                    ( { model | page = Page.mapThread (updateThread model.cfg thread) model.page }, Commands.scrollPageToTop )
 
                 Err _ ->
                     Debug.todo "handle GotThread error"

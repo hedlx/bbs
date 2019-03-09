@@ -14,7 +14,11 @@ update msg model =
         Msg.LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
+                    let
+                        newModel =
+                            { model | page = Route.route model.cfg url }
+                    in
+                    ( newModel, Nav.pushUrl model.cfg.key (Url.toString url) )
 
                 Browser.External href ->
                     ( model, Nav.load href )

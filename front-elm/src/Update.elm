@@ -17,3 +17,4 @@ update msg =
         >> andThen (Route.update msg)
         >> andThen (PostForm.update msg)
         >> andThen (Plugins.update msg)
+

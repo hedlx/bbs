@@ -1,5 +1,6 @@
 module Update.Threads exposing (update)
 
+import Commands
 import Model.Page as Page
 import Msg
 
@@ -13,7 +14,7 @@ update msg model =
                         newPage =
                             Page.mapIndex (\_ -> Page.Content <| List.reverse threads) model.page
                     in
-                    ( { model | page = newPage }, Cmd.none )
+                    ( { model | page = newPage }, Commands.scrollPageToTop )
 
                 Err _ ->
                     Debug.todo "handle GotThreads error"
