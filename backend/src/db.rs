@@ -1,5 +1,17 @@
-use super::data::{DbMessage, DbNewThread, DbThread, Message, NewMessage, NewThread, ThreadPreview};
+use super::data::{
+    DbFile,
+    DbMessage,
+    DbNewThread,
+    DbThread,
+    File,
+    Message,
+    NewMessage,
+    NewThread,
+    ThreadPreview
+};
+use super::http_multipart::MediaFile1;
 use super::error::Error;
+use base64;
 use chrono::{NaiveDateTime, Utc};
 use diesel::sql_types::{Integer, BigInt, Timestamp};
 use diesel::Connection;
@@ -42,18 +54,23 @@ impl Db {
                 .returning(super::schema::threads::dsl::id)
                 .get_result(&self.0)?;
 
-            let result = msg_to_db_msg(thr.msg, now, thread_id, 0);
+            let result = msg_to_db(thr.msg, now, thread_id, 0);
 
             insert_into(super::schema::messages::dsl::messages)
                 .values(&result)
                 .execute(&self.0)?;
 
-            Ok(db_msg_to_msg(result))
+            Ok(msg_from_db(result))
         })
         .unwrap()
     }
 
-    pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> Error {
+    pub fn reply_thread(
+        &self,
+        thread_id: i32,
+        msg: NewMessage,
+        files: Vec<MediaFile1>,
+    ) -> Error {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
@@ -75,9 +92,16 @@ impl Db {
             };
 
             insert_into(super::schema::messages::dsl::messages)
-                .values(&msg_to_db_msg(msg, now, thread_id, no))
+                .values(&msg_to_db(msg, now, thread_id, no))
                 .execute(&self.0)?;
 
+            insert_into(super::schema::files::dsl::files)
+                .values(files
+                        .into_iter()
+                        .enumerate()
+                        .map(|(fno, file)|file_to_db(file, thread_id, no, fno))
+                        .collect::<Vec<DbFile>>())
+                .execute(&self.0)?;
             Ok(Error::OK)
         })
         .unwrap()
@@ -106,7 +130,7 @@ impl Db {
                     id: thread.id as u32,
                     subject: thread.subject,
                     bump: thread.bump.timestamp(),
-                    op: db_msg_to_msg(op),
+                    op: msg_from_db(op),
                     last: last,
                     omitted: omitted,
                 }
@@ -122,18 +146,32 @@ impl Db {
             let messages = sql_query(r"
                 SELECT *
                   FROM messages
+                       LEFT JOIN files
+                              ON msg_no = no
+                             AND msg_thread_id = $1
                  WHERE thread_id = $1
-                 ORDER BY no ASC
+                 ORDER BY no, fno
             ")
             .bind::<Integer, _>(thread_id)
-            .get_results::<DbMessage>(&self.0)?;
+            .get_results::<(DbMessage, Option<DbFile>)>(&self.0)?;
 
-            let messages: Vec<Message> = messages.into_iter().map(db_msg_to_msg).collect();
-
-            if messages.is_empty() {
+            let mut result: Vec<Message> = Vec::new();
+            for (msg, file) in messages {
+                let is_same = match &result.last() {
+                    Some(last) if last.no == msg.no as u32 => true,
+                    _ => false,
+                };
+                if !is_same {
+                    result.push(msg_from_db(msg));
+                }
+                if let Some(file) = file {
+                    result.last_mut().unwrap().media.push(file_from_db(file));
+                }
+            }
+            if result.is_empty() {
                 Ok(None)
             } else {
-                Ok(Some(messages))
+                Ok(Some(result))
             }
         }).unwrap()
     }
@@ -182,7 +220,7 @@ impl Db {
             .limit(5)
             .get_results::<DbMessage>(&self.0)?
             .into_iter()
-            .map(db_msg_to_msg)
+            .map(msg_from_db)
             .collect();
         result.reverse();
         Ok(result)
@@ -196,17 +234,18 @@ impl Db {
     }
 }
 
-fn db_msg_to_msg(msg: DbMessage) -> Message {
+fn msg_from_db(msg: DbMessage) -> Message {
     Message {
         no: msg.no as u32,
         name: msg.name,
         trip: msg.trip,
         text: msg.text,
         ts: msg.ts.timestamp(),
+        media: Vec::new(),
     }
 }
 
-fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) -> DbMessage {
+fn msg_to_db(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) -> DbMessage {
     DbMessage {
         thread_id: thread_id,
         no: no,
@@ -216,5 +255,41 @@ fn msg_to_db_msg(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) ->
         sender: String::new(),
         text: msg.text,
         ts: ts,
+    }
+}
+
+fn file_from_db(file: DbFile) -> File {
+    File {
+        fname:     file.fname,
+        size:      file.size,
+        width:     file.width,
+        height:    file.height,
+        thumbnail: file.thumb.map(jpeg_to_data_base64),
+    }
+}
+
+fn jpeg_to_data_base64(jpeg: Vec<u8>) -> String {
+    format!("data:image/jpeg;base64,{}", base64::encode(jpeg.as_slice()))
+}
+
+fn file_to_db(
+    file: MediaFile1,
+    thread_id: i32, msg_no: i32, fno: usize,
+) -> DbFile {
+    let extension = match file.path.extension() {
+        Some(x) => format!(".{}", x.to_str().unwrap()),
+        None => String::new()
+    };
+    DbFile {
+        msg_thread_id: thread_id,
+        msg_no: msg_no,
+        fno: fno as i16,
+
+        fname: format!("/i/{}_{}_{}{}", thread_id, msg_no, fno, extension),
+        size: file.size,
+        width: file.width,
+        height: file.height,
+
+        thumb: file.thumb,
     }
 }

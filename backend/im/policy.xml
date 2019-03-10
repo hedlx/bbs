@@ -1,0 +1,13 @@
+<policymap>
+	<policy domain="resource" name="temporary-path" value="/nonexistent"/>
+	<policy domain="resource" name="file"           value="0"           />
+	<policy domain="resource" name="memory"         value="64MiB"       />
+	<policy domain="resource" name="map"            value="64MiB"       />
+	<policy domain="resource" name="disk"           value="0"           />
+	<policy domain="resource" name="time"           value="2"           />
+
+	<policy domain="delegate" rights="none"         pattern="*"/>
+	<policy domain="coder"    rights="none"         pattern="*"/>
+	<policy domain="coder"    rights="read | write" pattern="{GIF,JPEG,PNG,WEBP}"/>
+	<policy domain="module"   rights="none"         pattern="{ps,pdf,xps}"/>
+</policymap>

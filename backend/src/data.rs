@@ -1,4 +1,4 @@
-use super::schema::{messages, threads};
+use super::schema::{files, messages, threads};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -26,6 +26,16 @@ pub struct Message {
     pub trip: Option<String>,
     pub text: String,
     pub ts: i64,
+    pub media: Vec<File>,
+}
+
+#[derive(Serialize)]
+pub struct File {
+    pub fname: String,
+    pub size: i32,
+    pub width: i32,
+    pub height: i32,
+    pub thumbnail: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -61,6 +71,21 @@ pub struct DbThread {
     pub last_reply_no: i32,
     pub subject: Option<String>,
     pub bump: NaiveDateTime,
+}
+
+#[derive(Insertable, QueryableByName, Queryable)]
+#[table_name = "files"]
+pub struct DbFile {
+    pub msg_thread_id: i32,
+    pub msg_no: i32,
+    pub fno: i16,
+
+    pub fname: String,
+    pub size: i32,
+    pub width: i32,
+    pub height: i32,
+
+    pub thumb: Option<Vec<u8>>,
 }
 
 #[derive(Insertable)]

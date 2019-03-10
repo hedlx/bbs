@@ -1,10 +1,11 @@
-// TODO: multipart upload https://github.com/SergioBenitez/Rocket/issues/106
-
 use super::error::Error;
 use super::events::{validate_message, validate_thread};
+use super::http_multipart::process_upload;
 use super::limits::{Limits, LIMITS};
 use data::{Message, NewMessage, NewThread, ThreadPreview};
 use db::Db;
+use rocket::http::ContentType;
+use rocket::Data;
 use rocket_contrib::json::Json;
 
 #[get("/threads?<before>&<after>&<limit>&<tag>")]
@@ -52,7 +53,16 @@ fn thread_new(db: Db, thr: Json<NewThread>) -> Result<&'static str, Error> {
 #[post("/threads/<id>", format = "json", data = "<msg>")]
 fn thread_reply(db: Db, id: i32, msg: Json<NewMessage>) -> Result<Error, Error> {
     let msg = validate_message(msg.0)?;
-    Ok(db.reply_thread(id, msg))
+    Ok(db.reply_thread(id, msg, Vec::new()))
+}
+
+#[post("/threads/<id>", format = "multipart", data = "<data>")]
+fn thread_reply_mp(db: Db, id: i32, cont_type: &ContentType, data: Data) -> Result<Error, Error> {
+    let (msg, media) = process_upload::<NewMessage>(cont_type, data)?;
+    let msg = validate_message(msg)?;
+    let media = media.process()?;
+    Ok(db.reply_thread(id, msg, media.files))
+    // TODO: move images to dir
 }
 
 #[delete("/threads/<id>?<password>")]
@@ -82,6 +92,7 @@ pub fn start() {
                 thread_id,
                 thread_new,
                 thread_reply,
+                thread_reply_mp,
                 threads_list,
             ],
         )

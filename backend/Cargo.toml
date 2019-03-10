@@ -12,6 +12,12 @@ rocket = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.8"
+subprocess = "0.1"
+
+[dependencies.multipart]
+version = "0.16"
+default-features = false
+features = ["mock", "rocket", "server"]
 
 [dependencies.rocket_contrib]
 version = "0.4"

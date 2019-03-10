@@ -16,14 +16,24 @@ fn code_to_err(code: u16) -> Status {
 }
 
 macro_rules! def_errors {
-    ( $( $name:ident ($http_code:expr, $code:expr, $message:expr), )* ) => {
+    (
+        $( $name:ident ($http_code:expr, $code:expr, $message:expr), )*
+    ) => {
         #[derive(Debug)]
         pub enum Error {
+            OK,
+            Upload(&'static str),
             $( $name, )*
         }
 
         fn error2(err: Error) -> Custom<JsonValue> {
             match err {
+                Error::OK => Custom(Status::Ok, json!({})),
+                Error::Upload(x) =>
+                    Custom(
+                        Status::BadRequest,
+                        json!({"debug": x, "code": "upload"})
+                    ),
                 $( Error::$name =>
                    Custom(
                        code_to_err($http_code),
@@ -42,8 +52,6 @@ impl<'r> Responder<'r> for Error {
 }
 
 def_errors! {
-    OK         (200, "", ""),
-
     MsgSubjLong(400, "message.subject_long", "Subject is too long."),
     MsgTextEmpt(400, "message.text_empty",   "Text should not be empty."),
     MsgTextLong(400, "message.text_long",    "Text should be no more than 4096 characters long."),
@@ -54,5 +62,5 @@ def_errors! {
     MsgNotFound(404, "message.not_found",    "No such message."),
     ThrNotFound(404, "thread.not_found",     "No such thread."),
 
-    NotImpl    (501, "not_implemented",       "Not implemented."),
+    NotImpl    (501, "not_implemented",      "Not implemented."),
 }

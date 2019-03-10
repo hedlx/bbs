@@ -25,7 +25,7 @@ rust)
 	rm -rf tmp
 	mkdir tmp
 	cp -lr -t tmp \
-		$bin ./backend/migrations
+		$bin ./backend/migrations ./backend/im
 	tar cz -C tmp . | ssh $ssh_opts hedlx.org '
 		set -e
 		rm -rf tmp/rust
@@ -40,6 +40,8 @@ rust)
 			--database-url \
 			postgres://bbs-backend@%2Fvar%2Frun%2Fpostgresql/bbs-staging \
 			--migration-dir tmp/rust/migrations || fail=1
+		rm -rf im
+		mv tmp/rust/im .
 
 		sudo systemctl start bbs-backend
 
