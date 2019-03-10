@@ -123,6 +123,7 @@ impl Db {
                 SELECT *
                   FROM messages
                  WHERE thread_id = $1
+                 ORDER BY no ASC
             ")
             .bind::<Integer, _>(thread_id)
             .get_results::<DbMessage>(&self.0)?;
