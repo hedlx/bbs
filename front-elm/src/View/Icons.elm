@@ -34,5 +34,5 @@ hedlx =
     HedlxSvg.icon
 
 
-spinner =
-    SpinnerSvg.icon 256.0 -1.0 11
+spinner size =
+    SpinnerSvg.icon size -1.0 11

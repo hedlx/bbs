@@ -69,17 +69,35 @@ getThread threadID =
         }
 
 
-createThread jsonBody =
+createThread hasAttachments formPostBody =
+    let
+        -- TODO: Make main path to accept multipart
+        path =
+            if hasAttachments then
+                [ "threads", "multipart" ]
+
+            else
+                [ "threads" ]
+    in
     Http.post
-        { url = Url.Builder.crossOrigin Env.serverUrl [ "threads" ] []
-        , body = Http.jsonBody jsonBody
+        { url = Url.Builder.crossOrigin Env.serverUrl path []
+        , body = formPostBody
         , expect = Http.expectWhatever Msg.ThreadCreated
         }
 
 
-createPost threadID jsonBody =
+createPost threadID hasAttachments formPostBody =
+    let
+        -- TODO: Make main path to accept multipart
+        path =
+            if hasAttachments then
+                [ "threads", "multipart", String.fromInt threadID ]
+
+            else
+                [ "threads", String.fromInt threadID ]
+    in
     Http.post
         { url = Url.Builder.crossOrigin Env.serverUrl [ "threads", String.fromInt threadID ] []
-        , body = Http.jsonBody jsonBody
+        , body = formPostBody
         , expect = Http.expectWhatever (Msg.PostCreated threadID)
         }

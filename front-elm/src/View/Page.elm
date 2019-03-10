@@ -35,4 +35,4 @@ content style model =
 
 
 loadingSpinner style =
-    Model.Page.withLoadingDefault (Spinner.view style)
+    Model.Page.withLoadingDefault (Spinner.view style 256)

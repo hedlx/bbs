@@ -11,6 +11,7 @@ import Msg
 import Tachyons
 import Tachyons.Classes as TC
 import View.Icons as Icons
+import View.Spinner as Spinner
 
 
 view style form =
@@ -113,8 +114,14 @@ attachedFiles style form =
 
 
 attachedFile style { id, file, preview } =
+    let
+        imgOrSpinner =
+            preview
+                |> Maybe.map (\base64Img -> img [ style.formImagePreview, src base64Img ] [])
+                >> Maybe.withDefault (previewLoadingSpinner style)
+    in
     div [ style.formImagePreviewContainer, onClick <| Msg.FormRemoveFile id ]
-        [ img [ style.formImagePreview, src preview ] []
+        [ imgOrSpinner
         , div
             [ style.formImagePreviewOverlay
             , Html.Attributes.style "top" "50%"
@@ -123,6 +130,10 @@ attachedFile style { id, file, preview } =
             ]
             [ div [] [ text "Remove" ] ]
         ]
+
+
+previewLoadingSpinner style =
+    div [ style.formImagePreview ] [ Spinner.view style 64 ]
 
 
 buttonSelectFiles style form =

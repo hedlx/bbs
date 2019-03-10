@@ -17,9 +17,17 @@ view style ( thread, postForm ) =
         , style.thread
         ]
     <|
-        [ Reply.view style thread.op ]
+        [ subject style thread
+        , Reply.view style thread.op
+        ]
             ++ posts style thread
             ++ [ replyForm style postForm ]
+
+
+subject style thread =
+    thread.subject
+        |> Maybe.map (\subj -> h1 [ style.threadSubject ] [ text subj ])
+        >> Maybe.withDefault nothing
 
 
 posts style { id, replies } =

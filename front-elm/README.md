@@ -1,4 +1,4 @@
-# Unnamed Hedlx BBS Reader 
+# Unnamed Hedlx BBS Reader
 
 This is a Hedlx BBS frontend.
 
@@ -47,8 +47,8 @@ npx elm install elm/json
     ```
     npx elm-format <file>
     ```
-- Try not to expose values on import. Prefer to use qualified names. Starting from ver. 0.19 elm compiler complains about variable shadowing. 
-Use `as` keyword to deal with long module names. Prefer to take as synonym the name of the deepest module. For example: `import Json.Encode as Encode`. 
+- Try not to expose values on import. Prefer to use qualified names. Starting from ver. 0.19 elm compiler complains about variable shadowing.
+Use `as` keyword to deal with long module names. Prefer to take as synonym the name of the deepest module. For example: `import Json.Encode as Encode`.
 As an exception you can expose values when provider module functions form domain language for a client module. For example, feel free to import everything from `Html.Attributes` module in `View` modules.
 
     ##### Bad
@@ -61,7 +61,7 @@ As an exception you can expose values when provider module functions form domain
 
     ##### Better
     ```
-    import Json.Encode 
+    import Json.Encode
     ...
     ... Json.Encode.encode 0 (Json.Encode.string True) ...
     ...
@@ -92,24 +92,21 @@ As an exception you can expose values when provider module functions form domain
     ##### Good
     ```
         module View.Post exposing (view)
-        import Model.Post 
+        import Model.Post
         ...
     ```
 
-- Prefer to make a data type [opaque](https://package.elm-lang.org/help/design-guidelines) when a `set`/`update` function for this type exists. 
+- Prefer to make a data type [opaque](https://package.elm-lang.org/help/design-guidelines) when a `set`/`update` function for this type exists.
 
 - Put JSON decoders and encode functions into model modules. It will help to make a data type opaque if you need it. For example, `Model.Post` module should provide `decoder` and `empty` functions, such that:
     ```
     import Model.Post as Post exposing (Post)
     ...
     jsonToPost : Json.Encode.Value -> Post
-    jsonToPost = 
-        Json.Decode.decodeValue Post.decoder 
+    jsonToPost =
+        Json.Decode.decodeValue Post.decoder
             >> Error.withDefault Post.empty
     ```
-- Try to add type annotations for all exposed `Model` functions and exposed helper modules functions.
-
-- Don't add type annotations for internal functions. 
 
 ## Learn ELM
 [Gentle Introduction](https://elmprogramming.com/)

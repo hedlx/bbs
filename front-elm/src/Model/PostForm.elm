@@ -4,8 +4,8 @@ module Model.PostForm exposing
     , countChars
     , countWords
     , empty
-    , encode
     , files
+    , hasAttachments
     , hasSubj
     , isEmpty
     , isTextBlank
@@ -23,11 +23,15 @@ module Model.PostForm exposing
     , setTrip
     , subj
     , text
+    , toJson
+    , toRequestBody
     , trip
     )
 
+import Bytes.Encode
 import Env
 import File exposing (File)
+import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Limits as Limits exposing (Limits)
@@ -49,11 +53,21 @@ type alias PostForm_ =
     }
 
 
-encode (PostForm form) =
+toRequestBody postForm =
+    if hasAttachments postForm then
+        Http.multipartBody <|
+            [ jsonPart postForm ]
+                ++ filesParts postForm
+
+    else
+        Http.jsonBody (toJson postForm)
+
+
+toJson (PostForm form) =
     let
         fixedName =
             if String.isEmpty (String.trim form.name) then
-                "Anonymous"
+                Env.defaultName
 
             else
                 String.trim form.name
@@ -72,6 +86,20 @@ encode (PostForm form) =
             ++ formSubjOrEmpty
 
 
+jsonPart postForm =
+    toJson postForm
+        |> Encode.encode 0
+        >> Bytes.Encode.string
+        >> Bytes.Encode.encode
+        >> Http.bytesPart "message" "application/json"
+
+
+filesParts postForm =
+    files postForm
+        |> List.map .file
+        >> List.map (Http.filePart "media[]")
+
+
 isEmpty (PostForm form) =
     String.isEmpty form.text
         && String.isEmpty form.pass
@@ -87,6 +115,10 @@ isValid postForm =
 
 hasSubj (PostForm form) =
     form.subj /= Nothing
+
+
+hasAttachments (PostForm form) =
+    not (Files.isEmpty form.files)
 
 
 empty =

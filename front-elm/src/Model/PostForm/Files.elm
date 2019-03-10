@@ -2,6 +2,7 @@ module Model.PostForm.Files exposing
     ( Files
     , add
     , empty
+    , isEmpty
     , isExists
     , remove
     , toList
@@ -25,7 +26,7 @@ type alias Files_ =
 type alias Record =
     { id : Int
     , file : File
-    , preview : String
+    , preview : Maybe String
     }
 
 
@@ -40,6 +41,10 @@ toList (Files db) =
     db.records
 
 
+isEmpty (Files db) =
+    List.isEmpty db.records
+
+
 add newFiles (Files db) =
     let
         newCount =
@@ -50,7 +55,7 @@ add newFiles (Files db) =
                 (\n file ->
                     { id = db.idCount + n
                     , file = file
-                    , preview = ""
+                    , preview = Nothing
                     }
                 )
                 newFiles
@@ -72,7 +77,7 @@ remove id (Files db) =
 
 
 updatePreview id preview =
-    map id (\rec -> { rec | preview = preview })
+    map id (\rec -> { rec | preview = Just preview })
 
 
 map id update (Files db) =

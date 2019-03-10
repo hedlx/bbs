@@ -7,8 +7,8 @@ import Tachyons.Classes as TC
 import View.Icons
 
 
-view style =
+view style size =
     div [ style.content, style.spinner, Tachyons.classes [ TC.flex, TC.justify_center ] ]
         [ div [ Tachyons.classes [ TC.flex, TC.justify_center, TC.flex_column ] ]
-            [ View.Icons.spinner ]
+            [ View.Icons.spinner size ]
         ]
