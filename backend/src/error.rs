@@ -6,6 +6,7 @@ use rocket_contrib::json::JsonValue;
 
 fn code_to_err(code: u16) -> Status {
     match code {
+        200 => Status::Ok,
         400 => Status::BadRequest,
         404 => Status::NotFound,
         401 => Status::Unauthorized,
