@@ -8,7 +8,9 @@ import View.Icons
 
 
 view style size =
-    div [ style.content, style.spinner, Tachyons.classes [ TC.flex, TC.justify_center ] ]
-        [ div [ Tachyons.classes [ TC.flex, TC.justify_center, TC.flex_column ] ]
+    div
+        [ style.content, style.spinner, class TC.flex, class TC.justify_center ]
+        [ div
+            [ Tachyons.classes [ TC.flex, TC.justify_center, TC.flex_column ] ]
             [ View.Icons.spinner size ]
         ]

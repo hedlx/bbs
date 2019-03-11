@@ -1,4 +1,12 @@
-module Commands exposing (createPost, createThread, getThreads, init, redirect, scrollPageToTop)
+module Commands exposing
+    ( createPost
+    , createThread
+    , focus
+    , getThreads
+    , init
+    , redirect
+    , scrollPageToTop
+    )
 
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
@@ -23,7 +31,7 @@ init model =
                 Page.Index (Page.Loading _) ->
                     getThreads
 
-                Page.Thread (Page.Loading tID) ->
+                Page.Thread (Page.Loading tID) _ ->
                     getThread tID
 
                 _ ->
@@ -45,6 +53,11 @@ redirect pagePath model =
 
 scrollPageToTop =
     Dom.setViewportOf "page-content" 0.0 0.0
+        |> Task.attempt (\_ -> Msg.Empty)
+
+
+focus id =
+    Dom.focus id
         |> Task.attempt (\_ -> Msg.Empty)
 
 

@@ -14,7 +14,7 @@ update msg model =
                         newPage =
                             Page.mapIndex (\_ -> Page.Content <| List.reverse threads) model.page
                     in
-                    ( { model | page = newPage }, Commands.scrollPageToTop )
+                    ( { model | page = newPage }, Cmd.none )
 
                 Err _ ->
                     Debug.todo "handle GotThreads error"

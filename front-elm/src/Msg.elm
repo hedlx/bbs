@@ -31,7 +31,5 @@ type Msg
     | FormFilePreviewLoaded Int String
     | FormRemoveFile Int
     | FormSubmit
-
-
-
--- Plugins
+      -- Integrations
+    | ReplyTo Int Int

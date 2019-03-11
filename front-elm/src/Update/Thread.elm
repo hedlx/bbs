@@ -7,38 +7,14 @@ import Msg
 
 
 update msg model =
-    case msg of
-        Msg.GotLimits result ->
-            case result of
-                Ok limits ->
-                    let
-                        cfg =
-                            model.cfg
-
-                        newCfg =
-                            { cfg | limits = limits }
-                    in
-                    ( { model | cfg = newCfg }, Cmd.none )
-
-                Err _ ->
-                    Debug.todo "handle GotLimits error"
-
-        Msg.GotThread result ->
+    case ( msg, model.page ) of
+        ( Msg.GotThread result, Page.Thread state postForm ) ->
             case result of
                 Ok thread ->
-                    ( { model | page = Page.mapThread (updateThread model.cfg thread) model.page }, Commands.scrollPageToTop )
+                    ( { model | page = Page.Thread (Page.Content thread) postForm }, Cmd.none )
 
                 Err _ ->
                     Debug.todo "handle GotThread error"
 
         _ ->
             ( model, Cmd.none )
-
-
-updateThread cfg thread state =
-    case state of
-        Page.Loading _ ->
-            Page.Content ( thread, PostForm.empty |> PostForm.setLimits cfg.limits )
-
-        Page.Content ( _, postForm ) ->
-            Page.Content ( thread, postForm )

@@ -7,6 +7,7 @@ module Model.PostForm exposing
     , files
     , hasAttachments
     , hasSubj
+    , init
     , isEmpty
     , isTextBlank
     , isValid
@@ -131,6 +132,10 @@ empty =
         , text = ""
         , files = Files.empty
         }
+
+
+init newLimits =
+    setLimits newLimits empty
 
 
 limits (PostForm form) =

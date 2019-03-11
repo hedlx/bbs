@@ -1,7 +1,8 @@
-module Route exposing (internalLink, route)
+module Route exposing (initModel, internalLink, route)
 
 import Dict
 import Env
+import Model exposing (Model)
 import Model.Config as Config exposing (Config)
 import Model.Page as Page exposing (..)
 import Model.PostForm as PostForm exposing (PostForm)
@@ -12,28 +13,36 @@ import Url.Builder as Builder
 import Url.Parser as Parser exposing (..)
 
 
-routes cfg =
+routes cfg page =
     oneOf
         [ oneOf [ top, s "threads" ]
             |> map (Index <| Loading ())
         , oneOf [ s "new", s "threads" </> s "new" ]
-            |> map
-                (NewThread
-                    (PostForm.empty
-                        |> PostForm.setSubj ""
-                        >> PostForm.setLimits cfg.limits
-                    )
-                )
+            |> map (NewThread (PostForm.init cfg.limits |> PostForm.setSubj ""))
         , oneOf [ int, s "threads" </> int ]
-            |> map (\tID -> Thread (Loading tID))
+            |> map (routeThread cfg page)
         ]
 
 
-route : Config -> Url -> Page
-route cfg =
-    replacePathWithFragment
-        >> parse (routes cfg)
-        >> Maybe.withDefault NotFound
+routeThread cfg page threadID =
+    case page of
+        Thread (Loading currentThreadID) postForm ->
+            if currentThreadID == threadID then
+                Thread (Loading threadID) postForm
+
+            else
+                Thread (Loading threadID) (PostForm.init cfg.limits)
+
+        _ ->
+            Thread (Loading threadID) (PostForm.init cfg.limits)
+
+
+route : Url -> Model -> Model
+route url model =
+    replacePathWithFragment url
+        |> parse (routes model.cfg model.page)
+        >> Maybe.map (\newPage -> { model | page = newPage })
+        >> Maybe.withDefault { model | page = Page.NotFound }
 
 
 internalLink : List String -> String
@@ -51,3 +60,8 @@ replacePathWithFragment url =
         | path = Maybe.withDefault "" url.fragment
         , fragment = Just ""
     }
+
+
+initModel flags url key =
+    route url
+        { cfg = Config.init url key, page = Page.NotFound }

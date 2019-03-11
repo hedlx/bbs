@@ -17,7 +17,7 @@ import Model.Thread
 type Page
     = NotFound
     | Index (State () (List Model.Thread.Thread))
-    | Thread (State Int ( Model.Thread.Thread, PostForm ))
+    | Thread (State Int Model.Thread.Thread) PostForm
     | NewThread PostForm
 
 
@@ -67,8 +67,8 @@ mapPostForm f page =
         NewThread form ->
             NewThread (f form)
 
-        Thread (Content ( thread, form )) ->
-            Thread (Content ( thread, f form ))
+        Thread state form ->
+            Thread state (f form)
 
         _ ->
             page
@@ -76,8 +76,8 @@ mapPostForm f page =
 
 mapThread f page =
     case page of
-        Thread state ->
-            Thread (f state)
+        Thread state form ->
+            Thread (f state) form
 
         _ ->
             page
@@ -88,7 +88,7 @@ isLoading page =
         Index (Loading _) ->
             True
 
-        Thread (Loading _) ->
+        Thread (Loading _) _ ->
             True
 
         _ ->

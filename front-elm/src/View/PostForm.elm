@@ -75,7 +75,7 @@ passInput style form =
 postBody style form =
     div [ style.formBodyPane ] <|
         postSubj style form
-            ++ postTextInput style form
+            ++ postComment style form
             ++ postFiles style form
 
 
@@ -115,21 +115,20 @@ attachedFiles style form =
 
 attachedFile style { id, file, preview } =
     let
-        imgOrSpinner =
-            preview
-                |> Maybe.map (\base64Img -> img [ style.formImagePreview, src base64Img ] [])
-                >> Maybe.withDefault (previewLoadingSpinner style)
+        previewImg base64Img =
+            div
+                [ style.formImagePreview
+                , Html.Attributes.style "background-image" <| String.concat [ "url('", base64Img, "')" ]
+                , onClick <| Msg.FormRemoveFile id
+                ]
+                [ overlay ]
+
+        overlay =
+            div [ style.formImagePreviewOverlay, Html.Attributes.style "visibility" "none" ] [ div [] [ text "Click to Remove" ] ]
     in
-    div [ style.formImagePreviewContainer, onClick <| Msg.FormRemoveFile id ]
-        [ imgOrSpinner
-        , div
-            [ style.formImagePreviewOverlay
-            , Html.Attributes.style "top" "50%"
-            , Html.Attributes.style "left" "50%"
-            , Html.Attributes.style "transform" "translate(-50%, -50%)"
-            ]
-            [ div [] [ text "Remove" ] ]
-        ]
+    preview
+        |> Maybe.map previewImg
+        >> Maybe.withDefault (previewLoadingSpinner style)
 
 
 previewLoadingSpinner style =
@@ -148,10 +147,11 @@ buttonSelectFiles style form =
         ]
 
 
-postTextInput style form =
+postComment style form =
     [ formLabel style "Comment"
     , textarea
-        [ value <| Model.PostForm.text form
+        [ id "post-form-text"
+        , value <| Model.PostForm.text form
         , style.textArea
         , style.flexFiller
         , style.formElement

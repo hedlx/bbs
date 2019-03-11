@@ -23,8 +23,8 @@ content style model =
             Model.Page.mapContent (Threads.view style) state
                 |> loadingSpinner style
 
-        Model.Page.Thread state ->
-            Model.Page.mapContent (Thread.view style) state
+        Model.Page.Thread state form ->
+            Model.Page.mapContent (Thread.view style form) state
                 |> loadingSpinner style
 
         Model.Page.NewThread form ->

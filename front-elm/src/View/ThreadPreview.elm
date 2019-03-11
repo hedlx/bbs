@@ -20,4 +20,4 @@ repliesList style { id, replies } =
 
     else
         div [ style.previewPosts ] <|
-            List.map (Reply.view style) replies
+            List.map (Reply.view style id) replies

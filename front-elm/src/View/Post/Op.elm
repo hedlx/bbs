@@ -2,7 +2,9 @@ module View.Post.Op exposing (view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Html.Extra exposing (..)
+import Msg
 import Route
 import View.Post as Post
 
@@ -19,6 +21,7 @@ view style thread =
                 , Post.name { style | postName = style.opName } op
                 , Post.time style op
                 , reply style thread
+                , showAll style thread
                 ]
     in
     div [ style.post ] [ opHead, Post.body style op ]
@@ -29,7 +32,15 @@ no style thread =
 
 
 reply style thread =
-    threadLink thread [ Post.btnHead style "Reply" ]
+    span
+        [ style.buttonEnabled
+        , onClick <| Msg.ReplyTo thread.id 0
+        ]
+        [ Post.btnHead style "Reply" ]
+
+
+showAll style thread =
+    threadLink thread [ Post.btnHead style "Show All" ]
 
 
 subject style thread =

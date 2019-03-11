@@ -5,6 +5,7 @@ import Commands
 import Json.Encode as Encode
 import Model exposing (Flags, Model)
 import Msg exposing (Msg)
+import Route
 import Subscriptions
 import Update
 import Url
@@ -26,6 +27,6 @@ main =
 init flags url key =
     let
         model =
-            Model.init flags url key
+            Route.initModel flags url key
     in
     ( model, Commands.init model )
