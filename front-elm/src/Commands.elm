@@ -78,7 +78,7 @@ getThreads =
 getThread threadID =
     Http.get
         { url = Url.Builder.crossOrigin Env.serverUrl [ "threads", String.fromInt threadID ] []
-        , expect = Http.expectJson Msg.GotThread (Model.Thread.decoderPostList threadID)
+        , expect = Http.expectJson Msg.GotThread (Model.Thread.decoder threadID)
         }
 
 

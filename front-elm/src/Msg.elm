@@ -6,6 +6,7 @@ import Http
 import Model.Limits exposing (Limits)
 import Model.PostForm exposing (PostForm)
 import Model.Thread exposing (Thread)
+import Model.ThreadPreview exposing (ThreadPreview)
 import Url exposing (Url)
 
 
@@ -16,7 +17,7 @@ type Msg
     | UrlChanged Url
       -- HTTP Requests
     | GotLimits (Result Http.Error Limits)
-    | GotThreads (Result Http.Error (List Thread))
+    | GotThreads (Result Http.Error (List ThreadPreview))
     | GotThread (Result Http.Error Thread)
     | ThreadCreated (Result Http.Error ())
     | PostCreated Int (Result Http.Error ())

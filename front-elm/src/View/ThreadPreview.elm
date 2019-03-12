@@ -2,7 +2,7 @@ module View.ThreadPreview exposing (view)
 
 import Html exposing (..)
 import Html.Extra exposing (..)
-import Model.Thread
+import Model.ThreadPreview
 import View.Post.Op as Op
 import View.Post.Reply as Reply
 
@@ -10,14 +10,14 @@ import View.Post.Reply as Reply
 view style thread =
     div [ style.threadPreview ]
         [ Op.view style thread
-        , repliesList style thread
+        , viewLast style thread
         ]
 
 
-repliesList style { id, replies } =
-    if List.isEmpty replies then
+viewLast style { id, last } =
+    if List.isEmpty last then
         nothing
 
     else
         div [ style.previewPosts ] <|
-            List.map (Reply.view style id) replies
+            List.map (Reply.view style id) last

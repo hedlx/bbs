@@ -17,9 +17,7 @@ view style postForm thread =
         , style.thread
         ]
     <|
-        [ subject style thread
-        , Reply.view style thread.id thread.op
-        ]
+        [ subject style thread ]
             ++ posts style thread
             ++ [ replyForm style postForm ]
 
@@ -30,8 +28,8 @@ subject style thread =
         >> Maybe.withDefault nothing
 
 
-posts style { id, replies } =
-    List.map (Html.Lazy.lazy3 Reply.view style id) replies
+posts style { id, messages } =
+    List.map (Html.Lazy.lazy3 Reply.view style id) messages
 
 
 replyForm style form =

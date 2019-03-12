@@ -12,11 +12,12 @@ module Model.Page exposing
 
 import Model.PostForm as PostForm exposing (PostForm)
 import Model.Thread
+import Model.ThreadPreview
 
 
 type Page
     = NotFound
-    | Index (State () (List Model.Thread.Thread))
+    | Index (State () (List Model.ThreadPreview.ThreadPreview))
     | Thread (State Int Model.Thread.Thread) PostForm
     | NewThread PostForm
 
@@ -55,8 +56,8 @@ withLoadingDefault placeholder state =
 
 mapIndex f page =
     case page of
-        Index maybeThreads ->
-            Index (f maybeThreads)
+        Index threadPreviews ->
+            Index (f threadPreviews)
 
         _ ->
             page
