@@ -1,18 +1,17 @@
 module Route exposing (initModel, internalLink, route)
 
-import Dict
-import Env
-import Model exposing (Model)
+import Browser.Navigation as Nav
+import Model exposing (Flags, Model)
 import Model.Config as Config exposing (Config)
 import Model.Page as Page exposing (..)
-import Model.PostForm as PostForm exposing (PostForm)
-import Regex
+import Model.PostForm as PostForm
 import String.Extra
 import Url exposing (Url)
 import Url.Builder as Builder
-import Url.Parser as Parser exposing (..)
+import Url.Parser exposing (..)
 
 
+routes : Config -> Page -> Parser (Page -> Page) Page
 routes cfg page =
     oneOf
         [ oneOf [ top, s "threads" ]
@@ -24,6 +23,7 @@ routes cfg page =
         ]
 
 
+routeThread : Config -> Page -> Int -> Page
 routeThread cfg page threadID =
     case page of
         Thread (Loading currentThreadID) postForm ->
@@ -55,6 +55,7 @@ internalLink ls =
     Builder.relative ("#" :: fixedPath) []
 
 
+replacePathWithFragment : Url -> Url
 replacePathWithFragment url =
     { url
         | path = Maybe.withDefault "" url.fragment
@@ -62,6 +63,7 @@ replacePathWithFragment url =
     }
 
 
-initModel flags url key =
+initModel : Flags -> Url -> Nav.Key -> Model
+initModel _ url key =
     route url
         { cfg = Config.init url key, page = Page.NotFound }

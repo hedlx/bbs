@@ -3,32 +3,31 @@ module View.Menu exposing (view)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Msg
 import Route
 import View.Icons as Icons
 
 
 view style model =
     div [ style.menu ]
-        [ btnIndex style model
-        , btnNewThread style model
+        [ btnIndex style
+        , btnNewThread style
         , btnDelete style model
         , div [ style.flexFiller ] []
         , btnSettings style model
         ]
 
 
-btnIndex style { cfg } =
+btnIndex style =
     a [ href <| Route.internalLink [] ]
         [ div [ style.menuButton, style.buttonEnabled, title "Main Page" ] [ Icons.hedlx ] ]
 
 
-btnNewThread style { cfg } =
+btnNewThread style =
     a [ href <| Route.internalLink [ "new" ] ]
         [ div [ style.menuButton, style.buttonEnabled, title "Start New Thread" ] [ Icons.add ] ]
 
 
-btnDelete style model =
+btnDelete style _ =
     let
         -- TODO
         isEnabled =
@@ -44,5 +43,5 @@ btnDelete style model =
     div ([ style.menuButton, style.buttonDisabled ] ++ dynamicAttrs) [ Icons.delete ]
 
 
-btnSettings style { cfg } =
+btnSettings style _ =
     div [ style.menuButton, style.buttonEnabled, title "Settings" ] [ Icons.settings ]

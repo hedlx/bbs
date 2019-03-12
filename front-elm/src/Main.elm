@@ -1,14 +1,14 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Nav
 import Commands
-import Json.Encode as Encode
 import Model exposing (Flags, Model)
 import Msg exposing (Msg)
 import Route
 import Subscriptions
 import Update
-import Url
+import Url exposing (Url)
 import View
 
 
@@ -24,6 +24,7 @@ main =
         }
 
 
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
         model =

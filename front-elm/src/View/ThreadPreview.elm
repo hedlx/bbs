@@ -2,15 +2,14 @@ module View.ThreadPreview exposing (view)
 
 import Html exposing (..)
 import Html.Extra exposing (..)
-import Model.ThreadPreview
 import View.Post.Op as Op
 import View.Post.Reply as Reply
 
 
-view style thread =
+view style threadPreview =
     div [ style.threadPreview ]
-        [ Op.view style thread
-        , viewLast style thread
+        [ Op.view style threadPreview
+        , viewLast style threadPreview
         ]
 
 

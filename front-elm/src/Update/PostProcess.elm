@@ -1,14 +1,16 @@
 module Update.PostProcess exposing (update)
 
 import Commands
+import Model exposing (Model)
 import Model.Page as Page
 import Model.PostForm as PostForm
-import Msg
+import Msg exposing (Msg)
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.page ) of
-        ( Msg.ReplyTo threadID postID, Page.Thread state form ) ->
+        ( Msg.ReplyTo _ postID, Page.Thread state form ) ->
             let
                 newPostForm =
                     appendReplyRef postID form
@@ -25,7 +27,7 @@ update msg model =
             in
             ( newModel, Commands.redirect [ "threads", String.fromInt threadID ] newModel )
 
-        ( Msg.GotThread _, Page.Thread state postForm ) ->
+        ( Msg.GotThread _, Page.Thread _ postForm ) ->
             if String.isEmpty (PostForm.text postForm) then
                 ( model, Commands.scrollPageToTop )
 

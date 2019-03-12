@@ -1,7 +1,5 @@
 module View.PostForm exposing (view)
 
-import Env
-import File
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -10,7 +8,6 @@ import Model.PostForm
 import Msg
 import Tachyons
 import Tachyons.Classes as TC
-import View.Icons as Icons
 import View.Spinner as Spinner
 
 
@@ -26,9 +23,10 @@ meta style form =
         nameInput style form
             ++ tripInput style form
             ++ passInput style form
-            ++ [ buttonCreate style form ]
-            ++ [ problems style form ]
-            ++ [ div [ style.flexFiller ] [] ]
+            ++ [ buttonCreate style form
+               , problems style form
+               , div [ style.flexFiller ] []
+               ]
             ++ info style form
 
 
@@ -113,7 +111,7 @@ attachedFiles style form =
     List.map (attachedFile style) (Model.PostForm.files form)
 
 
-attachedFile style { id, file, preview } =
+attachedFile style { id, preview } =
     let
         previewImg base64Img =
             div
@@ -135,7 +133,7 @@ previewLoadingSpinner style =
     div [ style.formImagePreview ] [ Spinner.view style 64 ]
 
 
-buttonSelectFiles style form =
+buttonSelectFiles style _ =
     div
         [ onClick Msg.FormSelectFiles
         , style.formButtonAddImage

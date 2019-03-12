@@ -1,10 +1,9 @@
 module View.Style exposing (Style, fromTheme)
 
 import Html exposing (Attribute)
-import Html.Attributes
 import Model.Theme exposing (Theme)
 import Msg exposing (Msg)
-import Tachyons exposing (classes, tachyons)
+import Tachyons exposing (classes)
 import Tachyons.Classes exposing (..)
 
 
@@ -17,6 +16,7 @@ type alias Style =
     , menu : Attr
     , content : Attr
     , alert : Attr
+    , notFound : Attr
     , spinner : Attr
     , buttonEnabled : Attr
     , buttonDisabled : Attr
@@ -25,6 +25,7 @@ type alias Style =
     , previewPosts : Attr
     , threadNo : Attr
     , threadSubject : Attr
+    , threadSubjectBig : Attr
     , postNo : Attr
     , op : Attr
     , thread : Attr
@@ -57,11 +58,6 @@ type alias Style =
     }
 
 
-none : Attribute Msg
-none =
-    Html.Attributes.attribute "" ""
-
-
 fromTheme : Theme -> Style
 fromTheme theme =
     let
@@ -72,6 +68,7 @@ fromTheme theme =
     , menu = classes [ pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
     , content = classes [ pa3, pr4, h_100, overflow_x_hidden, overflow_y_auto ]
     , alert = classes [ theme.fgAlert ]
+    , notFound = classes [ f1, tc ]
     , spinner = classes [ theme.fgSpinner ]
     , buttonEnabled = classes [ pointer, dim, theme.bgButton, theme.fgButton ]
     , buttonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
@@ -80,6 +77,7 @@ fromTheme theme =
     , previewPosts = classes [ pl5 ]
     , threadNo = classes [ theme.fgThreadNo ]
     , threadSubject = classes [ f4, theme.fgThreadSubject ]
+    , threadSubjectBig = classes [ f3, mt2, mb3, theme.fgThreadSubject ]
     , postNo = classes [ theme.fgPostNo ]
     , op = classes [ pa1 ]
     , thread = classes []

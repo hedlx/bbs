@@ -1,8 +1,8 @@
 module Model exposing (Flags, Model)
 
 import Json.Encode as Encode
-import Model.Config as Config exposing (Config)
-import Model.Page as Page exposing (Page)
+import Model.Config exposing (Config)
+import Model.Page exposing (Page)
 
 
 type alias Flags =

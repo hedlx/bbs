@@ -1,6 +1,7 @@
 module Update exposing (update)
 
-import Msg
+import Model exposing (Model)
+import Msg exposing (Msg)
 import Update.Extra exposing (andThen)
 import Update.Main as Main
 import Update.Plugins as Plugins
@@ -11,6 +12,7 @@ import Update.Thread as Thread
 import Update.Threads as Threads
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg =
     Main.update msg
         >> andThen (Threads.update msg)

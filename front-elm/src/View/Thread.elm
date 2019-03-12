@@ -4,7 +4,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
 import Html.Lazy
-import Model.Thread
 import View.Post.Reply as Reply
 import View.PostForm as PostForm
 
@@ -24,7 +23,7 @@ view style postForm thread =
 
 subject style thread =
     thread.subject
-        |> Maybe.map (\subj -> h1 [ style.threadSubject ] [ text subj ])
+        |> Maybe.map (\subj -> h1 [ style.threadSubjectBig ] [ text subj ])
         >> Maybe.withDefault nothing
 
 

@@ -31,9 +31,7 @@ module Model.PostForm exposing
 
 import Bytes.Encode
 import Env
-import File exposing (File)
 import Http
-import Json.Decode as Decode
 import Json.Encode as Encode
 import Model.Limits as Limits exposing (Limits)
 import Model.PostForm.Files as Files exposing (Files)

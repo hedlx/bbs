@@ -4,7 +4,6 @@ import Browser
 import File exposing (File)
 import Http
 import Model.Limits exposing (Limits)
-import Model.PostForm exposing (PostForm)
 import Model.Thread exposing (Thread)
 import Model.ThreadPreview exposing (ThreadPreview)
 import Url exposing (Url)

@@ -9,8 +9,6 @@ module View.Post exposing
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
-import Route
-import Tachyons.Classes as TC
 import View.Time as Time
 
 

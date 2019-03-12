@@ -1,9 +1,11 @@
 module Update.Main exposing (update)
 
 import Commands
-import Msg
+import Model exposing (Model)
+import Msg exposing (Msg)
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.GotLimits result ->

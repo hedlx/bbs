@@ -7,10 +7,11 @@ module Model.Page exposing
     , mapLoading
     , mapPostForm
     , mapThread
+    , title
     , withLoadingDefault
     )
 
-import Model.PostForm as PostForm exposing (PostForm)
+import Model.PostForm exposing (PostForm)
 import Model.Thread
 import Model.ThreadPreview
 
@@ -25,6 +26,25 @@ type Page
 type State a b
     = Loading a
     | Content b
+
+
+title page =
+    case page of
+        NotFound ->
+            "NotFound"
+
+        Index _ ->
+            ""
+
+        Thread (Loading _) _ ->
+            "..."
+
+        Thread (Content thread) _ ->
+            thread.subject
+                |> Maybe.withDefault ("Thread #" ++ String.fromInt thread.id)
+
+        NewThread _ ->
+            "New Thread"
 
 
 mapContent f state =

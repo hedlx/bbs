@@ -1,10 +1,11 @@
 module Update.Threads exposing (update)
 
-import Commands
+import Model exposing (Model)
 import Model.Page as Page
-import Msg
+import Msg exposing (Msg)
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.GotThreads result ->

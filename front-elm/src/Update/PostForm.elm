@@ -2,14 +2,14 @@ module Update.PostForm exposing (update)
 
 import Commands
 import Env
-import File
 import File.Select as Select
+import Model exposing (Model)
 import Model.Page as Page
 import Model.PostForm as PostForm
-import Msg
-import Task
+import Msg exposing (Msg)
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.FormNameChanged newVal ->
