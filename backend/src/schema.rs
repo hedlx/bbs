@@ -1,13 +1,21 @@
 table! {
-    files (msg_thread_id, msg_no, fno) {
+    attachments (msg_thread_id, msg_no, fno) {
         msg_thread_id -> Int4,
         msg_no -> Int4,
         fno -> Int2,
-        fname -> Varchar,
+        orig_name -> Varchar,
+        file_sha512 -> Varchar,
+    }
+}
+
+table! {
+    files (sha512) {
+        sha512 -> Varchar,
+        #[sql_name = "type"]
+        type_ -> Int2,
         size -> Int4,
         width -> Int4,
         height -> Int4,
-        thumb -> Nullable<Bytea>,
     }
 }
 
@@ -33,9 +41,11 @@ table! {
     }
 }
 
+joinable!(attachments -> files (file_sha512));
 joinable!(messages -> threads (thread_id));
 
 allow_tables_to_appear_in_same_query!(
+    attachments,
     files,
     messages,
     threads,

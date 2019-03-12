@@ -10,6 +10,6 @@
 
 	<policy domain="delegate" rights="none"         pattern="*"/>
 	<policy domain="coder"    rights="none"         pattern="*"/>
-	<policy domain="coder"    rights="read | write" pattern="{GIF,JPG,PNG,WEBP}"/>
+	<policy domain="coder"    rights="read | write" pattern="{GIF,JPG,JPEG,PNG,WEBP}"/>
 	<policy domain="module"   rights="none"         pattern="{ps,pdf,xps}"/>
 </policymap>

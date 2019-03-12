@@ -9,16 +9,25 @@ let
       overlays = [ moz-overlay ];
     };
     rust-channel = nixpkgs.rustChannelOf { date = "2019-02-26"; channel = "nightly"; };
-    rust-platform = nixpkgs.makeRustPlatform rust-channel.rust;
+    rust-platform = (nixpkgs.makeRustPlatform {
+      rustc = rust-channel.rust;
+      cargo = rust-channel.cargo;
+    }) // {
+      rustcSrc = ''${rust-channel.rust-src}/lib/rustlib/src/rust/src'';
+    };
 in with nixpkgs;
 stdenv.mkDerivation {
   name = "hedlx-bbs";
+  RUST_SRC_PATH = ''${rust-channel.rust-src}/lib/rustlib/src/rust/src'';
   buildInputs = [
     rust-channel.rust
+    rust-channel.rust-src
+
+    (rustracer.override { rustPlatform = rust-platform; })
 
     postgresql.lib
     postgresql
-    (nixpkgs.callPackage ./nix/pgquarrel.nix { postgresql = postgresql_11; })
+    (callPackage ./nix/pgquarrel.nix { postgresql = postgresql_11; })
 
     # front-clj
     leiningen

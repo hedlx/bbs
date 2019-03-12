@@ -1,27 +1,20 @@
 use super::data::{
-    DbFile,
-    DbMessage,
-    DbNewThread,
-    DbThread,
-    File,
-    FullThread,
-    Message,
-    NewMessage,
-    NewThread,
-    ThreadPreview
+    DbAttachment, DbFile, DbMessage, DbNewThread, DbThread, File, FullThread,
+    Message, NewAttachment, NewMessage, NewThread, ThreadPreview,
 };
-use super::http_multipart::MediaFile1;
 use super::error::Error;
-use base64;
+use super::image;
 use chrono::{NaiveDateTime, Utc};
-use diesel::sql_types::{Integer, BigInt, Timestamp};
+use diesel::result::DatabaseErrorKind;
+use diesel::result::Error as DieselError;
+use diesel::sql_types::{BigInt, Integer, Timestamp};
 use diesel::Connection;
 use diesel::ExpressionMethods;
 use diesel::OptionalExtension;
 use diesel::QueryDsl;
 use diesel::QueryResult;
 use diesel::RunQueryDsl;
-use diesel::{insert_into, delete, sql_query};
+use diesel::{delete, insert_into, sql_query};
 use rocket_contrib::databases::diesel;
 
 #[database("db")]
@@ -55,7 +48,7 @@ impl Db {
                 .returning(super::schema::threads::dsl::id)
                 .get_result(&self.0)?;
 
-            let result = msg_to_db(thr.msg, now, thread_id, 0);
+            let result = msg_to_db(&thr.msg, now, thread_id, 0);
 
             insert_into(super::schema::messages::dsl::messages)
                 .values(&result)
@@ -66,12 +59,7 @@ impl Db {
         .unwrap()
     }
 
-    pub fn reply_thread(
-        &self,
-        thread_id: i32,
-        msg: NewMessage,
-        files: Vec<MediaFile1>,
-    ) -> Error {
+    pub fn reply_thread(&self, thread_id: i32, msg: NewMessage) -> Error {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
@@ -93,22 +81,36 @@ impl Db {
             };
 
             insert_into(super::schema::messages::dsl::messages)
-                .values(&msg_to_db(msg, now, thread_id, no))
+                .values(&msg_to_db(&msg, now, thread_id, no))
                 .execute(&self.0)?;
 
-            insert_into(super::schema::files::dsl::files)
-                .values(files
+            let res = insert_into(super::schema::attachments::dsl::attachments)
+                .values(
+                    msg.media
                         .into_iter()
                         .enumerate()
-                        .map(|(fno, file)|file_to_db(file, thread_id, no, fno))
-                        .collect::<Vec<DbFile>>())
-                .execute(&self.0)?;
-            Ok(Error::OK)
+                        .map(|(fno, a)| attachment_to_db(a, thread_id, no, fno))
+                        .collect::<Vec<DbAttachment>>(),
+                )
+                .execute(&self.0);
+
+            match res {
+                Err(DieselError::DatabaseError(
+                    DatabaseErrorKind::ForeignKeyViolation,
+                    _,
+                )) => Ok(Error::MsgMediaNotFound),
+                Err(e) => Err(e),
+                Ok(_) => Ok(Error::OK),
+            }
         })
         .unwrap()
     }
 
-    pub fn get_threads_before(&self, ts: u32, limit: u32) -> Vec<ThreadPreview> {
+    pub fn get_threads_before(
+        &self,
+        ts: u32,
+        limit: u32,
+    ) -> Vec<ThreadPreview> {
         self.transaction(|| {
             let threads = sql_query(r"
                 SELECT t.*, op.*,
@@ -159,10 +161,16 @@ impl Db {
                 subject: thread.subject,
                 messages: self.get_thread_messages(thread_id)?,
             }))
-        }).unwrap()
+        })
+        .unwrap()
     }
 
-    pub fn delete_message(&self, thread_id: i32, no: i32, password: String) -> Error {
+    pub fn delete_message(
+        &self,
+        thread_id: i32,
+        no: i32,
+        password: String,
+    ) -> Error {
         self.transaction(|| {
             use super::schema::messages::dsl as d;
             let message = d::messages
@@ -177,18 +185,49 @@ impl Db {
             };
 
             if message.password != Some(password) {
-                return Ok(Error::MsgBadPwd)
+                return Ok(Error::MsgBadPwd);
             }
 
             // TODO: simplify to `delete(message)`
             delete(
                 d::messages
-                .filter(d::thread_id.eq(thread_id))
-                .filter(d::no.eq(no))
-            ).execute(&self.0)?;
+                    .filter(d::thread_id.eq(thread_id))
+                    .filter(d::no.eq(no)),
+            )
+            .execute(&self.0)?;
 
             Ok(Error::OK)
-        }).unwrap()
+        })
+        .unwrap()
+    }
+
+    pub fn have_file(&self, hash: &String) -> bool {
+        self.transaction(|| {
+            use super::schema::files::dsl as d;
+            let file = d::files
+                .filter(d::sha512.eq(hash))
+                .get_result::<DbFile>(&self.0)
+                .optional()?;
+
+            Ok(file.is_some())
+        })
+        .unwrap()
+    }
+
+    pub fn add_file(&self, info: image::Info, hash: &String) {
+        self.transaction(|| {
+            insert_into(super::schema::files::dsl::files)
+                .values(&DbFile {
+                    sha512: hash.clone(),
+                    type_: image_type_to_db(info.type_),
+                    size: info.size as i32,
+                    width: info.width as i32,
+                    height: info.height as i32,
+                })
+                .execute(&self.0)?;
+            Ok(())
+        })
+        .unwrap()
     }
 
     pub fn delete_thread(&self, _thread_id: i32, _password: String) -> Error {
@@ -197,21 +236,30 @@ impl Db {
 
     /* Private methods. */
 
-    pub fn get_thread_messages(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
+    pub fn get_thread_messages(
+        &self,
+        thread_id: i32,
+    ) -> QueryResult<Vec<Message>> {
         let messages = sql_query(r"
-            SELECT *
-              FROM messages
-                   LEFT JOIN files
+            SELECT m.*,
+                   a.*,
+                   f.sha512, f.type as type_, f.size, f.width, f.height
+              FROM messages AS m
+                   LEFT JOIN attachments AS a
                           ON msg_no = no
-                         AND msg_thread_id = $1
+                         AND msg_thread_id = thread_id
+                   LEFT JOIN files AS f
+                          ON file_sha512 = sha512
              WHERE thread_id = $1
              ORDER BY no, fno
         ")
         .bind::<Integer, _>(thread_id)
-        .get_results::<(DbMessage, Option<DbFile>)>(&self.0)?;
+        .get_results::<(DbMessage, Option<DbAttachment>, Option<DbFile>)>(
+            &self.0,
+        )?;
 
         let mut result: Vec<Message> = Vec::new();
-        for (msg, file) in messages {
+        for (msg, attachment, file) in messages {
             let is_same = match &result.last() {
                 Some(last) if last.no == msg.no as u32 => true,
                 _ => false,
@@ -219,8 +267,12 @@ impl Db {
             if !is_same {
                 result.push(msg_from_db(msg));
             }
-            if let Some(file) = file {
-                result.last_mut().unwrap().media.push(file_from_db(file));
+            if let (Some(f), Some(a)) = (file, attachment) {
+                result
+                    .last_mut()
+                    .unwrap()
+                    .media
+                    .push(file_attachment_from_db(f, a));
             }
         }
         Ok(result)
@@ -228,7 +280,7 @@ impl Db {
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
         use super::schema::messages::dsl as d;
-        let mut result : Vec<Message> = d::messages
+        let mut result: Vec<Message> = d::messages
             .filter(d::thread_id.eq(thread_id))
             .filter(d::no.gt(0))
             .order(d::no.desc())
@@ -260,51 +312,57 @@ fn msg_from_db(msg: DbMessage) -> Message {
     }
 }
 
-fn msg_to_db(msg: NewMessage, ts: NaiveDateTime, thread_id: i32, no: i32) -> DbMessage {
+fn msg_to_db(
+    msg: &NewMessage,
+    ts: NaiveDateTime,
+    thread_id: i32,
+    no: i32,
+) -> DbMessage {
     DbMessage {
         thread_id: thread_id,
         no: no,
-        name: msg.name,
-        trip: msg.secret.map(super::tripcode::generate),
-        password: msg.password,
+        name: msg.name.clone(),
+        trip: msg.secret.clone().map(super::tripcode::generate),
+        password: msg.password.clone(),
         sender: String::new(),
-        text: msg.text,
+        text: msg.text.clone(),
         ts: ts,
     }
 }
 
-fn file_from_db(file: DbFile) -> File {
+fn file_attachment_from_db(f: DbFile, a: DbAttachment) -> File {
     File {
-        fname:     file.fname,
-        size:      file.size,
-        width:     file.width,
-        height:    file.height,
-        thumbnail: file.thumb.map(jpeg_to_data_base64),
+        id: f.sha512,
+        type_: match f.type_ {
+            0 => "image/jpeg".to_string(),
+            1 => "image/png".to_string(),
+            _ => "application/octet-stream".to_string(),
+        },
+        orig_name: a.orig_name,
+        size: f.size,
+        width: f.width,
+        height: f.height,
     }
 }
 
-fn jpeg_to_data_base64(jpeg: Vec<u8>) -> String {
-    format!("data:image/jpeg;base64,{}", base64::encode(jpeg.as_slice()))
-}
-
-fn file_to_db(
-    file: MediaFile1,
-    thread_id: i32, msg_no: i32, fno: usize,
-) -> DbFile {
-    let extension = match file.path.extension() {
-        Some(x) => format!(".{}", x.to_str().unwrap()),
-        None => String::new()
-    };
-    DbFile {
+fn attachment_to_db(
+    a: NewAttachment,
+    thread_id: i32,
+    msg_no: i32,
+    fno: usize,
+) -> DbAttachment {
+    DbAttachment {
         msg_thread_id: thread_id,
         msg_no: msg_no,
         fno: fno as i16,
+        orig_name: a.orig_name,
+        file_sha512: a.id,
+    }
+}
 
-        fname: format!("/i/{}_{}_{}{}", thread_id, msg_no, fno, extension),
-        size: file.size,
-        width: file.width,
-        height: file.height,
-
-        thumb: file.thumb,
+fn image_type_to_db(t: image::Type) -> i16 {
+    match t {
+        image::Type::Jpg => 0,
+        image::Type::Png => 1,
     }
 }

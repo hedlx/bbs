@@ -1,15 +1,30 @@
-use super::schema::{files, messages, threads};
+use super::schema::{attachments, files, messages, threads};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+
+pub struct Config {
+    pub tmp_dir: PathBuf,
+    pub thumbs_dir: PathBuf,
+    pub files_dir: PathBuf,
+}
 
 /* REST-related */
 
 #[derive(Deserialize)]
 pub struct NewMessage {
     pub name: Option<String>,
-    pub secret: Option<String>,   // used to produce tripcode
+    pub secret: Option<String>, // used to produce tripcode
     pub password: Option<String>, // used to delete
     pub text: String,
+    #[serde(default = "Vec::new")]
+    pub media: Vec<NewAttachment>,
+}
+
+#[derive(Deserialize)]
+pub struct NewAttachment {
+    pub id: String,
+    pub orig_name: String,
 }
 
 #[derive(Deserialize)]
@@ -31,11 +46,12 @@ pub struct Message {
 
 #[derive(Serialize)]
 pub struct File {
-    pub fname: String,
+    pub id: String,
+    pub type_: String,
+    pub orig_name: String,
     pub size: i32,
     pub width: i32,
     pub height: i32,
-    pub thumbnail: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -82,16 +98,21 @@ pub struct DbThread {
 #[derive(Insertable, QueryableByName, Queryable)]
 #[table_name = "files"]
 pub struct DbFile {
-    pub msg_thread_id: i32,
-    pub msg_no: i32,
-    pub fno: i16,
-
-    pub fname: String,
+    pub sha512: String,
+    pub type_: i16,
     pub size: i32,
     pub width: i32,
     pub height: i32,
+}
 
-    pub thumb: Option<Vec<u8>>,
+#[derive(Insertable, QueryableByName, Queryable)]
+#[table_name = "attachments"]
+pub struct DbAttachment {
+    pub msg_thread_id: i32,
+    pub msg_no: i32,
+    pub fno: i16,
+    pub orig_name: String,
+    pub file_sha512: String,
 }
 
 #[derive(Insertable)]

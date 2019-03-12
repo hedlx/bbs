@@ -57,6 +57,8 @@ def_errors! {
     MsgTextLong(400, "message.text_long",    "Text should be no more than 4096 characters long."),
     MsgNameLong(400, "message.name_long",    "Name should be no more than 32 characters long."),
 
+    MsgMediaNotFound(400, "message.media.id", "Media id not found"),
+
     MsgBadPwd  (401, "message.bad_password", "Invalid password."),
 
     MsgNotFound(404, "message.not_found",    "No such message."),
