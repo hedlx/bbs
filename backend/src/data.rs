@@ -49,6 +49,12 @@ pub struct ThreadPreview {
     pub omitted: i32,
 }
 
+#[derive(Serialize)]
+pub struct FullThread {
+    pub subject: Option<String>,
+    pub messages: Vec<Message>,
+}
+
 /* DB-related */
 
 #[derive(QueryableByName, Insertable, Queryable)]
@@ -64,13 +70,13 @@ pub struct DbMessage {
     pub password: Option<String>,
 }
 
-#[derive(QueryableByName)]
+#[derive(QueryableByName, Queryable)]
 #[table_name = "threads"]
 pub struct DbThread {
     pub id: i32,
     pub last_reply_no: i32,
-    pub subject: Option<String>,
     pub bump: NaiveDateTime,
+    pub subject: Option<String>,
 }
 
 #[derive(Insertable, QueryableByName, Queryable)]

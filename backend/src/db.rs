@@ -4,6 +4,7 @@ use super::data::{
     DbNewThread,
     DbThread,
     File,
+    FullThread,
     Message,
     NewMessage,
     NewThread,
@@ -141,38 +142,23 @@ impl Db {
         .unwrap()
     }
 
-    pub fn get_thread_messages(&self, thread_id: i32) -> Option<Vec<Message>> {
+    pub fn get_thread(&self, thread_id: i32) -> Option<FullThread> {
         self.transaction(|| {
-            let messages = sql_query(r"
-                SELECT *
-                  FROM messages
-                       LEFT JOIN files
-                              ON msg_no = no
-                             AND msg_thread_id = $1
-                 WHERE thread_id = $1
-                 ORDER BY no, fno
-            ")
-            .bind::<Integer, _>(thread_id)
-            .get_results::<(DbMessage, Option<DbFile>)>(&self.0)?;
+            use super::schema::threads::dsl as d;
+            let thread = d::threads
+                .filter(d::id.eq(thread_id))
+                .get_result::<DbThread>(&self.0)
+                .optional()?;
 
-            let mut result: Vec<Message> = Vec::new();
-            for (msg, file) in messages {
-                let is_same = match &result.last() {
-                    Some(last) if last.no == msg.no as u32 => true,
-                    _ => false,
-                };
-                if !is_same {
-                    result.push(msg_from_db(msg));
-                }
-                if let Some(file) = file {
-                    result.last_mut().unwrap().media.push(file_from_db(file));
-                }
-            }
-            if result.is_empty() {
-                Ok(None)
-            } else {
-                Ok(Some(result))
-            }
+            let thread = match thread {
+                Some(thread) => thread,
+                None => return Ok(None),
+            };
+
+            Ok(Some(FullThread {
+                subject: thread.subject,
+                messages: self.get_thread_messages(thread_id)?,
+            }))
         }).unwrap()
     }
 
@@ -210,6 +196,35 @@ impl Db {
     }
 
     /* Private methods. */
+
+    pub fn get_thread_messages(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
+        let messages = sql_query(r"
+            SELECT *
+              FROM messages
+                   LEFT JOIN files
+                          ON msg_no = no
+                         AND msg_thread_id = $1
+             WHERE thread_id = $1
+             ORDER BY no, fno
+        ")
+        .bind::<Integer, _>(thread_id)
+        .get_results::<(DbMessage, Option<DbFile>)>(&self.0)?;
+
+        let mut result: Vec<Message> = Vec::new();
+        for (msg, file) in messages {
+            let is_same = match &result.last() {
+                Some(last) if last.no == msg.no as u32 => true,
+                _ => false,
+            };
+            if !is_same {
+                result.push(msg_from_db(msg));
+            }
+            if let Some(file) = file {
+                result.last_mut().unwrap().media.push(file_from_db(file));
+            }
+        }
+        Ok(result)
+    }
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
         use super::schema::messages::dsl as d;

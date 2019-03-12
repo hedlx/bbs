@@ -2,7 +2,7 @@ use super::error::Error;
 use super::events::{validate_message, validate_thread};
 use super::http_multipart::process_upload;
 use super::limits::{Limits, LIMITS};
-use data::{Message, NewMessage, NewThread, ThreadPreview};
+use data::{FullThread, Message, NewMessage, NewThread, ThreadPreview};
 use db::Db;
 use rocket::http::ContentType;
 use rocket::Data;
@@ -26,21 +26,9 @@ fn threads_list(
     Json(resp)
 }
 
-#[get("/threads/<id>?<before>&<after>&<limit>")]
-fn thread_id(
-    db: Db,
-    id: i32,
-    before: Option<u32>, // message id
-    after: Option<u32>,  // message id
-    limit: Option<u32>,
-) -> Option<Json<Vec<Message>>> {
-    let limit = limit.unwrap_or(100);
-    match (before, after) {
-        (None, None) => db.get_thread_messages(id).map(Json),
-        (Some(_), None) => None,    // before
-        (None, Some(_)) => None,    // after
-        (Some(_), Some(_)) => None, // range / 400
-    }
+#[get("/threads/<id>")]
+fn thread_id(db: Db, id: i32) -> Option<Json<FullThread>> {
+    db.get_thread(id).map(Json)
 }
 
 #[post("/threads", format = "json", data = "<thr>")]
