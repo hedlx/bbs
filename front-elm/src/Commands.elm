@@ -20,6 +20,7 @@ import Model.Threads
 import Msg exposing (Msg)
 import Route
 import Task
+import Time
 import Url.Builder
 
 
@@ -44,7 +45,7 @@ init model =
             else
                 Cmd.none
     in
-    Cmd.batch [ limitsInit, pageSpecific ]
+    Cmd.batch [ limitsInit, getTimeZone, pageSpecific ]
 
 
 redirect : List String -> Model -> Cmd Msg
@@ -62,6 +63,11 @@ focus : String -> Cmd Msg
 focus id =
     Dom.focus id
         |> Task.attempt (\_ -> Msg.Empty)
+
+
+getTimeZone : Cmd Msg
+getTimeZone =
+    Time.here |> Task.perform Msg.GotTimeZone
 
 
 getLimits : Cmd Msg

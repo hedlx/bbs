@@ -27,8 +27,8 @@ name style post =
     headElement style [] [ htmlName, htmlTrip ]
 
 
-time style post =
-    headElement style [] [ Time.view post.ts ]
+time style zone post =
+    headElement style [] [ Time.view zone post.ts ]
 
 
 body style post =

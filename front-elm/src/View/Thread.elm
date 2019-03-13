@@ -8,7 +8,7 @@ import View.Post.Reply as Reply
 import View.PostForm as PostForm
 
 
-view style postForm thread =
+view style cfg postForm thread =
     div
         [ -- This id is required to get scrolling manipulations working
           id "page-content"
@@ -17,7 +17,7 @@ view style postForm thread =
         ]
     <|
         [ subject style thread ]
-            ++ posts style thread
+            ++ posts style cfg thread
             ++ [ replyForm style postForm ]
 
 
@@ -27,8 +27,8 @@ subject style thread =
         >> Maybe.withDefault nothing
 
 
-posts style { id, messages } =
-    List.map (Html.Lazy.lazy3 Reply.view style id) messages
+posts style cfg { id, messages } =
+    List.map (Html.Lazy.lazy4 Reply.view style cfg id) messages
 
 
 replyForm style form =

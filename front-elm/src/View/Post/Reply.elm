@@ -8,13 +8,13 @@ import Msg
 import View.Post as Post
 
 
-view style threadID post =
+view style cfg threadID post =
     let
         postHead =
             div [ style.postHead ]
                 [ no style threadID post
                 , Post.name style post
-                , Post.time style post
+                , Post.time style cfg.timeZone post
                 ]
     in
     div [ style.post ] [ postHead, Post.body style post ]

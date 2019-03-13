@@ -6,6 +6,7 @@ import Http
 import Model.Limits exposing (Limits)
 import Model.Thread exposing (Thread)
 import Model.ThreadPreview exposing (ThreadPreview)
+import Time exposing (Zone)
 import Url exposing (Url)
 
 
@@ -31,5 +32,6 @@ type Msg
     | FormFilePreviewLoaded Int String
     | FormRemoveFile Int
     | FormSubmit
-      -- Integrations
+      -- Special
+    | GotTimeZone Zone
     | ReplyTo Int Int

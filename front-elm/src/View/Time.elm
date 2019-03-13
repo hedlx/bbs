@@ -1,39 +1,47 @@
 module View.Time exposing (view)
 
 import Html exposing (..)
-import Time exposing (Month(..))
+import Msg exposing (Msg)
+import Time exposing (Month(..), Zone)
 
 
-view ts =
+view : Maybe Zone -> Int -> Html Msg
+view maybeZone ts =
+    maybeZone
+        |> Maybe.map (view_ ts)
+        >> Maybe.withDefault (text "...")
+
+
+view_ ts zone =
     let
         posixTime =
             Time.millisToPosix (1000 * ts)
 
         day =
-            Time.toDay Time.utc posixTime
+            Time.toDay zone posixTime
                 |> String.fromInt
                 >> String.pad 2 '0'
 
         month =
-            Time.toMonth Time.utc posixTime
+            Time.toMonth zone posixTime
                 |> toMonthName
 
         year =
-            Time.toYear Time.utc posixTime
+            Time.toYear zone posixTime
                 |> String.fromInt
 
         hours =
-            Time.toHour Time.utc posixTime
+            Time.toHour zone posixTime
                 |> String.fromInt
                 >> String.pad 2 '0'
 
         minutes =
-            Time.toMinute Time.utc posixTime
+            Time.toMinute zone posixTime
                 |> String.fromInt
                 >> String.pad 2 '0'
 
         seconds =
-            Time.toSecond Time.utc posixTime
+            Time.toSecond zone posixTime
                 |> String.fromInt
                 >> String.pad 2 '0'
     in

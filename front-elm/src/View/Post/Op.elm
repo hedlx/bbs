@@ -9,7 +9,7 @@ import Route
 import View.Post as Post
 
 
-view style thread =
+view style cfg thread =
     let
         op =
             thread.op
@@ -19,7 +19,7 @@ view style thread =
                 [ no style thread
                 , subject style thread
                 , Post.name { style | postName = style.opName } op
-                , Post.time style op
+                , Post.time style cfg.timeZone op
                 , reply style thread
                 , showAll style thread
                 ]

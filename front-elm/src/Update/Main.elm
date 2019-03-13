@@ -8,6 +8,16 @@ import Msg exposing (Msg)
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Msg.GotTimeZone zone ->
+            let
+                cfg =
+                    model.cfg
+
+                newCfg =
+                    { cfg | timeZone = Just zone }
+            in
+            ( { model | cfg = newCfg }, Cmd.none )
+
         Msg.GotLimits result ->
             case result of
                 Ok limits ->
