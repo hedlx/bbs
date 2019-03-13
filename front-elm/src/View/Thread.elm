@@ -22,9 +22,11 @@ view style cfg postForm thread =
 
 
 subject style thread =
-    thread.subject
-        |> Maybe.map (\subj -> h1 [ style.threadSubjectBig ] [ text subj ])
-        >> Maybe.withDefault nothing
+    let
+        strSubject =
+            Maybe.withDefault ("Thread #" ++ String.fromInt thread.id) thread.subject
+    in
+    h1 [ style.threadSubjectBig ] [ text strSubject ]
 
 
 posts style cfg { id, messages } =
