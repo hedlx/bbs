@@ -1,6 +1,7 @@
 module Model.PostForm exposing
     ( PostForm
     , addFiles
+    , autofocus
     , countChars
     , countWords
     , disable
@@ -9,6 +10,7 @@ module Model.PostForm exposing
     , hasAttachments
     , hasSubj
     , init
+    , isAutofocus
     , isEmpty
     , isEnabled
     , isTextBlank
@@ -45,6 +47,7 @@ type PostForm
 
 type alias PostForm_ =
     { isEnabled : Bool
+    , isAutofocus : Bool
     , limits : Limits
     , name : String
     , trip : String
@@ -126,6 +129,7 @@ hasAttachments (PostForm form) =
 empty =
     PostForm
         { isEnabled = True
+        , isAutofocus = False
         , limits = Limits.empty
         , name = ""
         , trip = ""
@@ -142,6 +146,10 @@ init newLimits =
 
 isEnabled (PostForm form) =
     form.isEnabled
+
+
+isAutofocus (PostForm form) =
+    form.isAutofocus
 
 
 limits (PostForm form) =
@@ -178,6 +186,10 @@ disable (PostForm form) =
 
 enable (PostForm form) =
     PostForm { form | isEnabled = True }
+
+
+autofocus (PostForm form) =
+    PostForm { form | isAutofocus = True }
 
 
 setName newName (PostForm form) =

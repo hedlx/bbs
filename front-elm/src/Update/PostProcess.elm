@@ -19,8 +19,15 @@ update msg model =
 
         ( Msg.ReplyTo threadID postID, Page.Index _ ) ->
             let
+                initForm =
+                    PostForm.autofocus (PostForm.init model.cfg.limits)
+
                 newPostForm =
-                    appendReplyRef postID (PostForm.init model.cfg.limits)
+                    if postID > 0 then
+                        appendReplyRef postID initForm
+
+                    else
+                        initForm
 
                 newModel =
                     { model | page = Page.Thread (Page.Loading threadID) newPostForm }
@@ -28,11 +35,11 @@ update msg model =
             ( newModel, Commands.redirect [ "threads", String.fromInt threadID ] newModel )
 
         ( Msg.GotThread _, Page.Thread _ postForm ) ->
-            if String.isEmpty (PostForm.text postForm) then
-                ( model, Commands.scrollPageToTop )
+            if PostForm.isAutofocus postForm then
+                ( model, Commands.focus "post-form-text" )
 
             else
-                ( model, Commands.focus "post-form-text" )
+                ( model, Commands.scrollPageToTop )
 
         ( Msg.GotThreads _, Page.Index _ ) ->
             ( model, Commands.scrollPageToTop )
