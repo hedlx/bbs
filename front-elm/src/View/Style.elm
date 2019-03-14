@@ -15,6 +15,7 @@ type alias Style =
     { page : Attr
     , menu : Attr
     , content : Attr
+    , contentNoScroll : Attr
     , alert : Attr
     , notFound : Attr
     , spinner : Attr
@@ -66,7 +67,8 @@ fromTheme theme =
     in
     { page = classes [ w_100, min_vh_100, theme.bg, theme.fg, theme.font ]
     , menu = classes [ fixed, pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
-    , content = classes [ ml5, min_vh_100, pa3, pr4, overflow_x_hidden, overflow_y_visible, outline_0 ]
+    , content = classes [ ml5, pa3, min_vh_100, pr4, overflow_x_hidden, overflow_y_visible ]
+    , contentNoScroll = classes [ vh_100 ]
     , alert = classes [ theme.fgAlert ]
     , notFound = classes [ f1, tc ]
     , spinner = classes [ theme.fgSpinner ]
