@@ -64,9 +64,9 @@ fromTheme theme =
         iconicButton =
             [ bg_transparent, b__none, outline_0 ]
     in
-    { page = classes [ w_100, h_100, overflow_hidden, theme.bg, theme.fg, theme.font ]
-    , menu = classes [ pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
-    , content = classes [ pa3, pr4, h_100, overflow_x_hidden, overflow_y_auto ]
+    { page = classes [ w_100, min_vh_100, theme.bg, theme.fg, theme.font ]
+    , menu = classes [ fixed, pa0, fl, h_100, w3, flex, flex_column, items_center, theme.bgMenu ]
+    , content = classes [ ml5, min_vh_100, pa3, pr4, overflow_x_hidden, overflow_y_visible, outline_0 ]
     , alert = classes [ theme.fgAlert ]
     , notFound = classes [ f1, tc ]
     , spinner = classes [ theme.fgSpinner ]

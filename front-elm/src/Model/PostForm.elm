@@ -6,6 +6,7 @@ module Model.PostForm exposing
     , countWords
     , disable
     , empty
+    , enable
     , files
     , hasAttachments
     , hasSubj

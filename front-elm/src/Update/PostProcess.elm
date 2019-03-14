@@ -44,6 +44,9 @@ update msg model =
         ( Msg.GotThreads _, Page.Index _ ) ->
             ( model, Commands.scrollPageToTop )
 
+        ( Msg.Unfocus id, _ ) ->
+            ( model, Cmd.batch [ Commands.blur id ] )
+
         _ ->
             ( model, Cmd.none )
 

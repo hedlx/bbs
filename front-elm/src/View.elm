@@ -6,10 +6,11 @@ import Html exposing (..)
 import Model exposing (Model)
 import Model.Page
 import Msg exposing (Msg)
+import String.Extra
 import Tachyons
 import View.Page as Page
 import View.Style as Style
-import String.Extra
+
 
 view : Model -> Browser.Document Msg
 view model =
@@ -23,6 +24,7 @@ view model =
         title =
             if String.Extra.isBlank pageTitle then
                 Env.bbsName
+
             else
                 Env.bbsName ++ " | " ++ pageTitle
     in

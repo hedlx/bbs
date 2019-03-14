@@ -1,5 +1,6 @@
 module Commands exposing
-    ( createPost
+    ( blur
+    , createPost
     , createThread
     , focus
     , getThreads
@@ -62,6 +63,12 @@ scrollPageToTop =
 focus : String -> Cmd Msg
 focus id =
     Dom.focus id
+        |> Task.attempt (\_ -> Msg.Empty)
+
+
+blur : String -> Cmd Msg
+blur id =
+    Dom.blur id
         |> Task.attempt (\_ -> Msg.Empty)
 
 

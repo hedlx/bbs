@@ -35,3 +35,4 @@ type Msg
       -- Special
     | GotTimeZone Zone
     | ReplyTo Int Int
+    | Unfocus String

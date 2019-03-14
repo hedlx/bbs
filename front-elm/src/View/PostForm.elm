@@ -4,6 +4,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Extra exposing (..)
+import Keyboard
+import Keyboard.Events
 import Model.PostForm
 import Msg
 import Tachyons
@@ -33,7 +35,9 @@ meta style form =
 nameInput style form =
     [ formLabel style "Name"
     , input
-        [ type_ "text"
+        [ id "post-form-input"
+        , unfocusOnEsc "post-form-input"
+        , type_ "text"
         , value <| Model.PostForm.name form
         , style.textInput
         , style.formElement
@@ -47,7 +51,9 @@ nameInput style form =
 tripInput style form =
     [ formLabel style "Tripcode Secret"
     , input
-        [ type_ "text"
+        [ id "post-form-trip"
+        , unfocusOnEsc "post-form-trip"
+        , type_ "text"
         , value <| Model.PostForm.trip form
         , style.textInput
         , style.formElement
@@ -60,7 +66,9 @@ tripInput style form =
 passInput style form =
     [ formLabel style "Password"
     , input
-        [ type_ "password"
+        [ id "post-form-pass"
+        , unfocusOnEsc "post-form-pass"
+        , type_ "password"
         , value <| Model.PostForm.pass form
         , style.textInput
         , style.formElement
@@ -82,7 +90,9 @@ postSubj style form =
         Just subjVal ->
             [ formLabel style "Subject"
             , input
-                [ type_ "text"
+                [ id "post-form-subj"
+                , unfocusOnEsc "post-form-subj"
+                , type_ "text"
                 , value subjVal
                 , style.formElement
                 , style.textInput
@@ -149,6 +159,7 @@ postComment style form =
     [ formLabel style "Comment"
     , textarea
         [ id "post-form-text"
+        , unfocusOnEsc "post-form-text"
         , value <| Model.PostForm.text form
         , style.textArea
         , style.flexFiller
@@ -217,3 +228,7 @@ formProblem style str =
 
 formInfo style strLabel strVal =
     div [ style.formElement ] [ text <| strLabel ++ ": ", text strVal ]
+
+
+unfocusOnEsc id =
+    Keyboard.Events.on Keyboard.Events.Keydown [ ( Keyboard.Escape, Msg.Unfocus id ) ]
