@@ -3,12 +3,14 @@ module Model.PostForm exposing
     , addFiles
     , countChars
     , countWords
+    , disable
     , empty
     , files
     , hasAttachments
     , hasSubj
     , init
     , isEmpty
+    , isEnabled
     , isTextBlank
     , isValid
     , limits
@@ -42,7 +44,8 @@ type PostForm
 
 
 type alias PostForm_ =
-    { limits : Limits
+    { isEnabled : Bool
+    , limits : Limits
     , name : String
     , trip : String
     , pass : String
@@ -122,7 +125,8 @@ hasAttachments (PostForm form) =
 
 empty =
     PostForm
-        { limits = Limits.empty
+        { isEnabled = True
+        , limits = Limits.empty
         , name = ""
         , trip = ""
         , pass = ""
@@ -134,6 +138,10 @@ empty =
 
 init newLimits =
     setLimits newLimits empty
+
+
+isEnabled (PostForm form) =
+    form.isEnabled
 
 
 limits (PostForm form) =
@@ -162,6 +170,14 @@ text (PostForm form) =
 
 files (PostForm form) =
     Files.toList form.files
+
+
+disable (PostForm form) =
+    PostForm { form | isEnabled = False }
+
+
+enable (PostForm form) =
+    PostForm { form | isEnabled = True }
 
 
 setName newName (PostForm form) =

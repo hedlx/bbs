@@ -163,7 +163,7 @@ postComment style form =
 buttonCreate style form =
     let
         disabledAttrs =
-            if Model.PostForm.isValid form then
+            if Model.PostForm.isValid form && Model.PostForm.isEnabled form then
                 [ disabled False, style.buttonEnabled ]
 
             else

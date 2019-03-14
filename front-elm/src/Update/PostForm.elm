@@ -62,10 +62,14 @@ update msg model =
         Msg.FormSubmit ->
             case model.page of
                 Page.NewThread form ->
-                    ( model, Commands.createThread (PostForm.hasAttachments form) <| PostForm.toRequestBody form )
+                    ( { model | page = Page.NewThread <| PostForm.disable form }
+                    , Commands.createThread (PostForm.hasAttachments form) <| PostForm.toRequestBody form
+                    )
 
                 Page.Thread (Page.Content thread) form ->
-                    ( model, Commands.createPost thread.id (PostForm.hasAttachments form) <| PostForm.toRequestBody form )
+                    ( { model | page = Page.Thread (Page.Content thread) <| PostForm.disable form }
+                    , Commands.createPost thread.id (PostForm.hasAttachments form) <| PostForm.toRequestBody form
+                    )
 
                 _ ->
                     ( model, Cmd.none )
