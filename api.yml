@@ -48,7 +48,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Thread'
+                  $ref: '#/components/schemas/ThreadPreview'
         '400':
           description: bad input parameter
     post:
@@ -74,36 +74,13 @@ paths:
     get:
       summary: Get thread.
       operationId: getThread
-      parameters:
-        - in: query
-          name: before
-          required: false
-          schema:
-            type: integer
-            format: int32
-          description: NYI
-        - in: query
-          name: after
-          schema:
-            type: integer
-            format: int32
-          description: NYI
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-          description: NYI
       responses:
         '200':
           description: array of message objects
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Message'
+                $ref: '#/components/schemas/ThreadFull'
         '400':
           description: bad input parameter
     post:
@@ -149,10 +126,25 @@ paths:
         200: { description: Deleted. }
         403: { description: Invalid password. }
         404: { description: No such thread or post. }
+  /upload:
+    post:
+      summary: Upload media.
+      responses:
+        200:
+          description: Done.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id]
+                properties:
+                  id:
+                    type: string
+                    example: SaVFRRIgvXJfu23KXPG7aTy4KebFuFTUG1mEFSFGwDY
 
 components:
   schemas:
-    Thread:
+    ThreadPreview:
       type: object
       properties:
         id:
@@ -161,6 +153,16 @@ components:
         op:
           $ref: '#/components/schemas/Message'
         last:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    ThreadFull:
+      type: object
+      properties:
+        subject:
+          type: string
+          example: Selling my refrigerator
+        messages:
           type: array
           items:
             $ref: '#/components/schemas/Message'
@@ -183,6 +185,18 @@ components:
         text:
           type: string
           example: Incredibly long post text.
+        media:
+          type: array
+          items:
+            type: object
+            required: [id, type]
+            properties:
+              id:
+                type: string
+                example: SaVFRRIgvXJfu23KXPG7aTy4KebFuFTUG1mEFSFGwDY
+              original_name:
+                type: string
+                example: blabla.jpg
     NewThread:
       type: object
       properties:
@@ -200,6 +214,7 @@ components:
         - no
         - text
         - ts
+        - media
       properties:
         no:
           type: integer
@@ -224,13 +239,14 @@ components:
             $ref: '#/components/schemas/Media'
     Media:
       type: object
+      required: [id, type, size, width, height, original_name]
       properties:
-        url:
+        id:
           type: string
-          example: "/static/3bf42a118b678839ea24d9bf35c27b92.png"
-        name:
+          example: SaVFRRIgvXJfu23KXPG7aTy4KebFuFTUG1mEFSFGwDY
+        type:
           type: string
-          example: "original_filename.png"
+          example: image/jpeg
         size:
           type: integer
           example: 28324
@@ -239,10 +255,10 @@ components:
           example: 1024
         height:
           type: integer
-          example: 768
-        thumbnail:
+          example: 512
+        original_name:
           type: string
-          example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QA/4ePzL8AAAEjSURBVCjPhdE9S1txGIbxXyI2Qk5omzNkUjyDCG2hWLoa8A10Uyg4Kmh0zIewwxn78h0cCv0MSgrSSeneRIkICWTo4JDTIf8ORzlLwefZbq7lvm5iqaHwnx9KxSWpthmMXem4RqJp6SH7zEAQ9LTEahKJqrqWniAYMBH0rKPsozt9e2BNTzAhGDtSMoO24I+mZxZVtIwFggt1O7575Y2hM5EDt/bVXeRAquZMcKLim7bnOoJzNWkOHEv0BT/F3mrYdC/oSxwLZcW99t4vI9uqRVhGYqSLyBbmrICukSQHmqadyrCqYdEsMqemNclrtkS+yGQ+WPDbX19FjzVzUWuqDv1wYsqGXVEhqlD9Uk0MXhSqi7EylzpulMxb9k4FmU+emvsfZGeByM7aOMYAAAAASUVORK5CYII="
+          example: blabla.jpg
   parameters:
     id:
       in: query
