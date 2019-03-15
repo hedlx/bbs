@@ -6,7 +6,7 @@ import Update.Extra exposing (andThen)
 import Update.Main as Main
 import Update.Plugins as Plugins
 import Update.PostForm as PostForm
-import Update.PostProcess as PostProcess
+import Update.Special as Special
 import Update.Route as Route
 import Update.Thread as Thread
 import Update.Threads as Threads
@@ -20,4 +20,4 @@ update msg =
         >> andThen (Route.update msg)
         >> andThen (PostForm.update msg)
         >> andThen (Plugins.update msg)
-        >> andThen (PostProcess.update msg)
+        >> andThen (Special.update msg)

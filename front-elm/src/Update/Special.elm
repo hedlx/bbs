@@ -1,4 +1,4 @@
-module Update.PostProcess exposing (update)
+module Update.Special exposing (update)
 
 import Commands
 import Model exposing (Model)
@@ -45,7 +45,7 @@ update msg model =
             ( model, Commands.scrollPageToTop )
 
         ( Msg.Unfocus id, _ ) ->
-            ( model, Cmd.batch [ Commands.blur id ] )
+            ( model, Commands.blur id )
 
         _ ->
             ( model, Cmd.none )
