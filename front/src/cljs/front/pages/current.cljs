@@ -26,6 +26,7 @@
 
 (defstyles left-panel-class []
   {:display "flex"
+   :flex-shrink 0
    :justify-content "center"
    :padding "15px 10px 15px 10px"
    :width "60px"})
