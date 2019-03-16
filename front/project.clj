@@ -1,11 +1,12 @@
-(defproject front "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+(defproject front "0.1.0"
+  :description "Hedlx BBS frontend"
+  :url "http://bbs.hedlx.org/)))"
   :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+            :url  "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [reagent "0.8.1"]
+                 [clj-commons/cljss "1.6.4"]
                  [clj-commons/secretary "1.2.4"]
                  [re-frame "0.10.6"]
                  [day8.re-frame/http-fx "0.1.6"]
@@ -27,26 +28,30 @@
 
   :cljsbuild
   {:builds {
-    :min
-    {:source-paths ["src/cljs" "src/cljc" "env/prod/cljs"]
-     :compiler
-     {:main          "front.prod"
-      :output-to     "resources/public/js/app.js"
-      :optimizations :advanced
-      :pretty-print  false}}
+            :min
+            {:source-paths ["src/cljs"
+                            "src/cljc"
+                            "env/prod/cljs"]
+             :compiler
+                           {:main          "front.prod"
+                            :output-to     "resources/public/js/app.js"
+                            :optimizations :advanced
+                            :pretty-print  false}}
 
-    :app
-    {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-     :figwheel {:on-jsload "front.core/mount-root"
-                :open-urls ["http://localhost:3449/"]}
-     :compiler
-     {:main "front.dev"
-      :asset-path "/js/out"
-      :output-to "resources/public/js/app.js"
-      :output-dir "resources/public/js/out"
-      :source-map true
-      :optimizations :none
-      :pretty-print  true}}}}
+            :app
+            {:source-paths ["src/cljs"
+                            "src/cljc"
+                            "env/dev/cljs"]
+             :figwheel     {:on-jsload "front.core/mount-root"
+                            :open-urls ["http://localhost:3449/"]}
+             :compiler
+                           {:main          "front.dev"
+                            :asset-path    "/js/out"
+                            :output-to     "resources/public/js/app.js"
+                            :output-dir    "resources/public/js/out"
+                            :source-map    true
+                            :optimizations :none
+                            :pretty-print  true}}}}
 
   :figwheel
   {:css-dirs ["resources/public/css"]}

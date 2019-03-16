@@ -2,16 +2,39 @@
   (:require
     [front.components.thread :as thread-comp]
     [front.components.spinner-overlay :as spinner-overlay]
-    [re-frame.core :refer [subscribe]]))
+    [front.styles.colors :as colors]
+    [re-frame.core :refer [subscribe]]
+    [cljss.core :refer-macros [defstyles]]
+    [clojure.string :as str]))
 
+
+(defstyles thread-class []
+  {:width "100%"})
+
+(defstyles separator-class []
+           {:width "97%"
+            :height "1px"
+            :margin-top "20px"
+            :margin-bottom "20px"
+            :border 0
+            :border-top (str/join " " ["1px dashed" colors/light-purple])
+            :color colors/light-purple})
+
+(defstyles root-class []
+  {:position "relative"
+   :display "flex"
+   :flex-direction "column"
+   :align-items "flex-start"
+   :width "100%"
+   :height "100%"})
 
 (defn- render-thread [thread]
-  ^{:key (:id thread)}
-  [:div {:class "w-100 pa1"}
+  ^{:key (str "thread" (:id thread))}
+  [:div {:class (thread-class)}
         [thread-comp/c {:thread thread}]])
 
 (defn- render-separator [key]
-  ^{:key key} [:hr {:class "w-90"}])
+  ^{:key key} [:hr {:class (separator-class)}])
 
 (defn- render-threads [threads]
   (->> threads
@@ -22,7 +45,7 @@
 
 (defn- render-content [threads loading? error]
   (cond
-    (and (empty? threads) loading?) [spinner-overlay/c]
+    (and (empty? threads) loading?) [spinner-overlay/c {:color colors/purple-1}]
     error    [:div "ERROR"] ;TODO: you know
     :default (render-threads threads)))
 
@@ -31,5 +54,5 @@
     (let [threads @(subscribe [:sorted-threads])
           loading? @(subscribe [:threads-loading?])
           error @(subscribe [:threads-error])]
-      [:div {:class "relative flex flex-column items-start w-100 h-100"}
+      [:div {:class (root-class)}
         (render-content threads loading? error)])))

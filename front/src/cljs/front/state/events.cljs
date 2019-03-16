@@ -1,8 +1,13 @@
 (ns front.state.events
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db
+                                   reg-event-fx]]
             [day8.re-frame.http-fx]
-            [ajax.core :refer [json-request-format json-response-format]]
-            [front.state.db :refer [default-db default-thread]]
+            [ajax.core :refer [json-request-format
+                               json-response-format]]
+            [front.state.db :refer [default-db
+                                    default-thread
+                                    default-answer
+                                    default-new-thread]]
             [front.state.util :refer [gen-url]]))
 
 
@@ -15,15 +20,16 @@
   :change-location
   (fn [{:keys [db]} [_ {:keys [current-page params]}]]
     (let [router-fx (-> db
-
                         (assoc :thread default-thread)
+                        (assoc :answer default-answer)
                         (assoc-in [:router :current-page] current-page)
                         (assoc-in [:router :params] params))]
       (case current-page
         :threads {:db router-fx
                   :dispatch [:load-threads]}
         :thread {:db router-fx
-                 :dispatch [:load-thread params]}))))
+                 :dispatch [:load-thread params]}
+        {:db router-fx}))))
 
 (reg-event-fx
   :load-threads
@@ -65,16 +71,101 @@
 
 (reg-event-db
   :thread-fetch-success
-  (fn [db [_ posts]]
-    (-> db
-        (assoc-in [:thread :posts] posts)
-        (assoc-in [:thread :loading?] false)
-        (assoc-in [:thread :error] nil))))
+  (fn [db [_ thread]]
+    (if (= (-> db :router :current-page) :thread)
+      (-> db
+          (assoc-in [:thread :posts] (:messages thread))
+          (assoc-in [:thread :loading?] false)
+          (assoc-in [:thread :error] nil))
+      db)))
 
 (reg-event-db
   :thread-fetch-error
   (fn [db [_ error]]
-    (-> db
-        (assoc-in [:thread :posts] [])
-        (assoc-in [:thread :loading?] false)
-        (assoc-in [:thread :error] error))))
+    (if (= (-> db :router :current-page) :thread)
+      (-> db
+          (assoc-in [:thread :posts] [])
+          (assoc-in [:thread :loading?] false)
+          (assoc-in [:thread :error] error))
+      db)))
+
+(defn- get-create-root [db]
+  (if (= :threads (-> db :router :current-page))
+    :new-thread
+    :answer))
+
+(reg-event-db
+  :change-name
+  (fn [db [_ name]]
+    (assoc-in db [(get-create-root db) :data :name] name)))
+(reg-event-db
+  :change-subject
+  (fn [db [_ subj]]
+    (assoc-in db [(get-create-root db) :data :subject] subj)))
+(reg-event-db
+  :change-secret
+  (fn [db [_ secret]]
+    (assoc-in db [(get-create-root db) :data :secret] secret)))
+(reg-event-db
+  :change-password
+  (fn [db [_ pass]]
+    (assoc-in db [(get-create-root db) :data :password] pass)))
+(reg-event-db
+  :change-msg
+  (fn [db [_ msg]]
+    (assoc-in db [(get-create-root db) :data :text] msg)))
+
+(reg-event-fx
+  :post-msg
+  (fn [{:keys [db]} [_ {:keys [thread on-success]}]]
+    (let [new-thread? (nil? thread)
+          target (if new-thread? :new-thread :answer)]
+      (when (-> db target :in-progress? not)
+        {:http-xhrio {:method "post"
+                      :uri (gen-url (:base-url db)
+                                    "threads"
+                                    (when (not new-thread?) thread))
+                      :params (-> db target :data)
+                      :format (json-request-format)
+                      :response-format (json-response-format {:keywords? true})
+                      :on-success [(if new-thread?
+                                     :post-thread-success
+                                     :post-msg-success) on-success]
+                      :on-failure [(if new-thread?
+                                     :post-thread-error
+                                     :post-msg-error)]}
+         :db (-> db
+                 (assoc-in [target :status :in-progress?] true)
+                 (assoc-in [target :status :error] nil))}))))
+
+(reg-event-fx
+  :post-msg-success
+  (fn [{:keys [db]} [_ on-success _]]
+    (do
+      (on-success)
+      (if (= (-> db :router :current-page) :thread)
+        {:db (assoc db :answer default-answer)
+         :dispatch [:load-thread {:id (-> db :router :params :id)}]}
+        {:db (assoc db :answer default-answer)}))))
+(reg-event-db
+  :post-msg-error
+  (fn [db [_ error]]
+    (if (= (-> db :router :current-page) :thread)
+      (assoc-in db [:answer :status :error] error)
+      (assoc db :answer default-answer))))
+
+(reg-event-fx
+  :post-thread-success
+  (fn [{:keys [db]} [_ on-success _]]
+    (do
+      (on-success)
+      (if (= (-> db :router :current-page) :threads)
+        {:db (assoc db :new-thread default-new-thread)
+         :dispatch [:load-threads]}
+        {:db (assoc db :new-thread default-new-thread)}))))
+(reg-event-db
+  :post-thread-error
+  (fn [db [_ error]]
+    (if (= (-> db :router :current-page) :threads)
+      (assoc-in db [:new-thread :status :error] error)
+      (assoc db :new-thread default-new-thread))))

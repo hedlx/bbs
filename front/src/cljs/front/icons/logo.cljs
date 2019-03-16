@@ -1,8 +1,10 @@
-(ns front.components.logo)
+(ns front.icons.logo
+  (:require
+    [front.icons.styles :as css]))
 
 
-(defn c []
-  [:svg {:class "w-100 h-100"
+(defn icon []
+  [:svg {:class (css/full)
          :view-box "0 0 399.31006 399.24707"
          :fill "currentColor"}
    [:g

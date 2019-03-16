@@ -47,3 +47,8 @@
   :threads-page?
   (fn [_ _] (subscribe [:current-page]))
   (fn [page _] (= page :threads)))
+
+; It is no a best way to do so
+; TODO: Make it less generic
+(reg-sub :new-thread #(:new-thread %))
+(reg-sub :answer #(:answer %))

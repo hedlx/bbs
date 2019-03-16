@@ -2,15 +2,28 @@
   (:require
     [front.components.post :as post]
     [front.components.spinner-overlay :as spinner-overlay]
+    [cljss.core :refer-macros [defstyles]]
     [re-frame.core :refer [subscribe]]
     [clojure.string :as str]))
 
+
+(defstyles post-class [full-width?]
+  {:padding "2px"
+   :width (if full-width? "100%" "auto")})
+
+(defstyles root-class []
+  {:position "relative"
+   :display "flex"
+   :flex-direction "column"
+   :align-items "flex-start"
+   :width "100%"
+   :height "100%"})
 
 (defn- render-post [post]
   (let [id (:no post)
         op? (zero? id)]
     ^{:key id}
-    [:div {:class (str/join " " ["pa1" (when op? "w-100")])}
+    [:div {:class (post-class op?)}
      [post/c (assoc post :id id :op? op?)]]))
 
 (defn- render-posts [posts]
@@ -27,5 +40,5 @@
     (let [posts @(subscribe [:thread-posts])
           loading? @(subscribe [:thread-loading?])
           error @(subscribe [:thread-error])]
-      [:div {:class "relative flex flex-column items-start w-100 h-100"}
+      [:div {:class (root-class)}
        (render-content posts loading? error)])))
