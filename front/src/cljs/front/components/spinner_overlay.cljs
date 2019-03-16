@@ -3,7 +3,7 @@
             [cljss.core :refer-macros [defstyles]]))
 
 
-(defstyles root-class [opacity]
+(defstyles root-class []
   {:position "absolute"
    :top 0
    :bottom 0
@@ -12,22 +12,13 @@
    :display "flex"
    :flex-direction "column"
    :align-items "center"
-   :justify-content "center"
-
-   :background-color "#000"
-   :opacity opacity})
-
-(defstyles msg-container-class []
-  {:padding-top "10px"})
-
+   :justify-content "center"})
 
 (defstyles spinner-container-class []
   {:width "50px"
    :height "50px"})
 
-(defn c [{:keys [color opacity msg] :or {opacity 0}}]
-  [:div {:class (root-class opacity)}
+(defn c [{:keys [color]}]
+  [:div {:class (root-class)}
    [:div {:class (spinner-container-class)}
-    [spinner/c {:color color}]]
-   (when (-> msg nil? not)
-     [:div {:class (msg-container-class)} msg])])
+    [spinner/c {:color color}]]])
