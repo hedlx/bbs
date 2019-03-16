@@ -66,9 +66,7 @@
 
 (defn c []
   (fn []
-    (let [threads-loading? @(subscribe [:threads-loading?])
-          threads-empty? (empty? @(subscribe [:threads]))
-          show-loading? (and threads-loading? (not threads-empty?))]
+    (let [show-loading? @(subscribe [:minor-loading?])]
       [:div {:class (root-class)}
        (if show-loading?
          [:div {:class (spinner-class)}
