@@ -14,8 +14,8 @@
 
 (defstyles root-class []
   {:display "grid"
-   :grid-template-columns "1fr"
-   :grid-template-rows "repeat(2, max-content)"
+   :grid-template-columns "auto"
+   :grid-template-rows "repeat(2, 38px)"
    :grid-row-gap "15px"
    :align-items "start"})
 
@@ -47,12 +47,12 @@
 (def show-create-popup? (r/atom false))
 (def add-ref (r/atom nil))
 
-(defn- render-logo []
+(defn- logo []
   [:div {:class (control-class)
          :on-click #(push! :threads)}
    [logo/icon]])
 
-(defn- render-add [show-popup?]
+(defn- add [show-popup?]
   [:div {:class (add-container)}
    [:div {:class (control-class)
           :ref #(reset! add-ref %)
@@ -73,5 +73,5 @@
        (if show-loading?
          [:div {:class (spinner-class)}
           [spinner/c {:color colors/purple-1}]]
-         (render-logo))
-       (render-add @show-create-popup?)])))
+         [logo])
+       [add @show-create-popup?]])))
