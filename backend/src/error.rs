@@ -56,8 +56,11 @@ def_errors! {
     MsgTextEmpt(400, "message.text_empty",   "Text should not be empty."),
     MsgTextLong(400, "message.text_long",    "Text should be no more than 4096 characters long."),
     MsgNameLong(400, "message.name_long",    "Name should be no more than 32 characters long."),
-
+    MsgMediaCount(400, "message.media.count", "Too many mediafiles."),
+    MsgMediaNameLong(400, "message.orig_name_long", "Media filename is too long."),
     MsgMediaNotFound(400, "message.media.id", "Media id not found"),
+
+    MediaFileSize(400, "media.file_size", "Media file size is too big."),
 
     MsgBadPwd  (401, "message.bad_password", "Invalid password."),
 

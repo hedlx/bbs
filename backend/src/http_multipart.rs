@@ -1,7 +1,8 @@
 use super::error::Error;
-use multipart::server::save::SaveResult;
-use multipart::server::save::SavedData;
-use multipart::server::save::{SaveDir, TempDir};
+use super::limits::LIMITS;
+use multipart::server::save::{
+    PartialReason, SaveDir, SaveResult, SavedData, TempDir,
+};
 use multipart::server::Multipart;
 use rocket::http::ContentType;
 use rocket::Data;
@@ -36,9 +37,17 @@ pub fn extract_file(
     let mut entries = match Multipart::with_body(data.open(), boundary)
         .save()
         .ignore_text()
+        .size_limit(LIMITS.media_max_file_size)
+        .count_limit(2)
         .with_temp_dir(temp_dir)
     {
         SaveResult::Full(entries) => entries,
+        SaveResult::Partial(_, PartialReason::CountLimit) => {
+            return Err(err("count"))
+        }
+        SaveResult::Partial(_, PartialReason::SizeLimit) => {
+            return Err(Error::MediaFileSize)
+        }
         SaveResult::Partial(_partial, _reason) => return Err(err("Partial")),
         SaveResult::Error(_) => return Err(err("Multipart err")),
     };
