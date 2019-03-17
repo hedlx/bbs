@@ -18,8 +18,10 @@ module Model.PostForm exposing
     , isValid
     , limits
     , name
+    , notUploadedFiles
     , pass
     , removeFile
+    , setFileBackendID
     , setFilePreview
     , setLimits
     , setName
@@ -60,13 +62,7 @@ type alias PostForm_ =
 
 
 toRequestBody postForm =
-    if hasAttachments postForm then
-        Http.multipartBody <|
-            [ jsonPart postForm ]
-                ++ filesParts postForm
-
-    else
-        Http.jsonBody (toJson postForm)
+    Http.jsonBody (toJson postForm)
 
 
 toJson (PostForm form) =
@@ -88,6 +84,7 @@ toJson (PostForm form) =
         , ( "secret", Encode.string form.trip )
         , ( "password", Encode.string form.pass )
         , ( "text", Encode.string form.text )
+        , ( "media", Files.encode form.files )
         ]
             ++ formSubjOrEmpty
 
@@ -181,6 +178,11 @@ files (PostForm form) =
     Files.toList form.files
 
 
+notUploadedFiles (PostForm form) =
+    Files.toList form.files
+        |> List.filter (\rec -> rec.backendID == Nothing)
+
+
 disable (PostForm form) =
     PostForm { form | isEnabled = False }
 
@@ -223,6 +225,10 @@ addFiles filesToAdd (PostForm form) =
 
 setFilePreview fileID preview (PostForm form) =
     PostForm { form | files = Files.updatePreview fileID preview form.files }
+
+
+setFileBackendID fileID backendID (PostForm form) =
+    PostForm { form | files = Files.updateFileBackendID fileID backendID form.files }
 
 
 setLimits newLimits (PostForm form) =

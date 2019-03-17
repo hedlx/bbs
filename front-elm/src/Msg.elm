@@ -31,6 +31,7 @@ type Msg
     | FormFilesSelected File (List File)
     | FormFilePreviewLoaded Int String
     | FormRemoveFile Int
+    | FormFileUploaded (Result Http.Error ( Int, String ))
     | FormSubmit
       -- Special
     | GotTimeZone Zone

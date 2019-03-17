@@ -2,14 +2,17 @@ module Model.PostForm.Files exposing
     ( Files
     , add
     , empty
+    , encode
     , isEmpty
     , isExists
     , remove
     , toList
+    , updateFileBackendID
     , updatePreview
     )
 
 import File exposing (File)
+import Json.Encode as Encode
 import Task
 
 
@@ -27,6 +30,7 @@ type alias Record =
     { id : Int
     , file : File
     , preview : Maybe String
+    , backendID : Maybe String
     }
 
 
@@ -35,6 +39,21 @@ empty =
         { idCount = 0
         , records = []
         }
+
+
+encode (Files db) =
+    Encode.list identity (List.filterMap encodeRecord db.records)
+
+
+encodeRecord rec =
+    rec.backendID
+        |> Maybe.map
+            (\strBackendID ->
+                Encode.object
+                    [ ( "id", Encode.string strBackendID )
+                    , ( "orig_name", Encode.string <| File.name rec.file )
+                    ]
+            )
 
 
 toList (Files db) =
@@ -56,6 +75,7 @@ add newFiles (Files db) =
                     { id = db.idCount + n
                     , file = file
                     , preview = Nothing
+                    , backendID = Nothing
                     }
                 )
                 newFiles
@@ -78,6 +98,10 @@ remove id (Files db) =
 
 updatePreview id preview =
     map id (\rec -> { rec | preview = Just preview })
+
+
+updateFileBackendID id backendID =
+    map id (\rec -> { rec | backendID = Just backendID })
 
 
 map id update (Files db) =

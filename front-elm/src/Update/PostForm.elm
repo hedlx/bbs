@@ -60,16 +60,48 @@ update msg model =
             mapPostForm (PostForm.removeFile fileID) model
 
         Msg.FormSubmit ->
-            case model.page of
-                Page.NewThread form ->
-                    ( { model | page = Page.NewThread <| PostForm.disable form }
-                    , Commands.createThread (PostForm.hasAttachments form) <| PostForm.toRequestBody form
-                    )
+            case Page.postForm model.page of
+                Just form ->
+                    let
+                        filesUploadCmds =
+                            uploadFormFiles form
 
-                Page.Thread (Page.Content thread) form ->
-                    ( { model | page = Page.Thread (Page.Content thread) <| PostForm.disable form }
-                    , Commands.createPost thread.id (PostForm.hasAttachments form) <| PostForm.toRequestBody form
-                    )
+                        newPage =
+                            Page.mapPostForm PostForm.disable model.page
+
+                        cmd =
+                            if List.isEmpty filesUploadCmds then
+                                submitPageForm newPage
+
+                            else
+                                Cmd.batch filesUploadCmds
+                    in
+                    ( { model | page = newPage }, cmd )
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        Msg.FormFileUploaded result ->
+            case ( Page.postForm model.page, result ) of
+                ( Just form, Ok ( fileID, backendID ) ) ->
+                    let
+                        newForm =
+                            PostForm.setFileBackendID fileID backendID form
+
+                        newPage =
+                            Page.mapPostForm (\_ -> newForm) model.page
+
+                        cmd =
+                            if List.isEmpty (PostForm.notUploadedFiles newForm) then
+                                submitPageForm newPage
+
+                            else
+                                Cmd.none
+                    in
+                    ( { model | page = newPage }, cmd )
+
+                ( _, Err _ ) ->
+                    Debug.todo "Handle file upload error"
 
                 _ ->
                     ( model, Cmd.none )
@@ -84,6 +116,31 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
+
+
+uploadFormFiles form =
+    PostForm.notUploadedFiles form
+        |> List.map uploadFile
+
+
+uploadFile rec =
+    let
+        toMsg =
+            Msg.FormFileUploaded << Result.map (\backendID -> ( rec.id, backendID ))
+    in
+    Commands.uploadFile toMsg rec.file
+
+
+submitPageForm page =
+    case page of
+        Page.NewThread form ->
+            Commands.createThread <| PostForm.toRequestBody form
+
+        Page.Thread (Page.Content thread) form ->
+            Commands.createPost thread.id <| PostForm.toRequestBody form
+
+        _ ->
+            Cmd.none
 
 
 mapPostForm f model =

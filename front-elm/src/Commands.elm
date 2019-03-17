@@ -7,12 +7,15 @@ module Commands exposing
     , init
     , redirect
     , scrollPageToTop
+    , uploadFile
     )
 
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import Env
+import File exposing (File)
 import Http
+import Json.Decode as Decode
 import Model exposing (Model)
 import Model.Limits
 import Model.Page as Page
@@ -101,16 +104,24 @@ getThread threadID =
         }
 
 
-createThread : Bool -> Http.Body -> Cmd Msg
-createThread hasAttachments formPostBody =
+uploadFile : (Result Http.Error String -> Msg) -> File -> Cmd Msg
+uploadFile fromMediaIdToMsg file =
     let
-        -- TODO: Make main path to accept multipart
         path =
-            if hasAttachments then
-                [ "threads", "multipart" ]
+            [ "upload" ]
+    in
+    Http.post
+        { url = Url.Builder.crossOrigin Env.serverUrl path []
+        , body = Http.multipartBody [ Http.filePart "media" file ]
+        , expect = Http.expectJson fromMediaIdToMsg (Decode.field "id" Decode.string)
+        }
 
-            else
-                [ "threads" ]
+
+createThread : Http.Body -> Cmd Msg
+createThread formPostBody =
+    let
+        path =
+            [ "threads" ]
     in
     Http.post
         { url = Url.Builder.crossOrigin Env.serverUrl path []
@@ -119,16 +130,11 @@ createThread hasAttachments formPostBody =
         }
 
 
-createPost : Int -> Bool -> Http.Body -> Cmd Msg
-createPost threadID hasAttachments formPostBody =
+createPost : Int -> Http.Body -> Cmd Msg
+createPost threadID formPostBody =
     let
-        -- TODO: Make main path to accept multipart
         path =
-            if hasAttachments then
-                [ "threads", "multipart", String.fromInt threadID ]
-
-            else
-                [ "threads", String.fromInt threadID ]
+            [ "threads", String.fromInt threadID ]
     in
     Http.post
         { url = Url.Builder.crossOrigin Env.serverUrl path []

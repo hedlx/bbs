@@ -7,6 +7,7 @@ module Model.Page exposing
     , mapLoading
     , mapPostForm
     , mapThread
+    , postForm
     , title
     , withLoadingDefault
     )
@@ -93,6 +94,18 @@ mapPostForm f page =
 
         _ ->
             page
+
+
+postForm page =
+    case page of
+        NewThread form ->
+            Just form
+
+        Thread _ form ->
+            Just form
+
+        _ ->
+            Nothing
 
 
 mapThread f page =
