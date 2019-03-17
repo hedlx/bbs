@@ -6,9 +6,11 @@ module View.Post exposing
     , time
     )
 
+import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
+import Url.Builder
 import View.Time as Time
 
 
@@ -37,7 +39,9 @@ body style post =
         , Html.Attributes.style "white-space" "pre-line"
         , Html.Attributes.style "word-wrap" "break-word"
         ]
-        [ text post.text ]
+    <|
+        List.map (mediaPreview style) post.media
+            ++ [ text post.text ]
 
 
 headElement style attrs =
@@ -51,3 +55,11 @@ btnHead style btnText =
         , span [ style.hypertextLink ] [ text btnText ]
         , span [ style.fgButton ] [ text "]" ]
         ]
+
+
+mediaPreview style media =
+    let
+        previewUrl =
+            Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
+    in
+    img [ style.postMediaPreview, src previewUrl ] []

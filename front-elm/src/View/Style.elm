@@ -34,6 +34,7 @@ type alias Style =
     , postHead : Attr
     , postHeadElement : Attr
     , postName : Attr
+    , postMediaPreview : Attr
     , opName : Attr
     , postTrip : Attr
     , postBody : Attr
@@ -48,8 +49,8 @@ type alias Style =
     , formElement : Attr
     , formButton : Attr
     , formAreaAttachedFiles : Attr
-    , formImagePreview : Attr
-    , formImagePreviewOverlay : Attr
+    , formMediaPreview : Attr
+    , formMediaPreviewOverlay : Attr
     , formButtonAddImage : Attr
     , formProblems : Attr
     , textInput : Attr
@@ -87,6 +88,7 @@ fromTheme theme =
     , postHead = classes [ f6, overflow_hidden, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
     , postHeadElement = classes [ dib, mr2 ]
     , postName = classes [ dib, theme.fgPostName ]
+    , postMediaPreview = classes [ mr3, mb1, br1, fl ]
     , opName = classes [ theme.fgOpName ]
     , postTrip = classes [ theme.fgPostTrip ]
     , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
@@ -101,8 +103,8 @@ fromTheme theme =
     , formElement = classes [ db, mb3, w_100 ]
     , formButton = classes [ mt3, mb4 ]
     , formAreaAttachedFiles = classes [ flex, justify_center ]
-    , formImagePreview = classes [ h4, w4, mr2, relative, hide_child, pointer, overflow_hidden, br1, cover, bg_center ]
-    , formImagePreviewOverlay = classes [ absolute, h_100, w_100, pl3, pr3, flex, justify_center, flex_column, tc, child, bg_black_70 ]
+    , formMediaPreview = classes [ h4, w4, mr2, relative, hide_child, pointer, overflow_hidden, br1, cover, bg_center ]
+    , formMediaPreviewOverlay = classes [ absolute, h_100, w_100, pl3, pr3, flex, justify_center, flex_column, tc, child, bg_black_70 ]
     , formButtonAddImage = classes [ b__dashed, pa3, tc, br1, bw1, bg_transparent, theme.fgPost, theme.bInput ]
     , formProblems = classes [ h3 ]
     , textInput = classes [ pa1, br1, b__solid, theme.fgInput, theme.bgInput, theme.bInput ]

@@ -83,7 +83,7 @@ getTimeZone =
 getLimits : Cmd Msg
 getLimits =
     Http.get
-        { url = Url.Builder.crossOrigin Env.serverUrl [ "limits" ] []
+        { url = Url.Builder.crossOrigin Env.urlAPI [ "limits" ] []
         , expect = Http.expectJson Msg.GotLimits Model.Limits.decoder
         }
 
@@ -91,7 +91,7 @@ getLimits =
 getThreads : Cmd Msg
 getThreads =
     Http.get
-        { url = Url.Builder.crossOrigin Env.serverUrl [ "threads" ] []
+        { url = Url.Builder.crossOrigin Env.urlAPI [ "threads" ] []
         , expect = Http.expectJson Msg.GotThreads Model.Threads.decoder
         }
 
@@ -99,7 +99,7 @@ getThreads =
 getThread : Int -> Cmd Msg
 getThread threadID =
     Http.get
-        { url = Url.Builder.crossOrigin Env.serverUrl [ "threads", String.fromInt threadID ] []
+        { url = Url.Builder.crossOrigin Env.urlAPI [ "threads", String.fromInt threadID ] []
         , expect = Http.expectJson Msg.GotThread (Model.Thread.decoder threadID)
         }
 
@@ -111,7 +111,7 @@ uploadFile fromMediaIdToMsg file =
             [ "upload" ]
     in
     Http.post
-        { url = Url.Builder.crossOrigin Env.serverUrl path []
+        { url = Url.Builder.crossOrigin Env.urlAPI path []
         , body = Http.multipartBody [ Http.filePart "media" file ]
         , expect = Http.expectJson fromMediaIdToMsg (Decode.field "id" Decode.string)
         }
@@ -124,7 +124,7 @@ createThread formPostBody =
             [ "threads" ]
     in
     Http.post
-        { url = Url.Builder.crossOrigin Env.serverUrl path []
+        { url = Url.Builder.crossOrigin Env.urlAPI path []
         , body = formPostBody
         , expect = Http.expectWhatever Msg.ThreadCreated
         }
@@ -137,7 +137,7 @@ createPost threadID formPostBody =
             [ "threads", String.fromInt threadID ]
     in
     Http.post
-        { url = Url.Builder.crossOrigin Env.serverUrl path []
+        { url = Url.Builder.crossOrigin Env.urlAPI path []
         , body = formPostBody
         , expect = Http.expectWhatever (Msg.PostCreated threadID)
         }

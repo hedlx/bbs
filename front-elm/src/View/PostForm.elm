@@ -125,14 +125,14 @@ attachedFile style { id, preview } =
     let
         previewImg base64Img =
             div
-                [ style.formImagePreview
+                [ style.formMediaPreview
                 , Html.Attributes.style "background-image" <| String.concat [ "url('", base64Img, "')" ]
                 , onClick <| Msg.FormRemoveFile id
                 ]
                 [ overlay ]
 
         overlay =
-            div [ style.formImagePreviewOverlay, Html.Attributes.style "visibility" "none" ] [ div [] [ text "Click to Remove" ] ]
+            div [ style.formMediaPreviewOverlay, Html.Attributes.style "visibility" "none" ] [ div [] [ text "Click to Remove" ] ]
     in
     preview
         |> Maybe.map previewImg
@@ -140,7 +140,7 @@ attachedFile style { id, preview } =
 
 
 previewLoadingSpinner style =
-    div [ style.formImagePreview ] [ Spinner.view style 64 ]
+    div [ style.formMediaPreview ] [ Spinner.view style 64 ]
 
 
 buttonSelectFiles style _ =
@@ -195,7 +195,7 @@ problems style form =
     let
         textCantBeBlank =
             viewIf (Model.PostForm.isTextBlank form) <|
-                formProblem style "Comment can't be empty"
+                formProblem style "Post can't be empty"
     in
     div [ style.formProblems ] [ textCantBeBlank ]
 

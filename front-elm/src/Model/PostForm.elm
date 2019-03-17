@@ -36,7 +36,6 @@ module Model.PostForm exposing
     , trip
     )
 
-import Bytes.Encode
 import Env
 import Http
 import Json.Encode as Encode
@@ -89,20 +88,6 @@ toJson (PostForm form) =
             ++ formSubjOrEmpty
 
 
-jsonPart postForm =
-    toJson postForm
-        |> Encode.encode 0
-        >> Bytes.Encode.string
-        >> Bytes.Encode.encode
-        >> Http.bytesPart "message" "application/json"
-
-
-filesParts postForm =
-    files postForm
-        |> List.map .file
-        >> List.map (Http.filePart "media[]")
-
-
 isEmpty (PostForm form) =
     String.isEmpty form.text
         && String.isEmpty form.pass
@@ -114,6 +99,7 @@ isTextBlank (PostForm form) =
 
 isValid postForm =
     not (isTextBlank postForm)
+        -- || not (List.isEmpty <| files postForm)
 
 
 hasSubj (PostForm form) =

@@ -1,9 +1,21 @@
-module Env exposing (bbsName, defaultName, fileFormats, serverUrl)
+module Env exposing (bbsName, defaultName, fileFormats, urlAPI, urlServer, urlThumb)
+
+import Url.Builder
 
 
-serverUrl : String
-serverUrl =
-    "https://bbs.hedlx.org:451/api"
+urlServer : String
+urlServer =
+    "https://bbs.hedlx.org:451"
+
+
+urlAPI : String
+urlAPI =
+    Url.Builder.crossOrigin urlServer [ "api" ] []
+
+
+urlThumb : String
+urlThumb =
+    Url.Builder.crossOrigin urlServer [ "t" ] []
 
 
 fileFormats : List String
