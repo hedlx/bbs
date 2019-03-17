@@ -14,6 +14,10 @@
    :border-radius "2px"
    :outline 0
    :font-size font-size
+   :color "#000000"
+
+   "&::placeholder" {:color "#000000"
+                     :opacity 0.5}
 
    :&:focus:enabled {:border (str/join " " ["1px solid" colors/light-purple])}
 
@@ -37,6 +41,10 @@
    :outline 0
    :font-size font-size
    :resize "none"
+   :color "#000000"
+
+   "&::placeholder" {:color "#000000"
+                     :opacity 0.5}
 
    :&:focus:enabled {:border (str/join " " ["1px solid" colors/light-purple])}
 
@@ -60,6 +68,7 @@
    :border 0
    :border-radius "2px"
    :cursor "pointer"
+   :color "#000000"
 
    :&:hover:enabled
    {:background-color colors/purple-0}
@@ -68,6 +77,6 @@
    {:background-color colors/purple-0}
 
    :&:disabled {:cursor "default"
-                :opacity "0.8"}})
+                :opacity "0.6"}})
 
 
