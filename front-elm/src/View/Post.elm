@@ -39,9 +39,10 @@ body style post =
         , Html.Attributes.style "white-space" "pre-wrap"
         , Html.Attributes.style "word-wrap" "break-word"
         ]
-    <|
-        List.map (mediaPreview style) post.media
-            ++ [ text post.text ]
+        [ div [ style.postMediaPreviewContainer ] <|
+            List.map (mediaPreview style) post.media
+        , text post.text
+        ]
 
 
 headElement style attrs =
@@ -61,5 +62,25 @@ mediaPreview style media =
     let
         previewUrl =
             Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
+
+        whRatio =
+            toFloat media.width / toFloat media.height
+
+        computeSizes big small attrBig attrSmall =
+            let
+                pBig =
+                    Basics.min 200 big
+
+                pSmall =
+                    round <| toFloat pBig * (toFloat small / toFloat big)
+            in
+            [ attrBig pBig, attrSmall pSmall ]
+
+        attrsSizes =
+            if media.width >= media.height then
+                computeSizes media.width media.height width height
+
+            else
+                computeSizes media.height media.width height width
     in
-    img [ style.postMediaPreview, src previewUrl ] []
+    img ([ style.postMediaPreview, src previewUrl ] ++ attrsSizes) []

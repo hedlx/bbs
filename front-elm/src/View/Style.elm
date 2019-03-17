@@ -39,6 +39,7 @@ type alias Style =
     , postHead : Attr
     , postHeadElement : Attr
     , postName : Attr
+    , postMediaPreviewContainer : Attr
     , postMediaPreview : Attr
     , opName : Attr
     , postTrip : Attr
@@ -97,7 +98,8 @@ fromTheme theme =
     , postHead = classes [ f6, overflow_hidden, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
     , postHeadElement = classes [ dib, mr2 ]
     , postName = classes [ dib, theme.fgPostName ]
-    , postMediaPreview = classes [ mr3, mb1, br1, fl ]
+    , postMediaPreviewContainer = classes [ fl, flex, flex_wrap ]
+    , postMediaPreview = classes [ br1, fl, mr3, mb3 ]
     , opName = classes [ theme.fgOpName ]
     , postTrip = classes [ theme.fgPostTrip ]
     , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
