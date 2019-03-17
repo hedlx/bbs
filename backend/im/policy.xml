@@ -5,8 +5,8 @@
 	<policy domain="resource" name="file"           value="0"           />
 	<policy domain="resource" name="memory"         value="128MiB"      />
 	<policy domain="resource" name="map"            value="128MiB"      />
-	<policy domain="resource" name="disk"           value="0"           />
-	<policy domain="resource" name="time"           value="2"           />
+	<policy domain="resource" name="disk"           value="1024MiB"     />
+	<policy domain="resource" name="time"           value="5"           />
 
 	<policy domain="delegate" rights="none"         pattern="*"/>
 	<policy domain="coder"    rights="none"         pattern="*"/>
