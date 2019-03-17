@@ -16,6 +16,15 @@ pub enum Type {
     Png,
 }
 
+impl Type {
+    pub fn ext(&self) -> &'static str {
+        match self {
+            Type::Jpg => "jpg",
+            Type::Png => "png",
+        }
+    }
+}
+
 pub fn get_info(fname: &PathBuf) -> Option<Info> {
     if let Some(dims) = try_jpeg(fname) {
         return rest(fname, dims, Type::Jpg);

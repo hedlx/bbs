@@ -67,10 +67,18 @@ fn api_post_upload(
         let thumb_fname = image::make_thumb(&fname)
             .ok_or_else(|| Error::Upload("Cant generate_thumb"))?;
 
-        std::fs::rename(fname, config.files_dir.join(&hash))
-            .map_err(|_| Error::Upload("Can't rename"))?;
-        std::fs::rename(thumb_fname, config.thumbs_dir.join(&hash))
-            .map_err(|_| Error::Upload("Can't rename"))?;
+        std::fs::rename(
+            fname,
+            config
+                .files_dir
+                .join(format!("{}.{}", &hash, info.type_.ext())),
+        )
+        .map_err(|_| Error::Upload("Can't rename"))?;
+        std::fs::rename(
+            thumb_fname,
+            config.thumbs_dir.join(format!("{}.jpg", &hash)),
+        )
+        .map_err(|_| Error::Upload("Can't rename"))?;
         db.add_file(info, &hash);
     }
     Ok(json!({ "id": &hash }))
