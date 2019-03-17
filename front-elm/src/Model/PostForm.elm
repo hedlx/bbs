@@ -99,7 +99,7 @@ isTextBlank (PostForm form) =
 
 isValid postForm =
     not (isTextBlank postForm)
-        -- || not (List.isEmpty <| files postForm)
+        || not (List.isEmpty <| files postForm)
 
 
 hasSubj (PostForm form) =
