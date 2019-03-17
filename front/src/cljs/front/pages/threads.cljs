@@ -1,7 +1,6 @@
 (ns front.pages.threads
   (:require
     [front.components.thread :as thread-comp]
-    [front.components.spinner-overlay :as spinner-overlay]
     [front.styles.colors :as colors]
     [re-frame.core :refer [subscribe]]
     [cljss.core :refer-macros [defstyles]]
@@ -52,15 +51,13 @@
        (apply concat)
        (butlast)))
 
-(defn- render-content [threads loading? error]
+(defn- render-content [threads error]
   (cond
-    (and (empty? threads) loading?) [spinner-overlay/c {:color colors/purple-1}]
     error    [:div "ERROR"] ;TODO: you know
     :default (render-threads threads)))
 
 (defn page []
   (let [threads @(subscribe [:sorted-threads])
-        loading? @(subscribe [:threads-loading?])
         error @(subscribe [:threads-error])]
     [:div {:class (root-class)}
-      (render-content threads loading? error)]))
+      (render-content threads error)]))

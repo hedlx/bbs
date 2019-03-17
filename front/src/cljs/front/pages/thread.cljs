@@ -1,11 +1,9 @@
 (ns front.pages.thread
   (:require
     [front.components.post :as post]
-    [front.components.spinner-overlay :as spinner-overlay]
     [front.styles.colors :as colors]
     [cljss.core :refer-macros [defstyles]]
-    [re-frame.core :refer [subscribe]]
-    [clojure.string :as str]))
+    [re-frame.core :refer [subscribe]]))
 
 
 (defstyles post-class [full-width?]
@@ -36,9 +34,8 @@
 (defn- render-posts [posts]
   (map render-post posts))
 
-(defn- render-content [posts loading? error]
+(defn- render-content [posts error]
   (cond
-    (and (empty? posts) loading?) [spinner-overlay/c]
     error [:div "ERROR"] ;TODO: you know
     :default (render-posts posts)))
 
@@ -46,10 +43,9 @@
   (fn []
     (let [subject @(subscribe [:thread-subject])
           posts @(subscribe [:thread-posts])
-          loading? @(subscribe [:thread-loading?])
           error @(subscribe [:thread-error])]
       [:<>
        (when (-> subject nil? not)
          [:div {:class (subject-class)} subject])
        [:div {:class (root-class)}
-        (render-content posts loading? error)]])))
+        (render-content posts error)]])))

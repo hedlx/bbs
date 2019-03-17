@@ -4,6 +4,7 @@
     [front.pages.thread :as thread]
     [front.pages.threads :as threads]
     [front.components.create-new :as create-new]
+    [front.components.spinner-overlay :as spinner-overlay]
     [front.styles.colors :as colors]
     [re-frame.core :refer [subscribe]]
     [cljss.core :refer-macros [defstyles]]))
@@ -32,7 +33,8 @@
    :width "60px"})
 
 (defstyles content-class []
-  {:width "100%"
+  {:position "relative"
+   :width "100%"
    :height "100%"
    :padding-top "15px"
    :padding-right "15px"
@@ -52,4 +54,6 @@
       [:div {:class (left-panel-class)}
        [control-panel/c]]
       [:div {:class (content-class)}
-       [(page-for @(subscribe [:current-page]))]]]]))
+       (if @(subscribe [:major-loading?])
+         [spinner-overlay/c {:color colors/purple-1}]
+         [(page-for @(subscribe [:current-page]))])]]]))

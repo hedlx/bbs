@@ -52,6 +52,20 @@
     (or (and threads-loading? (-> threads empty? not))
         (and thread-loading? (-> thread-posts empty? not)))))
 
+(reg-sub
+  :major-loading?
+  :<- [:threads-loading?]
+  :<- [:thread-loading?]
+  :<- [:threads]
+  :<- [:thread-posts]
+  (fn [[threads-loading?
+        thread-loading?
+        threads
+        thread-posts]
+       _]
+    (or (and threads-loading? (-> threads empty?))
+        (and thread-loading? (-> thread-posts empty?)))))
+
 (reg-sub :router #(:router %))
 (reg-sub
   :current-page

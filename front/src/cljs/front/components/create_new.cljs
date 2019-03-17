@@ -1,6 +1,5 @@
 (ns front.components.create-new
   (:require
-    [front.components.spinner-overlay :as spinner-overlay]
     [front.components.styles :as s]
     [cljss.core :refer-macros [defstyles]]
     [re-frame.core :refer [subscribe dispatch]]))
