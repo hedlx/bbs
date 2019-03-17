@@ -5,7 +5,7 @@ import Url.Builder
 
 urlServer : String
 urlServer =
-    "https://bbs.hedlx.org:451"
+    "https://bbs.hedlx.org"
 
 
 urlAPI : String
