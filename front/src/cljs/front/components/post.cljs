@@ -39,7 +39,8 @@
 
 (defstyles text-class []
   {:word-wrap "break-word"
-   :word-break "break-all"})
+   :word-break "break-all"
+   :white-space "pre-wrap"})
 
 (defn- render-header [id name trip ts show-link?]
   (let [res-name (if (nil? name) "Anonymous" name)]
