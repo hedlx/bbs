@@ -20,6 +20,6 @@ decoder =
         (Decode.field "no" Decode.int)
         (DecodeExt.withDefault "Anonymous" <| Decode.field "name" Decode.string)
         (DecodeExt.withDefault "" <| Decode.field "trip" Decode.string)
-        (Decode.field "text" Decode.string)
+        (Decode.field "text" (Decode.oneOf [ Decode.string, Decode.null "" ]))
         (Decode.field "ts" Decode.int)
         (Decode.field "media" (Decode.list Media.decoder))
