@@ -265,6 +265,7 @@ impl Db {
             WITH m AS (SELECT *
                          FROM messages
                         WHERE thread_id = $1
+                          AND no != 0
                         ORDER BY no DESC
                         LIMIT 5)
             SELECT m.*,
