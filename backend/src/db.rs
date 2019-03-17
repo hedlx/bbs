@@ -250,47 +250,40 @@ impl Db {
                          AND msg_thread_id = thread_id
                    LEFT JOIN files AS f
                           ON file_sha512 = sha512
-             WHERE thread_id = $1
              ORDER BY no, fno
         ")
         .bind::<Integer, _>(thread_id)
         .get_results::<(DbMessage, Option<DbAttachment>, Option<DbFile>)>(
             &self.0,
         )?;
-
-        let mut result: Vec<Message> = Vec::new();
-        for (msg, attachment, file) in messages {
-            let is_same = match &result.last() {
-                Some(last) if last.no == msg.no as u32 => true,
-                _ => false,
-            };
-            if !is_same {
-                result.push(msg_from_db(msg));
-            }
-            if let (Some(f), Some(a)) = (file, attachment) {
-                result
-                    .last_mut()
-                    .unwrap()
-                    .media
-                    .push(file_attachment_from_db(f, a));
-            }
-        }
-        Ok(result)
+        Ok(join_messages_files(messages))
     }
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
-        use super::schema::messages::dsl as d;
-        let mut result: Vec<Message> = d::messages
-            .filter(d::thread_id.eq(thread_id))
-            .filter(d::no.gt(0))
-            .order(d::no.desc())
-            .limit(5)
-            .get_results::<DbMessage>(&self.0)?
-            .into_iter()
-            .map(msg_from_db)
-            .collect();
-        result.reverse();
-        Ok(result)
+        let messages = sql_query(r"
+            WITH m AS (SELECT *
+                         FROM messages
+                        WHERE thread_id = $1
+                        ORDER BY no DESC
+                        LIMIT 5)
+            SELECT m.*,
+                   a.*,
+                   f.sha512, f.type as type_, f.size, f.width, f.height
+              FROM m
+                   LEFT JOIN attachments AS a
+                          ON msg_no = no
+                         AND msg_thread_id = thread_id
+                   LEFT JOIN files AS f
+                          ON file_sha512 = sha512
+             ORDER BY no DESC, fno
+        ")
+        .bind::<Integer, _>(thread_id)
+        .get_results::<(DbMessage, Option<DbAttachment>, Option<DbFile>)>(
+            &self.0,
+        )?;
+        let mut messages = join_messages_files(messages);
+        messages.reverse();
+        Ok(messages)
     }
 
     fn transaction<T, F>(&self, f: F) -> Result<T, diesel::result::Error>
@@ -299,6 +292,29 @@ impl Db {
     {
         self.0.transaction::<_, diesel::result::Error, _>(f)
     }
+}
+
+fn join_messages_files(
+    v: Vec<(DbMessage, Option<DbAttachment>, Option<DbFile>)>,
+) -> Vec<Message> {
+    let mut result: Vec<Message> = Vec::new();
+    for (msg, attachment, file) in v {
+        let is_same = match &result.last() {
+            Some(last) if last.no == msg.no as u32 => true,
+            _ => false,
+        };
+        if !is_same {
+            result.push(msg_from_db(msg));
+        }
+        if let (Some(f), Some(a)) = (file, attachment) {
+            result
+                .last_mut()
+                .unwrap()
+                .media
+                .push(file_attachment_from_db(f, a));
+        }
+    }
+    result
 }
 
 fn msg_from_db(msg: DbMessage) -> Message {
