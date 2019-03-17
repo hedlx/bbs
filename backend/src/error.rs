@@ -53,7 +53,7 @@ impl<'r> Responder<'r> for Error {
 
 def_errors! {
     MsgSubjLong(400, "message.subject_long", "Subject is too long."),
-    MsgTextEmpt(400, "message.text_empty",   "Text should not be empty."),
+    MsgEmpty   (400, "message.empty",        "Empty message: should be media or text or both."),
     MsgTextLong(400, "message.text_long",    "Text should be no more than 4096 characters long."),
     MsgNameLong(400, "message.name_long",    "Name should be no more than 32 characters long."),
     MsgMediaCount(400, "message.media.count", "Too many mediafiles."),

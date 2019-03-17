@@ -16,7 +16,7 @@ pub struct NewMessage {
     pub name: Option<String>,
     pub secret: Option<String>, // used to produce tripcode
     pub password: Option<String>, // used to delete
-    pub text: String,
+    pub text: Option<String>,
     #[serde(default = "Vec::new")]
     pub media: Vec<NewAttachment>,
 }
@@ -39,7 +39,7 @@ pub struct Message {
     pub no: u32,
     pub name: Option<String>,
     pub trip: Option<String>,
-    pub text: String,
+    pub text: Option<String>,
     pub ts: i64,
     pub media: Vec<File>,
 }
@@ -81,7 +81,7 @@ pub struct DbMessage {
     pub name: Option<String>,
     pub trip: Option<String>,
     pub sender: String,
-    pub text: String,
+    pub text: Option<String>,
     pub ts: NaiveDateTime,
     pub password: Option<String>,
 }

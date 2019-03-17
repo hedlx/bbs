@@ -14,7 +14,7 @@ CREATE TABLE messages (
     password      VARCHAR,
 
     sender        TEXT NOT NULL,         -- IP address or telegram id
-    text          TEXT NOT NULL,
+    text          TEXT,             -- Can't be NULL if there are no attachments
     ts            TIMESTAMP NOT NULL,
 
     PRIMARY KEY (thread_id, no),

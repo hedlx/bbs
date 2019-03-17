@@ -168,8 +168,6 @@ components:
             $ref: '#/components/schemas/Message'
     NewMessage:
       type: object
-      required:
-        - text
       properties:
         name:
           type: string

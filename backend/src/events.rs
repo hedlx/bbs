@@ -14,15 +14,17 @@ pub fn validate_thread(mut thr: NewThread) -> Result<NewThread, Error> {
 }
 
 pub fn validate_message(mut msg: NewMessage) -> Result<NewMessage, Error> {
-    msg.text = msg.text.trim().to_owned();
+    msg.text = trim(msg.text);
     msg.name = trim(msg.name);
     msg.secret = trim(msg.secret);
     msg.password = trim(msg.password);
-    if msg.text.len() == 0 {
-        return Err(Error::MsgTextEmpt);
+    if msg.text == None && msg.media.len() == 0 {
+        return Err(Error::MsgEmpty);
     }
-    if msg.text.len() > LIMITS.msg_text_len {
-        return Err(Error::MsgTextLong);
+    if let Some(text) = &msg.text {
+        if text.len() > LIMITS.msg_text_len {
+            return Err(Error::MsgTextLong);
+        }
     }
     if let Some(name) = &msg.name {
         if name.len() > LIMITS.msg_name_len {

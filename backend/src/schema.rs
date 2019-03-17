@@ -26,7 +26,7 @@ table! {
         name -> Nullable<Varchar>,
         trip -> Nullable<Varchar>,
         sender -> Text,
-        text -> Text,
+        text -> Nullable<Text>,
         ts -> Timestamp,
         password -> Nullable<Varchar>,
     }
