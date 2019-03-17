@@ -8,4 +8,4 @@ export MAGICK_CONFIGURE_PATH=$(dirname -- "$0")
 
 [ -f "$MAGICK_CONFIGURE_PATH/policy.xml" ] || die "$0: no policy.xml"
 
-convert "$1" -resize 128x128 -define jpeg:extent=8kb -strip "JPG:$2"
+convert "$1" -resize 200x200 -define jpeg:extent=8kb -strip "JPG:$2"
