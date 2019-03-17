@@ -101,10 +101,17 @@ update msg model =
                     ( { model | page = newPage }, cmd )
 
                 ( _, Err error ) ->
-                    Commands.showDefaultHttpErrorPopUp error model
+                    { model | page = Page.mapPostForm PostForm.enable model.page }
+                        |> Commands.showDefaultHttpErrorPopUp error
 
                 _ ->
                     ( model, Cmd.none )
+
+        Msg.ThreadCreated (Err _) ->
+            mapPostForm PostForm.enable model
+
+        Msg.PostCreated _ (Err _) ->
+            mapPostForm PostForm.enable model
 
         Msg.GotLimits result ->
             case result of
