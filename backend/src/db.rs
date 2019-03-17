@@ -250,6 +250,7 @@ impl Db {
                          AND msg_thread_id = thread_id
                    LEFT JOIN files AS f
                           ON file_sha512 = sha512
+             WHERE thread_id = $1
              ORDER BY no, fno
         ")
         .bind::<Integer, _>(thread_id)
