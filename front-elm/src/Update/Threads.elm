@@ -1,5 +1,6 @@
 module Update.Threads exposing (update)
 
+import Commands
 import Model exposing (Model)
 import Model.Page as Page
 import Msg exposing (Msg)
@@ -17,8 +18,8 @@ update msg model =
                     in
                     ( { model | page = newPage }, Cmd.none )
 
-                Err _ ->
-                    Debug.todo "handle GotThreads error"
+                Err error ->
+                    Commands.showDefaultHttpErrorPopUp error model
 
         _ ->
             ( model, Cmd.none )

@@ -100,8 +100,8 @@ update msg model =
                     in
                     ( { model | page = newPage }, cmd )
 
-                ( _, Err _ ) ->
-                    Debug.todo "Handle file upload error"
+                ( _, Err error ) ->
+                    Commands.showDefaultHttpErrorPopUp error model
 
                 _ ->
                     ( model, Cmd.none )

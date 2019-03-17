@@ -29,7 +29,6 @@ btnNewThread style =
 
 btnDelete style _ =
     let
-        -- TODO
         isEnabled =
             False
 

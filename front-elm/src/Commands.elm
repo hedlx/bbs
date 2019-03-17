@@ -7,6 +7,8 @@ module Commands exposing
     , init
     , redirect
     , scrollPageToTop
+    , showDefaultHttpErrorPopUp
+    , showPopUp
     , uploadFile
     )
 
@@ -19,12 +21,14 @@ import Json.Decode as Decode
 import Model exposing (Model)
 import Model.Limits
 import Model.Page as Page
+import Model.PopUp as PopUp
 import Model.Thread
 import Model.Threads
 import Msg exposing (Msg)
 import Route
 import Task
 import Time
+import Toasty
 import Url.Builder
 
 
@@ -141,3 +145,66 @@ createPost threadID formPostBody =
         , body = formPostBody
         , expect = Http.expectWhatever (Msg.PostCreated threadID)
         }
+
+
+showPopUp : PopUp.PopUp -> Model -> ( Model, Cmd Msg )
+showPopUp popUp model =
+    let
+        ( newPlugins, newCmds ) =
+            Toasty.addPersistentToast Toasty.config Msg.ToastyMsg popUp ( model.plugins, Cmd.none )
+    in
+    ( { model | plugins = newPlugins }, newCmds )
+
+
+showDefaultHttpErrorPopUp : Http.Error -> Model -> ( Model, Cmd Msg )
+showDefaultHttpErrorPopUp error model =
+    let
+        pleaseCheckConnection =
+            "Please check your Internet connection and try again."
+
+        pleaseReport =
+            "\n Please, report this issue to developers."
+    in
+    case error of
+        Http.Timeout ->
+            showPopUp
+                (PopUp.Error <|
+                    "Server took to long to respond. "
+                        ++ pleaseCheckConnection
+                )
+                model
+
+        Http.NetworkError ->
+            showPopUp
+                (PopUp.Error <|
+                    "Network error. "
+                        ++ pleaseCheckConnection
+                )
+                model
+
+        Http.BadUrl str ->
+            showPopUp
+                (PopUp.Error <|
+                    "Something went wrong: Bad request URL.\n"
+                        ++ str
+                        ++ pleaseReport
+                )
+                model
+
+        Http.BadStatus statusCode ->
+            showPopUp
+                (PopUp.Error <|
+                    "Something went wrong: Server Error "
+                        ++ String.fromInt statusCode
+                        ++ pleaseReport
+                )
+                model
+
+        Http.BadBody str ->
+            showPopUp
+                (PopUp.Error <|
+                    "Something went wrong: Bad request body.\n"
+                        ++ str
+                        ++ pleaseReport
+                )
+                model

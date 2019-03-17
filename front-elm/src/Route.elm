@@ -4,6 +4,7 @@ import Browser.Navigation as Nav
 import Model exposing (Flags, Model)
 import Model.Config as Config exposing (Config)
 import Model.Page as Page exposing (..)
+import Model.Plugins as Plugins
 import Model.PostForm as PostForm
 import String.Extra
 import Url exposing (Url)
@@ -66,4 +67,7 @@ replacePathWithFragment url =
 initModel : Flags -> Url -> Nav.Key -> Model
 initModel _ url key =
     route url
-        { cfg = Config.init url key, page = Page.NotFound }
+        { cfg = Config.init url key
+        , page = Page.NotFound
+        , plugins = Plugins.init
+        }

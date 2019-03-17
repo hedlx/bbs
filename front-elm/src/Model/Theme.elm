@@ -31,6 +31,10 @@ type alias Theme =
     , fgInput : String
     , bgInput : String
     , bInput : String
+    , fgPopUpWarn : String
+    , bgPopUpWarn : String
+    , fgPopUpErr : String
+    , bgPopUpErr : String
     }
 
 

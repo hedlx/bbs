@@ -4,9 +4,11 @@ import Browser
 import File exposing (File)
 import Http
 import Model.Limits exposing (Limits)
+import Model.PopUp exposing (PopUp)
 import Model.Thread exposing (Thread)
 import Model.ThreadPreview exposing (ThreadPreview)
 import Time exposing (Zone)
+import Toasty
 import Url exposing (Url)
 
 
@@ -37,3 +39,5 @@ type Msg
     | GotTimeZone Zone
     | ReplyTo Int Int
     | Unfocus String
+      -- Plugins
+    | ToastyMsg (Toasty.Msg PopUp)

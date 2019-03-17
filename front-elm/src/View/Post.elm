@@ -36,7 +36,7 @@ time style zone post =
 body style post =
     div
         [ style.postBody
-        , Html.Attributes.style "white-space" "pre-line"
+        , Html.Attributes.style "white-space" "pre-wrap"
         , Html.Attributes.style "word-wrap" "break-word"
         ]
     <|

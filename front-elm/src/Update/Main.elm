@@ -2,6 +2,7 @@ module Update.Main exposing (update)
 
 import Commands
 import Model exposing (Model)
+import Model.PopUp
 import Msg exposing (Msg)
 
 
@@ -31,23 +32,31 @@ update msg model =
                     ( { model | cfg = newCfg }, Cmd.none )
 
                 Err _ ->
-                    Debug.todo "handle GotLimits error"
+                    Commands.showPopUp
+                        (Model.PopUp.Warning
+                            """
+                            Failed to get metadata from the server. 
+                            App functionality can be restricted. 
+                            Please, check your Internet connection and reload the page.
+                            """
+                        )
+                        model
 
         Msg.ThreadCreated result ->
             case result of
                 Ok () ->
                     ( model, Commands.redirect [] model )
 
-                Err _ ->
-                    Debug.todo "handle ThreadCreated error"
+                Err error ->
+                    Commands.showDefaultHttpErrorPopUp error model
 
         Msg.PostCreated threadID result ->
             case result of
                 Ok () ->
                     ( model, Commands.redirect [ String.fromInt threadID ] model )
 
-                Err _ ->
-                    Debug.todo "handle PostCreated error"
+                Err error ->
+                    Commands.showDefaultHttpErrorPopUp error model
 
         _ ->
             ( model, Cmd.none )

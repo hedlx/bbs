@@ -5,6 +5,7 @@ import Model.Theme exposing (Theme)
 import Msg exposing (Msg)
 import Tachyons exposing (classes)
 import Tachyons.Classes exposing (..)
+import View.Style.Animations exposing (fadein_r)
 
 
 type alias Attr =
@@ -19,6 +20,10 @@ type alias Style =
     , alert : Attr
     , notFound : Attr
     , spinner : Attr
+    , popUpStack : Attr
+    , popUp : Attr
+    , popUpWarn : Attr
+    , popUpErr : Attr
     , buttonEnabled : Attr
     , buttonDisabled : Attr
     , threadPreview : Attr
@@ -73,6 +78,10 @@ fromTheme theme =
     , alert = classes [ theme.fgAlert ]
     , notFound = classes [ f1, tc ]
     , spinner = classes [ theme.fgSpinner ]
+    , popUpStack = classes [ fixed, w_30, right_0, ma0, pa3, z_max, br3, fr, list, theme.font ]
+    , popUp = classes [ pl3, pr3, pt1, pb1, ma2, br1, fadein_r, dim, pointer ]
+    , popUpWarn = classes [ theme.fgPopUpWarn, theme.bgPopUpWarn ]
+    , popUpErr = classes [ theme.fgPopUpErr, theme.bgPopUpErr ]
     , buttonEnabled = classes [ pointer, dim, theme.bgButton, theme.fgButton ]
     , buttonDisabled = classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
     , threadPreview = classes []

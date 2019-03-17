@@ -30,4 +30,8 @@ theme =
     , fgInput = light_silver
     , bgInput = bg_black_30
     , bInput = b__white_10
+    , fgPopUpWarn = white
+    , bgPopUpWarn = bg_orange
+    , fgPopUpErr = white
+    , bgPopUpErr = bg_red
     }
