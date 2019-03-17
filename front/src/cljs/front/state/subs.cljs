@@ -26,6 +26,10 @@
   :<- [:thread-root]
   (fn [root _] (:posts root)))
 (reg-sub
+  :thread-subject
+  :<- [:thread-root]
+  (fn [root _] (:subject root)))
+(reg-sub
   :thread-loading?
   :<- [:thread-root]
   (fn [root _] (:loading? root)))

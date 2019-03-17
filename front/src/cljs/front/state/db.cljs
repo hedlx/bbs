@@ -2,6 +2,7 @@
 
 
 (def default-thread {:posts []
+                     :subject nil
                      :loading? false
                      :error nil})
 

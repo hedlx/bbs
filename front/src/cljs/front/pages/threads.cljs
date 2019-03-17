@@ -28,10 +28,19 @@
    :width "100%"
    :height "100%"})
 
+(defstyles subject-class []
+  {:font-size "18px"
+   :font-weight 300
+   :color colors/yellow
+   :padding-bottom "15px"})
+
 (defn- render-thread [thread]
-  ^{:key (str "thread" (:id thread))}
-  [:div {:class (thread-class)}
-        [thread-comp/c {:thread thread}]])
+  (let [{:keys [subject id]} thread]
+    [:<> {:key (str "thread" id)}
+     (when (-> subject nil? not)
+       [:div {:class (subject-class)} subject])
+     [:div {:class (thread-class)}
+          [thread-comp/c {:thread thread}]]]))
 
 (defn- render-separator [key]
   ^{:key key} [:hr {:class (separator-class)}])
@@ -50,9 +59,8 @@
     :default (render-threads threads)))
 
 (defn page []
-  (fn []
-    (let [threads @(subscribe [:sorted-threads])
-          loading? @(subscribe [:threads-loading?])
-          error @(subscribe [:threads-error])]
-      [:div {:class (root-class)}
-        (render-content threads loading? error)])))
+  (let [threads @(subscribe [:sorted-threads])
+        loading? @(subscribe [:threads-loading?])
+        error @(subscribe [:threads-error])]
+    [:div {:class (root-class)}
+      (render-content threads loading? error)]))

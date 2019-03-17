@@ -75,6 +75,7 @@
     (if (= (-> db :router :current-page) :thread)
       (-> db
           (assoc-in [:thread :posts] (:messages thread))
+          (assoc-in [:thread :subject] (:subject thread))
           (assoc-in [:thread :loading?] false)
           (assoc-in [:thread :error] nil))
       db)))

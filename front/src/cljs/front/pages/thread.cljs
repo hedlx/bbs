@@ -2,6 +2,7 @@
   (:require
     [front.components.post :as post]
     [front.components.spinner-overlay :as spinner-overlay]
+    [front.styles.colors :as colors]
     [cljss.core :refer-macros [defstyles]]
     [re-frame.core :refer [subscribe]]
     [clojure.string :as str]))
@@ -10,6 +11,12 @@
 (defstyles post-class [full-width?]
   {:padding "2px"
    :width (if full-width? "100%" "auto")})
+
+(defstyles subject-class []
+           {:font-size "18px"
+            :font-weight 300
+            :color colors/yellow
+            :padding-bottom "15px"})
 
 (defstyles root-class []
   {:position "relative"
@@ -37,8 +44,12 @@
 
 (defn page []
   (fn []
-    (let [posts @(subscribe [:thread-posts])
+    (let [subject @(subscribe [:thread-subject])
+          posts @(subscribe [:thread-posts])
           loading? @(subscribe [:thread-loading?])
           error @(subscribe [:thread-error])]
-      [:div {:class (root-class)}
-       (render-content posts loading? error)])))
+      [:<>
+       (when (-> subject nil? not)
+         [:div {:class (subject-class)} subject])
+       [:div {:class (root-class)}
+        (render-content posts loading? error)]])))
