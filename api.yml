@@ -194,7 +194,7 @@ components:
               id:
                 type: string
                 example: SaVFRRIgvXJfu23KXPG7aTy4KebFuFTUG1mEFSFGwDY
-              original_name:
+              orig_name:
                 type: string
                 example: blabla.jpg
     NewThread:
@@ -239,7 +239,7 @@ components:
             $ref: '#/components/schemas/Media'
     Media:
       type: object
-      required: [id, type, size, width, height, original_name]
+      required: [id, type, size, width, height, orig_name]
       properties:
         id:
           type: string
@@ -256,7 +256,7 @@ components:
         height:
           type: integer
           example: 512
-        original_name:
+        orig_name:
           type: string
           example: blabla.jpg
   parameters:
