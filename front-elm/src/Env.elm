@@ -20,7 +20,7 @@ urlThumb =
 
 fileFormats : List String
 fileFormats =
-    [ "image/png", "image/jpg", "image/jpeg", "image/tiff", "image/tif", "image/gif" ]
+    [ "image/png", "image/jpeg" ]
 
 
 defaultName : String
