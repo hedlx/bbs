@@ -39,8 +39,8 @@ type alias Style =
     , postHead : Attr
     , postHeadElement : Attr
     , postName : Attr
-    , postMediaPreviewContainer : Attr
-    , postMediaPreview : Attr
+    , postMediaContainer : Attr
+    , postMedia : Attr
     , opName : Attr
     , postTrip : Attr
     , postBody : Attr
@@ -98,8 +98,8 @@ fromTheme theme =
     , postHead = classes [ f6, overflow_hidden, pa1, theme.fgPostHead, theme.fontMono, theme.bgPost ]
     , postHeadElement = classes [ dib, mr2 ]
     , postName = classes [ dib, theme.fgPostName ]
-    , postMediaPreviewContainer = classes [ fl, flex, flex_wrap ]
-    , postMediaPreview = classes [ br1, fl, mr3, mt1 ]
+    , postMediaContainer = classes [ fl, flex, flex_wrap ]
+    , postMedia = classes [ br1, fl, mr3, mt1 ]
     , opName = classes [ theme.fgOpName ]
     , postTrip = classes [ theme.fgPostTrip ]
     , postBody = classes [ pa1, overflow_hidden, pre, theme.fgPost, theme.bgPost ]
@@ -109,7 +109,7 @@ fromTheme theme =
     , menuButton = classes <| iconicButton ++ [ pa3 ]
     , flexFiller = classes [ flex_grow_1 ]
     , formContainer = classes [ h_100, w_100, flex, flex_row ]
-    , formMetaPane = classes [ pl2, pr3, flex, flex_column ]
+    , formMetaPane = classes [ pl2, pr3, mw5, flex, flex_column ]
     , formBodyPane = classes [ pl3, flex_grow_1, flex, flex_column ]
     , formElement = classes [ db, mb3, w_100 ]
     , formButton = classes [ mt3, mb4 ]

@@ -1,11 +1,11 @@
 {
-  "license": "mit",
+  "license": "MIT",
   "devDependencies": {
-    "elm": "^0.19.0-bugfix6",
+    "elm": "^0.19.0",
     "elm-format": "^0.8.1",
     "elm-live": "^3.4.0",
     "elm-test": "^0.19.0",
-    "uglify-js": "^3.4.9"
+    "uglify-js": "^3.4.10"
   },
   "scripts": {
     "watch": "npx elm-live src/Main.elm --pushstate=true -o -d static -- --output=static/main.js",

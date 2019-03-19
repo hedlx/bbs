@@ -10,14 +10,16 @@ type alias Media =
     , size : Int
     , width : Int
     , height : Int
+    , isMinimized : Bool
     }
 
 
 decoder =
-    Decode.map6 Media
+    Decode.map7 Media
         (Decode.field "id" Decode.string)
         (Decode.field "type_" Decode.string)
         (Decode.field "orig_name" Decode.string)
         (Decode.field "size" Decode.int)
         (Decode.field "width" Decode.int)
         (Decode.field "height" Decode.int)
+        (Decode.succeed True)

@@ -3,6 +3,7 @@ module Commands exposing
     , createPost
     , createThread
     , focus
+    , getThread
     , getThreads
     , init
     , redirect

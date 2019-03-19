@@ -1,4 +1,12 @@
-module Env exposing (bbsName, defaultName, fileFormats, urlAPI, urlServer, urlThumb)
+module Env exposing
+    ( bbsName
+    , defaultName
+    , fileFormats
+    , urlAPI
+    , urlImage
+    , urlServer
+    , urlThumb
+    )
 
 import Url.Builder
 
@@ -11,6 +19,11 @@ urlServer =
 urlAPI : String
 urlAPI =
     Url.Builder.crossOrigin urlServer [ "api" ] []
+
+
+urlImage : String
+urlImage =
+    Url.Builder.crossOrigin urlServer [ "i" ] []
 
 
 urlThumb : String

@@ -17,7 +17,7 @@ view style cfg threadID post =
                 , Post.time style cfg.timeZone post
                 ]
     in
-    div [ style.post ] [ postHead, Post.body style post ]
+    div [ style.post ] [ postHead, Post.body style threadID post ]
 
 
 no style threadID post =

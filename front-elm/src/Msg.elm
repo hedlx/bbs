@@ -23,6 +23,9 @@ type Msg
     | GotThread (Result Http.Error Thread)
     | ThreadCreated (Result Http.Error ())
     | PostCreated Int (Result Http.Error ())
+      -- Posts
+    | PostMediaPreviewClicked Int Int String
+    | PostMediaFullClicked Int Int String
       -- Forms
     | FormNameChanged String
     | FormTripChanged String

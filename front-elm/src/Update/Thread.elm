@@ -3,6 +3,7 @@ module Update.Thread exposing (update)
 import Commands
 import Model exposing (Model)
 import Model.Page as Page
+import Model.PostForm as PostForm
 import Msg exposing (Msg)
 
 
@@ -16,6 +17,15 @@ update msg model =
 
                 Err error ->
                     Commands.showDefaultHttpErrorPopUp error model
+
+        ( Msg.PostCreated threadID result, Page.Thread pageState postForm ) ->
+            case result of
+                Ok () ->
+                    ( { model | page = Page.Thread pageState (PostForm.init model.cfg.limits) }, Commands.getThread threadID )
+
+                Err error ->
+                    { model | page = Page.mapPostForm PostForm.enable model.page }
+                        |> Commands.showDefaultHttpErrorPopUp error
 
         _ ->
             ( model, Cmd.none )

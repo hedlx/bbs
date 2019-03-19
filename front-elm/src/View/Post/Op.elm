@@ -24,7 +24,7 @@ view style cfg thread =
                 , showAll style thread
                 ]
     in
-    div [ style.post ] [ opHead, Post.body style op ]
+    div [ style.post ] [ opHead, Post.body style thread.id op ]
 
 
 no style thread =

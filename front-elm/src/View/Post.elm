@@ -9,7 +9,9 @@ module View.Post exposing
 import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Html.Extra exposing (..)
+import Msg
 import Url.Builder
 import View.Time as Time
 
@@ -33,14 +35,14 @@ time style zone post =
     headElement style [] [ Time.view zone post.ts ]
 
 
-body style post =
+body style threadID post =
     div
         [ style.postBody
         , Html.Attributes.style "white-space" "pre-wrap"
         , Html.Attributes.style "word-wrap" "break-word"
         ]
-        [ div [ style.postMediaPreviewContainer ] <|
-            List.map (mediaPreview style) post.media
+        [ div [ style.postMediaContainer ] <|
+            List.map (viewMedia style threadID post.no) post.media
         , text post.text
         ]
 
@@ -58,9 +60,17 @@ btnHead style btnText =
         ]
 
 
-mediaPreview style media =
+viewMedia style threadID postNo media =
+    if media.isMinimized then
+        viewMediaPreview style threadID postNo media
+
+    else
+        viewMediaFull style threadID postNo media
+
+
+viewMediaPreview style threadID postNo media =
     let
-        previewUrl =
+        urlPreview =
             Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
 
         whRatio =
@@ -83,4 +93,26 @@ mediaPreview style media =
             else
                 computeSizes media.height media.width height width
     in
-    img ([ style.postMediaPreview, src previewUrl ] ++ attrsSizes) []
+    img
+        (attrsSizes
+            ++ [ onClick <| Msg.PostMediaPreviewClicked threadID postNo media.id
+               , style.postMedia
+               , style.buttonEnabled
+               , src urlPreview
+               ]
+        )
+        []
+
+
+viewMediaFull style threadID postNo media =
+    let
+        urlFull =
+            Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
+    in
+    img
+        [ onClick <| Msg.PostMediaFullClicked threadID postNo media.id
+        , style.postMedia
+        , style.buttonEnabled
+        , src urlFull
+        ]
+        []

@@ -58,6 +58,7 @@ tripInput style form =
         , style.textInput
         , style.formElement
         , onInput Msg.FormTripChanged
+        , disabled << not <| Model.PostForm.isEnabled form
         ]
         []
     ]
@@ -73,6 +74,7 @@ passInput style form =
         , style.textInput
         , style.formElement
         , onInput Msg.FormPassChanged
+        , disabled << not <| Model.PostForm.isEnabled form
         ]
         []
     ]
@@ -97,6 +99,7 @@ postSubj style form =
                 , style.formElement
                 , style.textInput
                 , onInput Msg.FormSubjChanged
+                , disabled << not <| Model.PostForm.isEnabled form
                 ]
                 []
             ]
@@ -143,12 +146,20 @@ previewLoadingSpinner style =
     div [ style.formMediaPreview ] [ Spinner.view style 64 ]
 
 
-buttonSelectFiles style _ =
+buttonSelectFiles style form =
+    let
+        styleEnabledOrDisabled =
+            if Model.PostForm.isEnabled form then
+                style.buttonEnabled
+
+            else
+                style.buttonDisabled
+    in
     div
         [ onClick Msg.FormSelectFiles
         , style.formButtonAddImage
         , style.flexFiller
-        , style.buttonEnabled
+        , styleEnabledOrDisabled
         ]
         [ div [ Tachyons.classes [ TC.h_100, TC.flex, TC.flex_column, TC.justify_center ] ]
             [ div [] [ text "Add Images" ] ]
@@ -166,6 +177,7 @@ postComment style form =
         , style.formElement
         , onInput Msg.FormTextChanged
         , Html.Attributes.style "resize" "none"
+        , disabled << not <| Model.PostForm.isEnabled form
         ]
         []
     ]
@@ -194,8 +206,11 @@ buttonCreate style form =
 problems style form =
     let
         textCantBeBlank =
-            viewIf (Model.PostForm.isTextBlank form) <|
-                formProblem style "Post can't be empty"
+            formProblem style "Post should have a comment or an attachment."
+                |> viewIf
+                    (Model.PostForm.isTextBlank form
+                        && not (Model.PostForm.hasAttachments form)
+                    )
     in
     div [ style.formProblems ] [ textCantBeBlank ]
 

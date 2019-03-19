@@ -50,13 +50,5 @@ update msg model =
                 Err error ->
                     Commands.showDefaultHttpErrorPopUp error model
 
-        Msg.PostCreated threadID result ->
-            case result of
-                Ok () ->
-                    ( model, Commands.redirect [ String.fromInt threadID ] model )
-
-                Err error ->
-                    Commands.showDefaultHttpErrorPopUp error model
-
         _ ->
             ( model, Cmd.none )
