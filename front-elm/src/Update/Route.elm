@@ -22,7 +22,7 @@ update msg model =
                     else
                         ( model, Cmd.none )
 
-                Browser.External href ->
+                Browser.External _ ->
                     ( model, Cmd.none )
 
         Msg.UrlChanged url ->
@@ -37,7 +37,7 @@ update msg model =
 
 
 isShouldHandle url =
-    Maybe.map (Regex.contains regexNoHandle) url.query == Just False
+    Maybe.map (Regex.contains regexNoHandle) url.query /= Just True
 
 
 regexNoHandle =

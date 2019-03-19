@@ -10,9 +10,7 @@ import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Events.Extra
 import Html.Extra exposing (..)
-import Json.Decode as Decode
 import Model.Media
 import Msg
 import Url.Builder
@@ -67,10 +65,10 @@ viewMedia style threadID postNo media =
     let
         image =
             if media.isPreview then
-                viewMediaPreview style threadID postNo media
+                viewMediaPreview style media
 
             else
-                viewMediaFull style threadID postNo media
+                viewMediaFull style media
     in
     a
         [ href <| Model.Media.url media
@@ -79,7 +77,7 @@ viewMedia style threadID postNo media =
         [ image ]
 
 
-viewMediaPreview style threadID postNo media =
+viewMediaPreview style media =
     let
         urlPreview =
             Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
@@ -110,7 +108,7 @@ viewMediaPreview style threadID postNo media =
         []
 
 
-viewMediaFull style threadID postNo media =
+viewMediaFull style media =
     div []
         [ img
             [ style.postMedia
