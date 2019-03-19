@@ -16,7 +16,7 @@ update msg model =
         Msg.LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    if isShouldHandle url then
+                    if isShouldHandle model.cfg url then
                         ( Route.route url model, Nav.pushUrl model.cfg.key (Url.toString url) )
 
                     else
@@ -36,9 +36,10 @@ update msg model =
             ( model, Cmd.none )
 
 
-isShouldHandle url =
-    Maybe.map (Regex.contains regexNoHandle) url.query /= Just True
-
-
-regexNoHandle =
-    Regex.fromString "&?handle=0&?" |> Maybe.withDefault Regex.never
+isShouldHandle cfg url =
+    let
+        regexUrlApp =
+            Regex.fromString ("^/?" ++ cfg.urlApp.path)
+                |> Maybe.withDefault Regex.never
+    in
+    Regex.contains regexUrlApp url.path
