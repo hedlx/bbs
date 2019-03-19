@@ -1,9 +1,9 @@
-module Model.Post exposing (Post, decoder)
+module Model.Post exposing (Post, decoder, mapMedia)
 
 import Json.Decode as Decode
 import Json.Decode.Extra as DecodeExt
 import Model.Media as Media exposing (Media)
-
+import List.Extra
 
 type alias Post =
     { no : Int
@@ -13,6 +13,10 @@ type alias Post =
     , ts : Int
     , media : List Media
     }
+
+
+mapMedia mediaID f post =
+    { post | media = List.Extra.updateIf (.id >> (==) mediaID) f post.media }
 
 
 decoder =

@@ -13,6 +13,7 @@ module Model.PostForm.Files exposing
 
 import File exposing (File)
 import Json.Encode as Encode
+import List.Extra
 import Task
 
 
@@ -105,15 +106,7 @@ updateFileBackendID id backendID =
 
 
 map id update (Files db) =
-    let
-        updateTargetOnly rec =
-            if rec.id == id then
-                update rec
-
-            else
-                rec
-    in
-    Files { db | records = List.map updateTargetOnly db.records }
+    Files { db | records = List.Extra.updateIf (.id >> (==) id) update db.records }
 
 
 generateFilesPreviews records toMsg =

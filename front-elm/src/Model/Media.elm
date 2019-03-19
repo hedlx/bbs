@@ -1,4 +1,4 @@
-module Model.Media exposing (Media, decoder)
+module Model.Media exposing (Media, decoder, togglePreview)
 
 import Json.Decode as Decode
 
@@ -10,8 +10,12 @@ type alias Media =
     , size : Int
     , width : Int
     , height : Int
-    , isMinimized : Bool
+    , isPreview : Bool
     }
+
+
+togglePreview media =
+    { media | isPreview = not media.isPreview }
 
 
 decoder =

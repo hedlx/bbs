@@ -61,7 +61,7 @@ btnHead style btnText =
 
 
 viewMedia style threadID postNo media =
-    if media.isMinimized then
+    if media.isPreview then
         viewMediaPreview style threadID postNo media
 
     else
@@ -72,9 +72,6 @@ viewMediaPreview style threadID postNo media =
     let
         urlPreview =
             Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
-
-        whRatio =
-            toFloat media.width / toFloat media.height
 
         computeSizes big small attrBig attrSmall =
             let
@@ -95,9 +92,8 @@ viewMediaPreview style threadID postNo media =
     in
     img
         (attrsSizes
-            ++ [ onClick <| Msg.PostMediaPreviewClicked threadID postNo media.id
+            ++ [ onClick <| Msg.PostMediaClicked threadID postNo media.id
                , style.postMedia
-               , style.buttonEnabled
                , src urlPreview
                ]
         )
@@ -107,12 +103,13 @@ viewMediaPreview style threadID postNo media =
 viewMediaFull style threadID postNo media =
     let
         urlFull =
-            Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
+            Url.Builder.crossOrigin Env.urlImage [ media.id ] []
     in
-    img
-        [ onClick <| Msg.PostMediaFullClicked threadID postNo media.id
-        , style.postMedia
-        , style.buttonEnabled
-        , src urlFull
+    div []
+        [ img
+            [ onClick <| Msg.PostMediaClicked threadID postNo media.id
+            , style.postMedia
+            , src urlFull
+            ]
+            []
         ]
-        []

@@ -1,6 +1,7 @@
-module Model.ThreadPreview exposing (ThreadPreview, decoder)
+module Model.ThreadPreview exposing (ThreadPreview, decoder, mapLast)
 
 import Json.Decode as Decode
+import List.Extra
 import Model.Post as Post exposing (Post)
 
 
@@ -10,6 +11,10 @@ type alias ThreadPreview =
     , op : Post
     , last : List Post
     }
+
+
+mapLast postNo f thread =
+    { thread | last = List.Extra.updateIf (.no >> (==) postNo) f thread.last }
 
 
 decoder =

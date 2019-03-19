@@ -24,8 +24,7 @@ type Msg
     | ThreadCreated (Result Http.Error ())
     | PostCreated Int (Result Http.Error ())
       -- Posts
-    | PostMediaPreviewClicked Int Int String
-    | PostMediaFullClicked Int Int String
+    | PostMediaClicked Int Int String
       -- Forms
     | FormNameChanged String
     | FormTripChanged String

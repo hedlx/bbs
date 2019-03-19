@@ -1,6 +1,7 @@
-module Model.Thread exposing (Thread, decoder)
+module Model.Thread exposing (Thread, decoder, mapMessages)
 
 import Json.Decode as Decode
+import List.Extra
 import Model.Post as Post exposing (Post)
 
 
@@ -9,6 +10,10 @@ type alias Thread =
     , subject : Maybe String
     , messages : List Post
     }
+
+
+mapMessages postNo f thread =
+    { thread | messages = List.Extra.updateIf (.no >> (==) postNo) f thread.messages }
 
 
 decoder threadID =

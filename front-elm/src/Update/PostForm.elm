@@ -1,6 +1,5 @@
 module Update.PostForm exposing (update)
 
-import Commands
 import Env
 import File.Select as Select
 import Model exposing (Model)

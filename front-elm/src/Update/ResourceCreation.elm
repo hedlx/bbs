@@ -1,12 +1,9 @@
 module Update.ResourceCreation exposing (update)
 
 import Commands
-import Env
-import File.Select as Select
-import Model exposing (Model)
 import Model.Page as Page
 import Model.PostForm as PostForm
-import Msg exposing (Msg)
+import Msg
 
 
 update msg model =
