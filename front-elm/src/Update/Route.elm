@@ -17,8 +17,8 @@ update msg model =
                 Browser.Internal url ->
                     ( Route.route url model, Nav.pushUrl model.cfg.key (Url.toString url) )
 
-                Browser.External href ->
-                    ( model, Nav.load href )
+                Browser.External _ ->
+                    ( model, Cmd.none )
 
         Msg.UrlChanged url ->
             let

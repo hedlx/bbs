@@ -1,6 +1,8 @@
-module Model.Media exposing (Media, decoder, togglePreview)
+module Model.Media exposing (Media, decoder, togglePreview, url, urlPreview)
 
+import Env
 import Json.Decode as Decode
+import Url.Builder
 
 
 type alias Media =
@@ -16,6 +18,26 @@ type alias Media =
 
 togglePreview media =
     { media | isPreview = not media.isPreview }
+
+
+url media =
+    let
+        ext =
+            case media.mime of
+                "image/jpeg" ->
+                    ".jpg"
+
+                "image/png" ->
+                    ".png"
+
+                _ ->
+                    ""
+    in
+    Url.Builder.crossOrigin Env.urlImage [ media.id ++ ext ] []
+
+
+urlPreview media =
+    Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
 
 
 decoder =

@@ -10,7 +10,10 @@ import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Html.Events.Extra
 import Html.Extra exposing (..)
+import Json.Decode as Decode
+import Model.Media
 import Msg
 import Url.Builder
 import View.Time as Time
@@ -61,11 +64,19 @@ btnHead style btnText =
 
 
 viewMedia style threadID postNo media =
-    if media.isPreview then
-        viewMediaPreview style threadID postNo media
+    let
+        image =
+            if media.isPreview then
+                viewMediaPreview style threadID postNo media
 
-    else
-        viewMediaFull style threadID postNo media
+            else
+                viewMediaFull style threadID postNo media
+    in
+    a
+        [ href <| Model.Media.url media
+        , onClick <| Msg.PostMediaClicked threadID postNo media.id
+        ]
+        [ image ]
 
 
 viewMediaPreview style threadID postNo media =
@@ -92,24 +103,18 @@ viewMediaPreview style threadID postNo media =
     in
     img
         (attrsSizes
-            ++ [ onClick <| Msg.PostMediaClicked threadID postNo media.id
-               , style.postMedia
-               , src urlPreview
+            ++ [ style.postMedia
+               , src <| Model.Media.urlPreview media
                ]
         )
         []
 
 
 viewMediaFull style threadID postNo media =
-    let
-        urlFull =
-            Url.Builder.crossOrigin Env.urlImage [ media.id ] []
-    in
     div []
         [ img
-            [ onClick <| Msg.PostMediaClicked threadID postNo media.id
-            , style.postMedia
-            , src urlFull
+            [ style.postMedia
+            , src <| Model.Media.url media
             ]
             []
         ]
