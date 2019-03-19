@@ -33,7 +33,7 @@ url media =
                 _ ->
                     ""
     in
-    Url.Builder.crossOrigin Env.urlImage [ media.id ++ ext ] []
+    Url.Builder.crossOrigin Env.urlImage [ media.id ++ ext ] [ Url.Builder.int "handle" 0 ]
 
 
 urlPreview media =

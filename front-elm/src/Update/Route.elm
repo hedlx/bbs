@@ -5,6 +5,7 @@ import Browser.Navigation as Nav
 import Commands
 import Model exposing (Model)
 import Msg exposing (Msg)
+import Regex
 import Route
 import Url
 
@@ -15,9 +16,13 @@ update msg model =
         Msg.LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( Route.route url model, Nav.pushUrl model.cfg.key (Url.toString url) )
+                    if isShouldHandle url then
+                        ( Route.route url model, Nav.pushUrl model.cfg.key (Url.toString url) )
 
-                Browser.External _ ->
+                    else
+                        ( model, Cmd.none )
+
+                Browser.External href ->
                     ( model, Cmd.none )
 
         Msg.UrlChanged url ->
@@ -29,3 +34,11 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
+
+
+isShouldHandle url =
+    Maybe.map (Regex.contains regexNoHandle) url.query == Just False
+
+
+regexNoHandle =
+    Regex.fromString "&?handle=0&?" |> Maybe.withDefault Regex.never
