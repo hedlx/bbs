@@ -85,34 +85,31 @@ impl Db {
         limit: u32,
     ) -> Vec<ThreadPreview> {
         self.transaction(|| {
-            let threads = sql_query(r"
-                SELECT t.*, op.*,
+            sql_query(r"
+                SELECT t.*,
                        (SELECT COUNT(*) FROM messages AS m WHERE m.thread_id = t.id)
                   FROM threads as t
-                       LEFT JOIN messages AS op  ON t.id = op.thread_id
                  WHERE t.bump > $1
-                   AND op.no = 0
                  ORDER BY (bump, id) ASC
                  LIMIT $2
             ")
             .bind::<Timestamp, _>(NaiveDateTime::from_timestamp(ts as i64, 0))
             .bind::<Integer, _>(limit as i32)
-            .load::<(DbThread, DbMessage, Count)>(&self.0)?
+            .load::<(DbThread, Count)>(&self.0)?
             .into_iter()
-            .map(|(thread, op, total)| {
+            .map(|(thread, total)| {
                 let last = self.get_last(thread.id).unwrap();
                 let omitted = total.count as i32 - last.len() as i32 - 1;
-                ThreadPreview {
+                Ok(ThreadPreview {
                     id: thread.id as u32,
                     subject: thread.subject,
                     bump: thread.bump.timestamp(),
-                    op: msg_from_db(op),
+                    op: self.get_op(thread.id)?,
                     last: last,
                     omitted: omitted,
-                }
+                })
             })
-            .collect();
-            Ok(threads)
+            .collect::<Result<Vec<ThreadPreview>, diesel::result::Error>>()
         })
         .unwrap()
     }
@@ -231,6 +228,28 @@ impl Db {
             &self.0,
         )?;
         Ok(join_messages_files(messages))
+    }
+
+    pub fn get_op(&self, thread_id: i32) -> QueryResult<Message> {
+        let messages = sql_query(r"
+            SELECT m.*,
+                   a.*,
+                   f.sha512, f.type as type_, f.size, f.width, f.height
+              FROM messages AS m
+                   LEFT JOIN attachments AS a
+                          ON msg_no = no
+                         AND msg_thread_id = thread_id
+                   LEFT JOIN files AS f
+                          ON file_sha512 = sha512
+             WHERE thread_id = $1
+               AND no = 0
+             ORDER BY fno
+        ")
+        .bind::<Integer, _>(thread_id)
+        .get_results::<(DbMessage, Option<DbAttachment>, Option<DbFile>)>(
+            &self.0,
+        )?;
+        Ok(join_messages_files(messages).remove(0))
     }
 
     fn get_last(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
