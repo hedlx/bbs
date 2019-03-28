@@ -35,7 +35,7 @@ struct Count {
 impl Db {
     /* NB: public methods must be wrapped in transactions. */
 
-    pub fn new_thread(&self, thr: NewThread) -> Message {
+    pub fn new_thread(&self, thr: NewThread) -> Error {
         let now = Utc::now().naive_utc();
 
         self.transaction(|| {
@@ -48,13 +48,7 @@ impl Db {
                 .returning(super::schema::threads::dsl::id)
                 .get_result(&self.0)?;
 
-            let result = msg_to_db(&thr.msg, now, thread_id, 0);
-
-            insert_into(super::schema::messages::dsl::messages)
-                .values(&result)
-                .execute(&self.0)?;
-
-            Ok(msg_from_db(result))
+            self.insert_message(thr.msg, now, thread_id, 0)
         })
         .unwrap()
     }
@@ -80,28 +74,7 @@ impl Db {
                 None => return Ok(Error::ThrNotFound),
             };
 
-            insert_into(super::schema::messages::dsl::messages)
-                .values(&msg_to_db(&msg, now, thread_id, no))
-                .execute(&self.0)?;
-
-            let res = insert_into(super::schema::attachments::dsl::attachments)
-                .values(
-                    msg.media
-                        .into_iter()
-                        .enumerate()
-                        .map(|(fno, a)| attachment_to_db(a, thread_id, no, fno))
-                        .collect::<Vec<DbAttachment>>(),
-                )
-                .execute(&self.0);
-
-            match res {
-                Err(DieselError::DatabaseError(
-                    DatabaseErrorKind::ForeignKeyViolation,
-                    _,
-                )) => Ok(Error::MsgMediaNotFound),
-                Err(e) => Err(e),
-                Ok(_) => Ok(Error::OK),
-            }
+            self.insert_message(msg, now, thread_id, no)
         })
         .unwrap()
     }
@@ -286,6 +259,37 @@ impl Db {
         let mut messages = join_messages_files(messages);
         messages.reverse();
         Ok(messages)
+    }
+
+    fn insert_message(
+        &self,
+        msg: NewMessage,
+        ts: NaiveDateTime,
+        thread_id: i32,
+        no: i32,
+    ) -> QueryResult<Error> {
+        insert_into(super::schema::messages::dsl::messages)
+            .values(&msg_to_db(&msg, ts, thread_id, no))
+            .execute(&self.0)?;
+
+        let res = insert_into(super::schema::attachments::dsl::attachments)
+            .values(
+                msg.media
+                    .into_iter()
+                    .enumerate()
+                    .map(|(fno, a)| attachment_to_db(a, thread_id, no, fno))
+                    .collect::<Vec<DbAttachment>>(),
+            )
+            .execute(&self.0);
+
+        match res {
+            Err(DieselError::DatabaseError(
+                DatabaseErrorKind::ForeignKeyViolation,
+                _,
+            )) => Ok(Error::MsgMediaNotFound),
+            Err(e) => Err(e),
+            Ok(_) => Ok(Error::OK),
+        }
     }
 
     fn transaction<T, F>(&self, f: F) -> Result<T, diesel::result::Error>
