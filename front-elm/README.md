@@ -1,3 +1,5 @@
+# THIS CODEBASE IS DEPRECATED
+
 # Unnamed Hedlx BBS Reader
 
 This is a Hedlx BBS frontend.
