@@ -1,4 +1,10 @@
-module Update.Extra exposing (andThen, andThenIf, map)
+module Update.Extra exposing
+    ( andThen
+    , andThenIf
+    , compose
+    , map
+    , return
+    )
 
 
 andThen : (a -> ( b, Cmd msg )) -> ( a, Cmd msg ) -> ( b, Cmd msg )
@@ -20,3 +26,13 @@ andThenIf pred updateA ( a, cmdA ) =
 map : (a -> b) -> ( a, Cmd msg ) -> ( b, Cmd msg )
 map =
     Tuple.mapFirst
+
+
+return : a -> ( a, Cmd msg )
+return a =
+    ( a, Cmd.none )
+
+
+compose : (a -> ( b, Cmd msg )) -> (b -> ( c, Cmd msg )) -> a -> ( c, Cmd msg )
+compose f g =
+    andThen g << f
