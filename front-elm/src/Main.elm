@@ -19,6 +19,10 @@ import Update.Extra
 import Url exposing (Url)
 
 
+type alias Flags =
+    Encode.Value
+
+
 main : Program Flags Model Msg
 main =
     Browser.application
@@ -28,6 +32,15 @@ main =
         , subscriptions = \_ -> Sub.none
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
+        }
+
+
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url key =
+    route url
+        { cfg = Config.init url key
+        , alerts = Alert.init
+        , page = Page.NotFound
         }
 
 
@@ -42,6 +55,10 @@ type alias Model =
     }
 
 
+
+-- Update
+
+
 type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url
@@ -49,23 +66,6 @@ type Msg
     | AlertMsg Alert.Msg
     | GotLimits (Result Http.Error Limits)
     | GotTimeZone Zone
-
-
-type alias Flags =
-    Encode.Value
-
-
-init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    route url
-        { cfg = Config.init url key
-        , alerts = Alert.init
-        , page = Page.NotFound
-        }
-
-
-
--- Update
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -133,6 +133,16 @@ updatePage ( newPage, pageCmd, pageAlerts ) model =
     ( { model | page = newPage, alerts = newAlerts }, Cmd.batch [ pageCmdMapped, cmdsAlerts ] )
 
 
+isShouldHandleUrl : Config -> Url -> Bool
+isShouldHandleUrl cfg url =
+    let
+        regexUrlApp =
+            Regex.fromString ("^/?" ++ cfg.urlApp.path)
+                |> Maybe.withDefault Regex.never
+    in
+    Regex.contains regexUrlApp url.path
+
+
 route : Url -> Model -> ( Model, Cmd Msg )
 route url model =
     let
@@ -162,16 +172,6 @@ replacePathWithFragment url =
         | path = Maybe.withDefault "" url.fragment
         , fragment = Just ""
     }
-
-
-isShouldHandleUrl : Config -> Url -> Bool
-isShouldHandleUrl cfg url =
-    let
-        regexUrlApp =
-            Regex.fromString ("^/?" ++ cfg.urlApp.path)
-                |> Maybe.withDefault Regex.never
-    in
-    Regex.contains regexUrlApp url.path
 
 
 

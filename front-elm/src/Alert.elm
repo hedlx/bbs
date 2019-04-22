@@ -130,6 +130,7 @@ viewAlert theme alert =
                 ]
 
 
+stylePopUpStack : Theme -> Attribute msg
 stylePopUpStack theme =
     classes
         [ TC.fixed
@@ -145,6 +146,7 @@ stylePopUpStack theme =
         ]
 
 
+stylePopUp : Attribute msg
 stylePopUp =
     classes
         [ TC.pl3
@@ -159,9 +161,11 @@ stylePopUp =
         ]
 
 
+stylePopUpWarn : Theme -> Attribute msg
 stylePopUpWarn theme =
     classes [ theme.fgPopUpWarn, theme.bgPopUpWarn ]
 
 
+stylePopUpErr : Theme -> Attribute msg
 stylePopUpErr theme =
     classes [ theme.fgPopUpErr, theme.bgPopUpErr ]

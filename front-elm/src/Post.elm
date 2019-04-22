@@ -1,16 +1,16 @@
 module Post exposing
-    ( Post
+    ( EventHandlers
+    , No
+    , Op
+    , Post
     , decoder
     , mapMedia
     , toggleMediaPreview
-    , viewBody
-    , viewButtonHead
-    , viewHeadElement
-    , viewName
-    , viewPostTime
-    , viewTime
+    , view
+    , viewOp
     )
 
+import Config exposing (Config)
 import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -20,6 +20,8 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExt
 import List.Extra
 import Media exposing (Media)
+import Route
+import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
@@ -28,7 +30,7 @@ import Url.Builder
 
 
 type alias Post =
-    { no : Int
+    { no : No
     , name : String
     , trip : String
     , text : String
@@ -37,12 +39,33 @@ type alias Post =
     }
 
 
-mapMedia : String -> (Media -> Media) -> Post -> Post
+type alias Op =
+    { threadID : ThreadID
+    , subject : Maybe String
+    , post : Post
+    }
+
+
+type alias No =
+    Int
+
+
+type alias EventHandlers msg =
+    { onMediaClicked : ThreadID -> No -> Media.ID -> msg
+    , onReplyToClicked : ThreadID -> No -> msg
+    }
+
+
+type alias ThreadID =
+    Int
+
+
+mapMedia : Media.ID -> (Media -> Media) -> Post -> Post
 mapMedia mediaID f post =
     { post | media = List.Extra.updateIf (.id >> (==) mediaID) f post.media }
 
 
-toggleMediaPreview : String -> Post -> Post
+toggleMediaPreview : Media.ID -> Post -> Post
 toggleMediaPreview mediaID =
     mapMedia mediaID Media.togglePreview
 
@@ -56,6 +79,51 @@ decoder =
         (Decode.field "text" (Decode.oneOf [ Decode.string, Decode.null "" ]))
         (Decode.field "ts" Decode.int)
         (Decode.field "media" (Decode.list Media.decoder))
+
+
+view : EventHandlers msg -> Config -> ThreadID -> Post -> Html msg
+view eventHandlers cfg threadID post =
+    let
+        theme =
+            cfg.theme
+
+        style =
+            classes [ T.mb3, T.pa2, T.br1, theme.bgPost ]
+    in
+    div [ style ]
+        [ viewPostHead eventHandlers cfg threadID post
+        , viewBody eventHandlers theme threadID post
+        ]
+
+
+viewPostHead : EventHandlers msg -> Config -> ThreadID -> Post -> Html msg
+viewPostHead eventHandlers { theme, timeZone } threadID post =
+    let
+        style =
+            classes
+                [ T.f6
+                , T.overflow_hidden
+                , T.pa1
+                , theme.fgPostHead
+                , theme.fontMono
+                , theme.bgPost
+                ]
+    in
+    div [ style ]
+        [ viewPostNo eventHandlers theme threadID post
+        , viewName theme post
+        , viewPostTime timeZone post
+        ]
+
+
+viewPostNo : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
+viewPostNo eventHandlers theme threadID post =
+    viewHeadElement
+        [ class theme.fgPostNo
+        , Style.buttonEnabled theme
+        , onClick <| eventHandlers.onReplyToClicked threadID post.no
+        ]
+        [ text ("#" ++ String.fromInt post.no) ]
 
 
 viewName : Theme -> Post -> Html msg
@@ -163,7 +231,8 @@ toMonthName month =
             "12"
 
 
-viewBody toMsg theme threadID post =
+viewBody : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
+viewBody eventHandlers theme threadID post =
     let
         style =
             classes [ T.pa1, T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
@@ -173,15 +242,17 @@ viewBody toMsg theme threadID post =
         , Html.Attributes.style "white-space" "pre-wrap"
         , Html.Attributes.style "word-wrap" "break-word"
         ]
-        [ viewListMedia toMsg threadID post.no post.media
+        [ viewListMedia eventHandlers threadID post.no post.media
         , text post.text
         ]
 
 
+viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
 viewHeadElement attrs =
     div <| [ classes [ T.dib, T.mr2 ] ] ++ attrs
 
 
+viewButtonHead : Theme -> String -> Html msg
 viewButtonHead theme btnText =
     viewHeadElement
         []
@@ -191,16 +262,18 @@ viewButtonHead theme btnText =
         ]
 
 
-viewListMedia toMsg threadID postNo listMedia =
+viewListMedia : EventHandlers msg -> ThreadID -> No -> List Media -> Html msg
+viewListMedia eventHandlers threadID postNo listMedia =
     let
         style =
             classes [ T.fl, T.flex, T.flex_wrap ]
     in
     div [ style ] <|
-        List.map (viewMedia toMsg threadID postNo) listMedia
+        List.map (viewMedia eventHandlers threadID postNo) listMedia
 
 
-viewMedia toMsg threadID postNo media =
+viewMedia : EventHandlers msg -> ThreadID -> No -> Media -> Html msg
+viewMedia eventHandlers threadID postNo media =
     let
         image =
             if media.isPreview then
@@ -211,11 +284,12 @@ viewMedia toMsg threadID postNo media =
     in
     a
         [ href <| Media.url media
-        , onClick <| toMsg.onMediaClicked threadID postNo media.id
+        , onClick <| eventHandlers.onMediaClicked threadID postNo media.id
         ]
         [ image ]
 
 
+viewMediaPreview : Media -> Html msg
 viewMediaPreview media =
     let
         urlPreview =
@@ -247,6 +321,7 @@ viewMediaPreview media =
         []
 
 
+viewMediaFull : Media -> Html msg
 viewMediaFull media =
     div []
         [ img
@@ -257,5 +332,89 @@ viewMediaFull media =
         ]
 
 
+stylePostMedia : Attribute msg
 stylePostMedia =
     classes [ T.br1, T.mr3, T.mt1, T.pointer, T.mw_100 ]
+
+
+
+-- OP-post functions
+
+
+viewOp : EventHandlers msg -> Config -> Op -> Html msg
+viewOp eventHandlers cfg op =
+    let
+        theme =
+            cfg.theme
+
+        style =
+            classes [ T.mb3, T.pa2, T.br1, theme.bgPost ]
+    in
+    div [ style ]
+        [ viewOpHead eventHandlers cfg op
+        , viewBody eventHandlers theme op.threadID op.post
+        ]
+
+
+viewOpHead : EventHandlers msg -> Config -> Op -> Html msg
+viewOpHead eventHandlers { theme, timeZone } { threadID, subject, post } =
+    let
+        style =
+            classes
+                [ T.f6
+                , T.overflow_hidden
+                , T.pa1
+                , theme.fgPostHead
+                , theme.fontMono
+                , theme.bgPost
+                ]
+
+        subjectOrNothing =
+            Maybe.map (viewSubject theme threadID) subject
+                |> Maybe.withDefault nothing
+    in
+    div [ style ]
+        [ viewOpNo theme threadID
+        , subjectOrNothing
+        , viewName { theme | fgPostName = theme.fgOpName } post
+        , viewPostTime timeZone post
+        , viewReply eventHandlers theme threadID
+        , viewShowAll theme threadID
+        ]
+
+
+viewOpNo : Theme -> ThreadID -> Html msg
+viewOpNo theme threadID =
+    viewThreadLink threadID [ viewButtonHead theme (String.fromInt threadID) ]
+
+
+viewReply : EventHandlers msg -> Theme -> ThreadID -> Html msg
+viewReply eventHandlers theme threadID =
+    span
+        [ Style.buttonEnabled theme
+        , onClick <| eventHandlers.onReplyToClicked threadID 0
+        ]
+        [ viewButtonHead theme "Reply" ]
+
+
+viewShowAll : Theme -> ThreadID -> Html msg
+viewShowAll theme threadID =
+    viewThreadLink threadID [ viewButtonHead theme "Show All" ]
+
+
+viewSubject : Theme -> ThreadID -> String -> Html msg
+viewSubject theme threadID subject =
+    let
+        style =
+            classes [ T.f4, theme.fgThreadSubject ]
+    in
+    viewThreadLink threadID <|
+        [ viewHeadElement
+            [ Style.buttonEnabled theme, style ]
+            [ text subject ]
+        ]
+
+
+viewThreadLink : ThreadID -> List (Html msg) -> Html msg
+viewThreadLink threadID =
+    a [ href <| Route.internalLink [ String.fromInt threadID ] ]

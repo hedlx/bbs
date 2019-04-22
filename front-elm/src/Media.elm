@@ -1,4 +1,4 @@
-module Media exposing (Media, decoder, togglePreview, url, urlPreview)
+module Media exposing (ID, Media, decoder, togglePreview, url, urlPreview)
 
 import Env
 import Json.Decode as Decode exposing (Decoder)
@@ -6,7 +6,7 @@ import Url.Builder
 
 
 type alias Media =
-    { id : String
+    { id : ID
     , mime : String
     , orig_name : String
     , size : Int
@@ -14,6 +14,10 @@ type alias Media =
     , height : Int
     , isPreview : Bool
     }
+
+
+type alias ID =
+    String
 
 
 togglePreview : Media -> Media

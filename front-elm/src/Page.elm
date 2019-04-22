@@ -15,6 +15,7 @@ import Route
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as TC
+import Theme exposing (Theme)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, int, oneOf, s, top)
 
@@ -28,6 +29,27 @@ type Page
     | Index Index.State
     | NewThread NewThread.State
     | Thread Thread.State
+
+
+title : Page -> String
+title page =
+    case page of
+        NotFound ->
+            "NotFound"
+
+        NewThread _ ->
+            "New Thread"
+
+        Thread state ->
+            Thread.subject state
+                |> Maybe.withDefault ("Thread #" ++ String.fromInt (Thread.threadID state))
+
+        Index _ ->
+            ""
+
+
+
+-- Update
 
 
 type Msg
@@ -92,27 +114,6 @@ mapPageInit toPage toMsg ( statePage, cmdPage ) =
     ( toPage statePage, Cmd.map toMsg cmdPage )
 
 
-title : Page -> String
-title page =
-    case page of
-        NotFound ->
-            "NotFound"
-
-        NewThread _ ->
-            "New Thread"
-
-        Thread state ->
-            Thread.subject state
-                |> Maybe.withDefault ("Thread #" ++ String.fromInt (Thread.threadID state))
-
-        Index _ ->
-            ""
-
-
-
--- Update
-
-
 update : Config -> Msg -> Page -> ResponseToModel
 update cfg msg page =
     updatePage cfg msg page
@@ -151,7 +152,7 @@ handleResponse cfg currentPage reponse =
             ( currentPage, Cmd.none, [ alert ] )
 
         Response.Redirect path ->
-            ( currentPage, Nav.pushUrl cfg.key ("#/" ++ String.join "/" path), [] )
+            ( currentPage, Nav.pushUrl cfg.key (Route.internalLink path), [] )
 
         Response.ReplyTo tID postNo ->
             let
@@ -160,7 +161,7 @@ handleResponse cfg currentPage reponse =
                         |> Tuple.mapFirst (Thread.replyTo cfg.limits postNo)
 
                 cmdReplaceUrl =
-                    Nav.replaceUrl cfg.key ("#/" ++ String.fromInt tID)
+                    Nav.replaceUrl cfg.key (Route.internalLink [ String.fromInt tID ])
             in
             ( Thread pageThread
             , Cmd.batch [ cmdReplaceUrl, Cmd.map ThreadMsg pageCmd ]
@@ -187,6 +188,7 @@ view cfg page =
         ]
 
 
+viewContent : Config -> Page -> Html Msg
 viewContent cfg page =
     case page of
         Index state ->
@@ -202,6 +204,7 @@ viewContent cfg page =
             viewNotFound
 
 
+viewMenu : Config -> Html Msg
 viewMenu cfg =
     let
         theme =
@@ -223,12 +226,13 @@ viewMenu cfg =
     div [ style ]
         [ btnIndex theme
         , btnNewThread theme
-        , btnDelete theme cfg
+        , btnDelete theme
         , div [ Style.flexFiller ] []
         , btnSettings theme cfg
         ]
 
 
+btnIndex : Theme -> Html Msg
 btnIndex theme =
     a [ href <| Route.internalLink [] ]
         [ div
@@ -241,6 +245,7 @@ btnIndex theme =
         ]
 
 
+btnNewThread : Theme -> Html Msg
 btnNewThread theme =
     a [ href <| Route.internalLink [ "new" ] ]
         [ div
@@ -253,7 +258,8 @@ btnNewThread theme =
         ]
 
 
-btnDelete theme _ =
+btnDelete : Theme -> Html Msg
+btnDelete theme =
     let
         isEnabled =
             False
@@ -272,6 +278,7 @@ btnDelete theme _ =
     div ([ styleButtonMenu, Style.buttonIconic, Style.buttonDisabled theme ] ++ dynamicAttrs) [ Icons.delete ]
 
 
+btnSettings : Theme -> Config -> Html Msg
 btnSettings theme _ =
     div
         [ styleButtonMenu
@@ -282,6 +289,12 @@ btnSettings theme _ =
         [ Icons.settings ]
 
 
+styleButtonMenu : Attribute Msg
+styleButtonMenu =
+    class TC.pa3
+
+
+viewNotFound : Html Msg
 viewNotFound =
     let
         stylePage =
@@ -294,7 +307,3 @@ viewNotFound =
         [ div [ styleNotFound ]
             [ text "Page Not Found" ]
         ]
-
-
-styleButtonMenu =
-    class TC.pa3

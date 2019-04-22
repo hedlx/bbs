@@ -7,16 +7,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
 import Http
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
 import List.Extra exposing (updateIf)
-import Page.Response as Response
-import Post as Post exposing (Post)
-import Post.Op as Op
-import Post.Reply as Reply
+import Media
+import Page.Response as Response exposing (Response)
+import Post exposing (Post)
 import Spinner
 import Style
 import Tachyons.Classes as TC
 import Url.Builder
+
+
+init : ( State, Cmd Msg )
+init =
+    ( Loading, getThreads )
 
 
 
@@ -29,37 +33,36 @@ type State
 
 
 type alias ThreadPreview =
-    { id : Int
+    { id : ThreadID
     , subject : Maybe String
     , op : Post
     , last : List Post
     }
 
 
-type Msg
-    = GotThreads (Result Http.Error State)
-    | MediaClicked Int Int String
-    | ReplyToClicked Int Int
+type alias ThreadID =
+    Int
 
 
-postMsg =
-    { onMediaClicked = MediaClicked
-    , onReplyToClicked = ReplyToClicked
+toOp : ThreadPreview -> Post.Op
+toOp { id, subject, op } =
+    { threadID = id
+    , subject = subject
+    , post = op
     }
 
 
-init =
-    ( Loading, getThreads )
-
-
+mapLast : Post.No -> (Post -> Post) -> ThreadPreview -> ThreadPreview
 mapLast postNo f threadPw =
     { threadPw | last = updateIf (.no >> (==) postNo) f threadPw.last }
 
 
+decoder : Decoder State
 decoder =
     Decode.map (Idle << List.reverse) (Decode.list decoderThreadPreview)
 
 
+decoderThreadPreview : Decoder ThreadPreview
 decoderThreadPreview =
     Decode.map4 ThreadPreview
         (Decode.field "id" Decode.int)
@@ -80,6 +83,13 @@ getThreads =
 -- Update
 
 
+type Msg
+    = GotThreads (Result Http.Error State)
+    | MediaClicked ThreadID Post.No Media.ID
+    | ReplyToClicked ThreadID Post.No
+
+
+update : Config -> Msg -> State -> Response State Msg
 update _ msg state =
     case msg of
         GotThreads (Ok newState) ->
@@ -99,6 +109,13 @@ update _ msg state =
 -- View
 
 
+postEventHandlers : Post.EventHandlers Msg
+postEventHandlers =
+    { onMediaClicked = MediaClicked
+    , onReplyToClicked = ReplyToClicked
+    }
+
+
 view : Config -> State -> Html Msg
 view cfg state =
     case state of
@@ -110,6 +127,7 @@ view cfg state =
             Spinner.view cfg.theme 256
 
 
+toggleMediaPreview : ThreadID -> Post.No -> Media.ID -> State -> State
 toggleMediaPreview tID postNo mediaID state =
     case state of
         Loading ->
@@ -126,6 +144,7 @@ toggleMediaPreview tID postNo mediaID state =
             Idle newThreadPreviews
 
 
+toggleMediaPreviewThread : Post.No -> Media.ID -> ThreadPreview -> ThreadPreview
 toggleMediaPreviewThread postNo mediaID threadPw =
     if postNo == 0 then
         { threadPw | op = Post.toggleMediaPreview mediaID threadPw.op }
@@ -134,17 +153,19 @@ toggleMediaPreviewThread postNo mediaID threadPw =
         mapLast postNo (Post.toggleMediaPreview mediaID) threadPw
 
 
+viewThreadPreview : Config -> ThreadPreview -> Html Msg
 viewThreadPreview cfg threadPw =
     div []
-        [ Op.view postMsg cfg threadPw
+        [ Post.viewOp postEventHandlers cfg (toOp threadPw)
         , viewLast cfg threadPw
         ]
 
 
+viewLast : Config -> ThreadPreview -> Html Msg
 viewLast cfg { id, last } =
     if List.isEmpty last then
         nothing
 
     else
         div [ class TC.pl5 ] <|
-            List.map (Reply.view postMsg cfg id) last
+            List.map (Post.view postEventHandlers cfg id) last

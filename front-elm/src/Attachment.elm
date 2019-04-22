@@ -1,7 +1,10 @@
 module Attachment exposing
     ( Attachment
+    , BackendID
+    , ID
     , Preview
     , encode
+    , fromFile
     , generatePreview
     , updateBackendID
     , updatePreview
@@ -18,15 +21,32 @@ import Url.Builder
 
 
 type alias Attachment =
-    { id : Int
+    { id : ID
     , file : File
     , preview : Maybe Preview
-    , backendID : Maybe String
+    , backendID : Maybe BackendID
     }
+
+
+type alias ID =
+    Int
+
+
+type alias BackendID =
+    String
 
 
 type alias Preview =
     String
+
+
+fromFile : ID -> File -> Attachment
+fromFile id file =
+    { id = id
+    , file = file
+    , preview = Nothing
+    , backendID = Nothing
+    }
 
 
 encode : Attachment -> Maybe Encode.Value
@@ -46,17 +66,17 @@ updatePreview preview attachment =
     { attachment | preview = Just preview }
 
 
-updateBackendID : String -> Attachment -> Attachment
+updateBackendID : BackendID -> Attachment -> Attachment
 updateBackendID backendID attachment =
     { attachment | backendID = Just backendID }
 
 
-generatePreview : (Int -> Preview -> msg) -> Attachment -> Cmd msg
+generatePreview : (ID -> Preview -> msg) -> Attachment -> Cmd msg
 generatePreview toMsg { id, file } =
     Task.perform (toMsg id) (File.toUrl file)
 
 
-upload : (Result Http.Error ( Int, String ) -> msg) -> Attachment -> Cmd msg
+upload : (Result Http.Error ( ID, BackendID ) -> msg) -> Attachment -> Cmd msg
 upload toMsg attachment =
     let
         path =

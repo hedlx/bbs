@@ -1,7 +1,6 @@
 {
     "checks": {
         "ImportAll": false,
-        "NoTopLevelSignature": false,
         "SingleFieldRecord": false
     }
 }

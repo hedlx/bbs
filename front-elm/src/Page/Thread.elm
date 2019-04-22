@@ -5,32 +5,40 @@ module Page.Thread exposing
     , decoder
     , equal
     , init
-    , mapMessages
     , replyTo
     , subject
     , threadID
     , update
+    , updatePost
     , view
     )
 
 import Alert
+import Config exposing (Config)
 import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
 import Html.Lazy
 import Http
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder)
+import Limits exposing (Limits)
 import List.Extra exposing (updateIf)
-import Page.Response as Response
+import Media
+import Page.Response as Response exposing (Response)
 import Post exposing (Post)
-import Post.Reply as Reply
 import PostForm exposing (PostForm)
 import Spinner
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
+import Theme exposing (Theme)
 import Url.Builder
+
+
+init : Config -> ID -> ( State, Cmd Msg )
+init _ tID =
+    ( Loading PostForm.empty tID, getThread tID )
 
 
 
@@ -43,10 +51,14 @@ type State
 
 
 type alias Thread =
-    { id : Int
+    { id : ID
     , subject : Maybe String
     , messages : List Post
     }
+
+
+type alias ID =
+    Int
 
 
 type Msg
@@ -56,14 +68,12 @@ type Msg
     | ReplyToClicked Int Int
 
 
-init _ tID =
-    ( Loading PostForm.init tID, getThread tID )
-
-
+path : ID -> List String
 path tID =
     [ "threads", String.fromInt tID ]
 
 
+subject : State -> Maybe String
 subject state =
     case state of
         Loading _ _ ->
@@ -73,6 +83,7 @@ subject state =
             thread.subject
 
 
+threadID : State -> ID
 threadID state =
     case state of
         Loading _ id ->
@@ -82,6 +93,7 @@ threadID state =
             thread.id
 
 
+replyForm : State -> PostForm
 replyForm state =
     case state of
         Loading form _ ->
@@ -91,10 +103,12 @@ replyForm state =
             form
 
 
-equal threadA threadB =
-    threadID threadA == threadID threadB
+equal : State -> State -> Bool
+equal stateA stateB =
+    threadID stateA == threadID stateB
 
 
+mapReplyForm : (PostForm -> PostForm) -> State -> State
 mapReplyForm f state =
     case state of
         Loading form tID ->
@@ -104,10 +118,12 @@ mapReplyForm f state =
             Idle (f form) thread
 
 
-mapMessages postNo f thread =
+updatePost : Post.No -> (Post -> Post) -> Thread -> Thread
+updatePost postNo f thread =
     { thread | messages = List.Extra.updateIf (.no >> (==) postNo) f thread.messages }
 
 
+replyTo : Limits -> Post.No -> State -> State
 replyTo limits postNo =
     mapReplyForm
         (\form ->
@@ -116,11 +132,12 @@ replyTo limits postNo =
 
             else
                 form
-                    |> PostForm.setText limits (PostForm.text form ++ ">>" ++ String.fromInt postNo)
+                    |> PostForm.appendToText limits (">>" ++ String.fromInt postNo)
                     >> PostForm.autofocus
         )
 
 
+toggleMediaPreview : Post.No -> Media.ID -> State -> State
 toggleMediaPreview postNo mediaID state =
     case state of
         Loading _ _ ->
@@ -134,12 +151,14 @@ toggleMediaPreview postNo mediaID state =
             Idle form { thread | messages = newMessages }
 
 
+decoder : ID -> Decoder Thread
 decoder tID =
     Decode.map2 (Thread tID)
         (Decode.field "subject" (Decode.maybe Decode.string))
         (Decode.field "messages" <| Decode.list Post.decoder)
 
 
+getThread : ID -> Cmd Msg
 getThread tID =
     Http.get
         { url = Url.Builder.crossOrigin Env.urlAPI [ "threads", String.fromInt tID ] []
@@ -147,14 +166,11 @@ getThread tID =
         }
 
 
-focusReplyForm form =
-    Cmd.map PostFormMsg (PostForm.focus form)
-
-
 
 -- Update
 
 
+update : Config -> Msg -> State -> Response State Msg
 update cfg msg state =
     case msg of
         PostFormMsg subMsg ->
@@ -171,7 +187,7 @@ update cfg msg state =
                             Response.Failed alert (Idle newForm thread) Cmd.none
 
                         PostForm.Submitted _ ->
-                            Response.Ok (Idle (PostForm.disable PostForm.init) thread) (getThread (threadID state))
+                            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread (threadID state))
 
         GotThread (Ok thread) ->
             let
@@ -201,14 +217,21 @@ update cfg msg state =
                 Response.ReplyTo tID postNo
 
 
+updatePostForm : ID -> Limits -> PostForm.Msg -> PostForm -> PostForm.Response
 updatePostForm tID =
     PostForm.update (path tID)
+
+
+focusReplyForm : PostForm -> Cmd Msg
+focusReplyForm form =
+    Cmd.map PostFormMsg (PostForm.focus form)
 
 
 
 -- View
 
 
+view : Config -> State -> Html Msg
 view cfg state =
     case state of
         Loading _ _ ->
@@ -218,6 +241,7 @@ view cfg state =
             viewThread cfg form thread
 
 
+viewThread : Config -> PostForm -> Thread -> Html Msg
 viewThread cfg form thread =
     div
         [ -- This id is required to get scrolling manipulations working
@@ -230,6 +254,7 @@ viewThread cfg form thread =
             ++ [ viewReplyForm cfg form ]
 
 
+viewSubject : Theme -> Thread -> Html Msg
 viewSubject theme thread =
     let
         style =
@@ -243,16 +268,19 @@ viewSubject theme thread =
     h1 [ style ] [ text strSubject ]
 
 
-postMsg =
+postEventHandlers : Post.EventHandlers Msg
+postEventHandlers =
     { onMediaClicked = \_ -> MediaClicked
     , onReplyToClicked = ReplyToClicked
     }
 
 
+viewPosts : Config -> Thread -> List (Html Msg)
 viewPosts cfg { id, messages } =
-    List.map (Html.Lazy.lazy4 Reply.view postMsg cfg id) messages
+    List.map (Html.Lazy.lazy4 Post.view postEventHandlers cfg id) messages
 
 
+viewReplyForm : Config -> PostForm -> Html Msg
 viewReplyForm cfg form =
     Html.map PostFormMsg <|
         div [ class T.mt4 ] [ PostForm.view cfg.theme cfg.limits form ]

@@ -1,32 +1,22 @@
 module PostForm exposing
     ( Msg
     , PostForm
-    , ResultUpdate(..)
-    , addFiles
+    , Response(..)
+    , appendToText
     , autofocus
     , disable
     , empty
     , enable
     , focus
-    , init
     , isAutofocus
-    , isEmpty
-    , isEnabled
-    , name
-    , setName
-    , setPass
     , setSubj
-    , setText
-    , setTrip
-    , subj
     , text
-    , trip
     , update
     , view
     )
 
 import Alert exposing (Alert)
-import Attachment
+import Attachment exposing (Attachment)
 import Browser.Dom as Dom
 import Env
 import File exposing (File)
@@ -46,6 +36,7 @@ import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as TC
 import Task
+import Theme exposing (Theme)
 import Url.Builder
 
 
@@ -69,27 +60,194 @@ type alias PostForm_ =
     }
 
 
-type Msg
-    = NoOp
-    | NameChanged String
-    | TripChanged String
-    | PassChanged String
-    | SubjChanged String
-    | TextChanged String
-    | SelectFiles
-    | FilesSelected File (List File)
-    | AttachmentPreviewGenerated Int String
-    | RemoveFile Int
-    | Unfocus String
-    | Submit
-    | FormSubmitted (Result Http.Error ())
-    | FileUploaded (Result Http.Error ( Int, String ))
+empty : PostForm
+empty =
+    PostForm
+        { isEnabled = True
+        , isAutofocus = False
+        , name = ""
+        , trip = ""
+        , pass = ""
+        , subj = Nothing
+        , text = ""
+        , attachments = Attachments.empty
+        }
 
 
-type ResultUpdate
-    = Ok PostForm (Cmd Msg)
-    | Err Alert PostForm
-    | Submitted PostForm
+isEmpty : PostForm -> Bool
+isEmpty (PostForm form) =
+    String.isEmpty form.text
+        && String.isEmpty form.pass
+
+
+isTextBlank : PostForm -> Bool
+isTextBlank (PostForm form) =
+    String.isEmpty (String.trim form.text)
+
+
+isValid : PostForm -> Bool
+isValid postForm =
+    not (isTextBlank postForm)
+        || not (List.isEmpty <| attachments postForm)
+
+
+isEnabled : PostForm -> Bool
+isEnabled (PostForm form) =
+    form.isEnabled
+
+
+isAutofocus : PostForm -> Bool
+isAutofocus (PostForm form) =
+    form.isAutofocus
+
+
+hasAttachments : PostForm -> Bool
+hasAttachments (PostForm form) =
+    not (Attachments.isEmpty form.attachments)
+
+
+name : PostForm -> String
+name (PostForm form) =
+    form.name
+
+
+trip : PostForm -> String
+trip (PostForm form) =
+    form.trip
+
+
+pass : PostForm -> String
+pass (PostForm form) =
+    form.pass
+
+
+subj : PostForm -> Maybe String
+subj (PostForm form) =
+    form.subj
+
+
+text : PostForm -> String
+text (PostForm form) =
+    form.text
+
+
+attachments : PostForm -> List Attachment
+attachments (PostForm form) =
+    Attachments.toList form.attachments
+
+
+notUploadedAttachments : PostForm -> List Attachment
+notUploadedAttachments (PostForm form) =
+    Attachments.toList form.attachments
+        |> List.filter (\rec -> rec.backendID == Nothing)
+
+
+disable : PostForm -> PostForm
+disable (PostForm form) =
+    PostForm { form | isEnabled = False }
+
+
+enable : PostForm -> PostForm
+enable (PostForm form) =
+    PostForm { form | isEnabled = True }
+
+
+autofocus : PostForm -> PostForm
+autofocus (PostForm form) =
+    PostForm { form | isAutofocus = True }
+
+
+setName : Limits -> String -> PostForm -> PostForm
+setName limits newName (PostForm form) =
+    PostForm { form | name = limitString limits.maxLenName <| String.trimLeft newName }
+
+
+setTrip : String -> PostForm -> PostForm
+setTrip newTrip (PostForm form) =
+    PostForm { form | trip = String.trim newTrip }
+
+
+setPass : String -> PostForm -> PostForm
+setPass newPass (PostForm form) =
+    PostForm { form | pass = String.trim newPass }
+
+
+setSubj : Limits -> String -> PostForm -> PostForm
+setSubj limits newSubj (PostForm form) =
+    PostForm { form | subj = Just (limitString limits.maxLenSubj <| String.trimLeft newSubj) }
+
+
+setText : Limits -> String -> PostForm -> PostForm
+setText limits newText (PostForm form) =
+    PostForm { form | text = limitString limits.maxLenText newText }
+
+
+appendToText : Limits -> String -> PostForm -> PostForm
+appendToText limits str (PostForm form) =
+    PostForm { form | text = limitString limits.maxLenText (form.text ++ str) }
+
+
+addFiles : List File -> PostForm -> ( PostForm, Cmd Msg )
+addFiles files (PostForm form) =
+    let
+        ( newAttachments, cmdGeneratePreviews ) =
+            Attachments.add PreviewGenerated files form.attachments
+    in
+    ( PostForm { form | attachments = newAttachments }, cmdGeneratePreviews )
+
+
+setPreview : Attachment.ID -> Attachment.Preview -> PostForm -> PostForm
+setPreview attachID preview (PostForm form) =
+    PostForm
+        { form
+            | attachments =
+                Attachments.updateAttachment attachID
+                    (Attachment.updatePreview preview)
+                    form.attachments
+        }
+
+
+setBackendID : Attachment.ID -> Attachment.BackendID -> PostForm -> PostForm
+setBackendID attachID backendID (PostForm form) =
+    PostForm
+        { form
+            | attachments =
+                Attachments.updateAttachment attachID
+                    (Attachment.updateBackendID backendID)
+                    form.attachments
+        }
+
+
+removeAttachment : Attachment.ID -> PostForm -> PostForm
+removeAttachment attachID (PostForm form) =
+    PostForm { form | attachments = Attachments.remove attachID form.attachments }
+
+
+limitString : Maybe Int -> String -> String
+limitString maybeLimit str =
+    maybeLimit
+        |> Maybe.map (\maxLen -> String.left maxLen str)
+        >> Maybe.withDefault str
+
+
+countChars : PostForm -> Int
+countChars (PostForm form) =
+    String.length <| form.text
+
+
+countWords : PostForm -> Int
+countWords (PostForm form) =
+    let
+        words =
+            String.words (String.trim form.text)
+                |> List.filter isWord
+    in
+    List.length words
+
+
+isWord : String -> Bool
+isWord str =
+    not (String.isEmpty str)
 
 
 focus : PostForm -> Cmd Msg
@@ -106,6 +264,7 @@ submit submitPath postForm =
         }
 
 
+toJson : PostForm -> Encode.Value
 toJson (PostForm form) =
     let
         fixedName =
@@ -130,158 +289,34 @@ toJson (PostForm form) =
             ++ formSubjOrEmpty
 
 
-isEmpty (PostForm form) =
-    String.isEmpty form.text
-        && String.isEmpty form.pass
-
-
-isTextBlank (PostForm form) =
-    String.isEmpty (String.trim form.text)
-
-
-isValid postForm =
-    not (isTextBlank postForm)
-        || not (List.isEmpty <| files postForm)
-
-
-hasAttachments (PostForm form) =
-    not (Attachments.isEmpty form.attachments)
-
-
-empty =
-    PostForm
-        { isEnabled = True
-        , isAutofocus = False
-        , name = ""
-        , trip = ""
-        , pass = ""
-        , subj = Nothing
-        , text = ""
-        , attachments = Attachments.empty
-        }
-
-
-init =
-    empty
-
-
-isEnabled (PostForm form) =
-    form.isEnabled
-
-
-isAutofocus (PostForm form) =
-    form.isAutofocus
-
-
-name (PostForm form) =
-    form.name
-
-
-trip (PostForm form) =
-    form.trip
-
-
-pass (PostForm form) =
-    form.pass
-
-
-subj (PostForm form) =
-    form.subj
-
-
-text (PostForm form) =
-    form.text
-
-
-files (PostForm form) =
-    Attachments.toList form.attachments
-
-
-notUploadedFiles (PostForm form) =
-    Attachments.toList form.attachments
-        |> List.filter (\rec -> rec.backendID == Nothing)
-
-
-disable (PostForm form) =
-    PostForm { form | isEnabled = False }
-
-
-enable (PostForm form) =
-    PostForm { form | isEnabled = True }
-
-
-autofocus (PostForm form) =
-    PostForm { form | isAutofocus = True }
-
-
-setName limits newName (PostForm form) =
-    PostForm { form | name = limitString limits.maxLenName <| String.trimLeft newName }
-
-
-setTrip newTrip (PostForm form) =
-    PostForm { form | trip = String.trim newTrip }
-
-
-setPass newPass (PostForm form) =
-    PostForm { form | pass = String.trim newPass }
-
-
-setSubj limits newSubj (PostForm form) =
-    PostForm { form | subj = Just (limitString limits.maxLenSubj <| String.trimLeft newSubj) }
-
-
-setText limits newText (PostForm form) =
-    PostForm { form | text = limitString limits.maxLenText newText }
-
-
-addFiles filesToAdd (PostForm form) =
-    let
-        ( newAttachments, cmdGeneratePreviews ) =
-            Attachments.add AttachmentPreviewGenerated filesToAdd form.attachments
-    in
-    ( PostForm { form | attachments = newAttachments }, cmdGeneratePreviews )
-
-
-setFilePreview fileID preview (PostForm form) =
-    PostForm { form | attachments = Attachments.map fileID (Attachment.updatePreview preview) form.attachments }
-
-
-setFileBackendID fileID backendID (PostForm form) =
-    PostForm { form | attachments = Attachments.map fileID (Attachment.updateBackendID backendID) form.attachments }
-
-
-removeFile fileID (PostForm form) =
-    PostForm { form | attachments = Attachments.remove fileID form.attachments }
-
-
-limitString maybeLimit str =
-    maybeLimit
-        |> Maybe.map (\maxLen -> String.left maxLen str)
-        >> Maybe.withDefault str
-
-
-countChars (PostForm form) =
-    String.length <| form.text
-
-
-countWords (PostForm form) =
-    let
-        words =
-            String.words (String.trim form.text)
-                |> List.filter isWord
-    in
-    List.length words
-
-
-isWord str =
-    not (String.isEmpty str)
-
-
 
 -- Update
 
 
-update : List String -> Limits -> Msg -> PostForm -> ResultUpdate
+type Msg
+    = NoOp
+    | NameChanged String
+    | TripChanged String
+    | PassChanged String
+    | SubjChanged String
+    | TextChanged String
+    | SelectFiles
+    | FilesSelected File (List File)
+    | PreviewGenerated Int String
+    | RemoveFile Int
+    | Unfocus String
+    | Submit
+    | FormSubmitted (Result Http.Error ())
+    | AttachmentUploaded (Result Http.Error ( Int, String ))
+
+
+type Response
+    = Ok PostForm (Cmd Msg)
+    | Err Alert PostForm
+    | Submitted PostForm
+
+
+update : List String -> Limits -> Msg -> PostForm -> Response
 update submitPath limits msg postForm =
     case msg of
         NoOp ->
@@ -315,27 +350,27 @@ update submitPath limits msg postForm =
             in
             Ok newPostForm cmdGeneratePreviews
 
-        AttachmentPreviewGenerated fileID preview ->
-            Ok (setFilePreview fileID preview postForm) Cmd.none
+        PreviewGenerated attachID preview ->
+            Ok (setPreview attachID preview postForm) Cmd.none
 
-        RemoveFile fileID ->
-            Ok (removeFile fileID postForm) Cmd.none
+        RemoveFile attachID ->
+            Ok (removeAttachment attachID postForm) Cmd.none
 
         Unfocus id ->
             Ok postForm (Dom.blur id |> Task.attempt (\_ -> NoOp))
 
         Submit ->
             let
-                filesUploadCmds =
-                    notUploadedFiles postForm
-                        |> List.map (Attachment.upload FileUploaded)
+                uploadCmds =
+                    notUploadedAttachments postForm
+                        |> List.map (Attachment.upload AttachmentUploaded)
 
                 cmd =
-                    if List.isEmpty filesUploadCmds then
+                    if List.isEmpty uploadCmds then
                         submit submitPath postForm
 
                     else
-                        Cmd.batch filesUploadCmds
+                        Cmd.batch uploadCmds
             in
             Ok (disable postForm) cmd
 
@@ -347,18 +382,18 @@ update submitPath limits msg postForm =
                 Result.Ok () ->
                     Submitted postForm
 
-        FileUploaded result ->
+        AttachmentUploaded result ->
             case result of
                 Result.Err httpError ->
                     Err (Alert.fromHttpError httpError) (enable postForm)
 
-                Result.Ok ( fileID, backendID ) ->
+                Result.Ok ( attachID, backendID ) ->
                     let
                         newPostForm =
-                            setFileBackendID fileID backendID postForm
+                            setBackendID attachID backendID postForm
 
                         cmd =
-                            if List.isEmpty (notUploadedFiles newPostForm) then
+                            if List.isEmpty (notUploadedAttachments newPostForm) then
                                 submit submitPath newPostForm
 
                             else
@@ -371,6 +406,7 @@ update submitPath limits msg postForm =
 -- View
 
 
+view : Theme -> Limits -> PostForm -> Html Msg
 view theme limits form =
     let
         style =
@@ -382,6 +418,7 @@ view theme limits form =
         ]
 
 
+viewMeta : Theme -> Limits -> PostForm -> Html Msg
 viewMeta theme limits form =
     let
         style =
@@ -391,13 +428,14 @@ viewMeta theme limits form =
         viewNameInput theme form
             ++ viewTripInput theme form
             ++ viewPassInput theme form
-            ++ [ buttonCreate theme form
+            ++ [ viewSubmit theme form
                , viewProblems theme form
                , div [ class TC.flex_grow_1 ] []
                ]
             ++ viewInfo limits form
 
 
+viewNameInput : Theme -> PostForm -> List (Html Msg)
 viewNameInput theme form =
     [ formLabel "Name"
     , input
@@ -414,6 +452,7 @@ viewNameInput theme form =
     ]
 
 
+viewTripInput : Theme -> PostForm -> List (Html Msg)
 viewTripInput theme form =
     [ formLabel "Tripcode Secret"
     , input
@@ -430,6 +469,7 @@ viewTripInput theme form =
     ]
 
 
+viewPassInput : Theme -> PostForm -> List (Html Msg)
 viewPassInput theme form =
     [ formLabel "Password"
     , input
@@ -446,6 +486,7 @@ viewPassInput theme form =
     ]
 
 
+viewPostBody : Theme -> PostForm -> Html Msg
 viewPostBody theme form =
     let
         style =
@@ -457,6 +498,7 @@ viewPostBody theme form =
             ++ viewAttachments theme form
 
 
+viewPostSubj : Theme -> PostForm -> List (Html Msg)
 viewPostSubj theme form =
     case subj form of
         Just subjVal ->
@@ -478,14 +520,16 @@ viewPostSubj theme form =
             []
 
 
+viewAttachments : Theme -> PostForm -> List (Html Msg)
 viewAttachments theme form =
     [ formLabel "Attached Images"
     , div [ classes [ TC.flex, TC.justify_center ], styleFormElement ] <|
-        List.map (viewAttachment theme) (files form)
+        List.map (viewAttachment theme) (attachments form)
             ++ [ viewButtonSelectAttachments theme form ]
     ]
 
 
+viewAttachment : Theme -> Attachment -> Html Msg
 viewAttachment theme { id, preview } =
     let
         previewImg base64Img =
@@ -519,10 +563,12 @@ viewAttachment theme { id, preview } =
         |> Maybe.withDefault (viewPreviewLoadingSpinner theme)
 
 
+viewPreviewLoadingSpinner : Theme -> Html Msg
 viewPreviewLoadingSpinner theme =
     div [ styleFormMediaPreview ] [ Spinner.view theme 64 ]
 
 
+viewButtonSelectAttachments : Theme -> PostForm -> Html Msg
 viewButtonSelectAttachments theme form =
     let
         style =
@@ -539,6 +585,7 @@ viewButtonSelectAttachments theme form =
         ]
 
 
+viewPostComment : Theme -> PostForm -> List (Html Msg)
 viewPostComment theme form =
     let
         style =
@@ -559,7 +606,8 @@ viewPostComment theme form =
     ]
 
 
-buttonCreate theme form =
+viewSubmit : Theme -> PostForm -> Html Msg
+viewSubmit theme form =
     let
         disabledAttrs =
             if isValid form && isEnabled form then
@@ -579,6 +627,7 @@ buttonCreate theme form =
         [ Html.text "Post" ]
 
 
+viewProblems : Theme -> PostForm -> Html Msg
 viewProblems theme form =
     let
         textCantBeBlank =
@@ -591,6 +640,7 @@ viewProblems theme form =
     div [ class TC.h3 ] [ textCantBeBlank ]
 
 
+viewInfo : Limits -> PostForm -> List (Html Msg)
 viewInfo limits form =
     let
         strMaxLenText =
@@ -609,33 +659,41 @@ viewInfo limits form =
     ]
 
 
-formLabel str =
-    label [ styleFormElement ] [ Html.text str ]
-
-
+formProblem : Theme -> String -> Html Msg
 formProblem theme str =
     div [ styleFormElement, classes [ theme.fgAlert ] ] [ Html.text str ]
 
 
+formLabel : String -> Html Msg
+formLabel str =
+    label [ styleFormElement ] [ Html.text str ]
+
+
+formInfo : String -> String -> Html Msg
 formInfo strLabel strVal =
     div [ styleFormElement ] [ Html.text <| strLabel ++ ": ", Html.text strVal ]
 
 
-unfocusOnEsc id =
-    Keyboard.Events.on Keyboard.Events.Keydown [ ( Keyboard.Escape, Unfocus id ) ]
-
-
+styleTextInput : Theme -> Attribute Msg
 styleTextInput theme =
     classes [ TC.pa1, TC.br1, TC.b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
 
 
+styleFormElement : Attribute Msg
 styleFormElement =
     classes [ TC.db, TC.mb3, TC.w_100 ]
 
 
+styleFormMediaPreview : Attribute Msg
 styleFormMediaPreview =
     classes [ TC.h4, TC.w4, TC.mr2, TC.relative, TC.hide_child, TC.pointer, TC.overflow_hidden, TC.br1, TC.cover, TC.bg_center ]
 
 
+styleFromButton : Attribute Msg
 styleFromButton =
     classes [ TC.mt3, TC.mb4 ]
+
+
+unfocusOnEsc : String -> Attribute Msg
+unfocusOnEsc elemID =
+    Keyboard.Events.on Keyboard.Events.Keydown [ ( Keyboard.Escape, Unfocus elemID ) ]
