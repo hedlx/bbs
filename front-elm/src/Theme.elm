@@ -1,11 +1,11 @@
-module Theme exposing (Theme, builtIn, empty)
+module Theme exposing (ID, Theme, builtIn, default)
 
 import Dict exposing (Dict)
 import Tachyons.Classes exposing (..)
 
 
 type alias Theme =
-    { id : String
+    { id : ID
     , name : String
     , font : String
     , fontMono : String
@@ -24,6 +24,9 @@ type alias Theme =
     , bgPost : String
     , fgMenu : String
     , bgMenu : String
+    , fgMenuButton : String
+    , fgMenuButtonDisabled : String
+    , fgTextButton : String
     , fgButton : String
     , bgButton : String
     , fgButtonDisabled : String
@@ -35,18 +38,25 @@ type alias Theme =
     , bgPopUpWarn : String
     , fgPopUpErr : String
     , bgPopUpErr : String
+    , fgSettings : String
+    , bgSettings : String
     }
 
 
-builtIn : Dict String Theme
+type alias ID =
+    String
+
+
+builtIn : Dict ID Theme
 builtIn =
     Dict.fromList
-        [ ( empty.id, empty )
+        [ ( themeDark.id, themeDark )
+        , ( themeLight.id, themeLight )
         ]
 
 
-empty : Theme
-empty =
+default : Theme
+default =
     themeDark
 
 
@@ -56,30 +66,85 @@ themeDark =
     , name = "Dark"
     , font = system_sans_serif
     , fontMono = code
-    , fg = light_silver
+    , fg = darkMainFG
     , bg = bg_near_black
     , fgAlert = red
-    , fgSpinner = light_silver
+    , fgSpinner = darkMainFG
     , fgOpName = white
     , fgThreadNo = green
     , fgThreadSubject = pink
-    , fgPostNo = light_silver
-    , fgPost = light_silver
-    , fgPostHead = light_silver
+    , fgPostNo = darkMainFG
+    , fgPost = darkMainFG
+    , fgPostHead = darkMainFG
     , fgPostName = light_blue
     , fgPostTrip = white
     , bgPost = bg_dark_gray
-    , fgMenu = light_silver
+    , fgMenu = darkMainFG
     , bgMenu = bg_black_30
+    , fgMenuButton = white_80
+    , fgMenuButtonDisabled = white_20
+    , fgTextButton = white_80
     , fgButton = white_80
     , bgButton = bg_dark_gray
     , fgButtonDisabled = white_20
     , bgButtonDisabled = bg_near_black
-    , fgInput = light_silver
+    , fgInput = darkMainFG
     , bgInput = bg_black_30
     , bInput = b__white_10
     , fgPopUpWarn = white
     , bgPopUpWarn = bg_orange
     , fgPopUpErr = white
     , bgPopUpErr = bg_red
+    , fgSettings = darkMainFG
+    , bgSettings = bg_black
     }
+
+
+darkMainFG : String
+darkMainFG =
+    light_silver
+
+
+themeLight : Theme
+themeLight =
+    { id = "builtInLight"
+    , name = "Light"
+    , font = system_sans_serif
+    , fontMono = code
+    , fg = lightMainFG
+    , bg = bg_washed_yellow
+    , fgAlert = red
+    , fgSpinner = purple
+    , fgOpName = purple
+    , fgThreadNo = purple
+    , fgThreadSubject = red
+    , fgPostNo = lightMainFG
+    , fgPost = lightMainFG
+    , fgPostHead = lightMainFG
+    , fgPostName = dark_green
+    , fgPostTrip = purple
+    , bgPost = bg_washed_red
+    , fgMenu = lightMainFG
+    , bgMenu = bg_purple
+    , fgMenuButton = white
+    , fgMenuButtonDisabled = white_20
+    , fgTextButton = purple
+    , fgButton = white
+    , bgButton = bg_purple
+    , fgButtonDisabled = b__black_20
+    , bgButtonDisabled = bg_black_20
+    , fgInput = lightMainFG
+    , bgInput = bg_white
+    , bInput = b__black_40
+    , fgPopUpWarn = white
+    , bgPopUpWarn = bg_orange
+    , fgPopUpErr = white
+    , bgPopUpErr = bg_red
+    , fgSettings = white
+    , bgSettings = bg_purple
+    }
+
+
+lightMainFG : String
+lightMainFG =
+    dark_gray

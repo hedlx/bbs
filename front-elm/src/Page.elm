@@ -6,7 +6,6 @@ import Config exposing (Config)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Icons
 import Page.Index as Index
 import Page.NewThread as NewThread
 import Page.Response as Response exposing (Response)
@@ -14,8 +13,7 @@ import Page.Thread as Thread
 import Route
 import Style
 import Tachyons exposing (classes)
-import Tachyons.Classes as TC
-import Theme exposing (Theme)
+import Tachyons.Classes as T
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, int, oneOf, s, top)
 
@@ -29,33 +27,6 @@ type Page
     | Index Index.State
     | NewThread NewThread.State
     | Thread Thread.State
-
-
-title : Page -> String
-title page =
-    case page of
-        NotFound ->
-            "NotFound"
-
-        NewThread _ ->
-            "New Thread"
-
-        Thread state ->
-            Thread.subject state
-                |> Maybe.withDefault ("Thread #" ++ String.fromInt (Thread.threadID state))
-
-        Index _ ->
-            ""
-
-
-
--- Update
-
-
-type Msg
-    = IndexMsg Index.Msg
-    | NewThreadMsg NewThread.Msg
-    | ThreadMsg Thread.Msg
 
 
 type alias PageAndCmd =
@@ -78,23 +49,54 @@ type alias ResponseToModel =
     ( Page, Cmd Msg, List Alert )
 
 
+title : Page -> String
+title page =
+    case page of
+        NotFound ->
+            "NotFound"
+
+        NewThread _ ->
+            "New Thread"
+
+        Thread state ->
+            Thread.subject state
+                |> Maybe.withDefault ("Thread #" ++ String.fromInt (Thread.threadID state))
+
+        Index _ ->
+            ""
+
+
+equal : Page -> Page -> Bool
+equal pageA pageB =
+    case ( pageA, pageB ) of
+        ( Thread threadA, Thread threadB ) ->
+            Thread.threadID threadA == Thread.threadID threadB
+
+        ( Index _, Index _ ) ->
+            True
+
+        ( NewThread _, NewThread _ ) ->
+            True
+
+        ( NotFound, NotFound ) ->
+            True
+
+        _ ->
+            False
+
+
 route : Config -> Page -> Url -> PageAndCmd
 route cfg page url =
     let
-        ( routePage, routeCmd ) =
+        ( pageRoute, cmdRoute ) =
             Parser.parse (urlParser cfg) url
                 |> Maybe.withDefault ( NotFound, Cmd.none )
     in
-    case ( page, routePage ) of
-        ( Thread currentThread, Thread routeThread ) ->
-            if Thread.equal currentThread routeThread then
-                ( page, Cmd.none )
+    if equal page pageRoute then
+        ( page, Cmd.none )
 
-            else
-                ( routePage, routeCmd )
-
-        _ ->
-            ( routePage, routeCmd )
+    else
+        ( pageRoute, cmdRoute )
 
 
 urlParser : Config -> ParserPage
@@ -112,6 +114,16 @@ urlParser cfg =
 mapPageInit : InjPage a -> InjMsg msg -> ( a, Cmd msg ) -> PageAndCmd
 mapPageInit toPage toMsg ( statePage, cmdPage ) =
     ( toPage statePage, Cmd.map toMsg cmdPage )
+
+
+
+-- Update
+
+
+type Msg
+    = IndexMsg Index.Msg
+    | NewThreadMsg NewThread.Msg
+    | ThreadMsg Thread.Msg
 
 
 update : Config -> Msg -> Page -> ResponseToModel
@@ -180,12 +192,9 @@ view cfg page =
             cfg.theme
 
         style =
-            classes [ TC.w_100, TC.min_vh_100, theme.bg, theme.fg, theme.font ]
+            classes [ T.w_100, T.min_vh_100, theme.bg, theme.fg, theme.font ]
     in
-    div [ style ]
-        [ viewMenu cfg
-        , viewContent cfg page
-        ]
+    div [ style ] [ viewContent cfg page ]
 
 
 viewContent : Config -> Page -> Html Msg
@@ -204,104 +213,14 @@ viewContent cfg page =
             viewNotFound
 
 
-viewMenu : Config -> Html Msg
-viewMenu cfg =
-    let
-        theme =
-            cfg.theme
-
-        style =
-            classes
-                [ TC.fixed
-                , TC.pa0
-                , TC.fl
-                , TC.h_100
-                , TC.w3
-                , TC.flex
-                , TC.flex_column
-                , TC.items_center
-                , theme.bgMenu
-                ]
-    in
-    div [ style ]
-        [ btnIndex theme
-        , btnNewThread theme
-        , btnDelete theme
-        , div [ Style.flexFiller ] []
-        , btnSettings theme cfg
-        ]
-
-
-btnIndex : Theme -> Html Msg
-btnIndex theme =
-    a [ href <| Route.internalLink [] ]
-        [ div
-            [ styleButtonMenu
-            , Style.buttonIconic
-            , Style.buttonEnabled theme
-            , Html.Attributes.title "Main Page"
-            ]
-            [ Icons.hedlx ]
-        ]
-
-
-btnNewThread : Theme -> Html Msg
-btnNewThread theme =
-    a [ href <| Route.internalLink [ "new" ] ]
-        [ div
-            [ styleButtonMenu
-            , Style.buttonIconic
-            , Style.buttonEnabled theme
-            , Html.Attributes.title "Start New Thread"
-            ]
-            [ Icons.add ]
-        ]
-
-
-btnDelete : Theme -> Html Msg
-btnDelete theme =
-    let
-        isEnabled =
-            False
-
-        dynamicAttrs =
-            if isEnabled then
-                [ Style.buttonEnabled theme
-                , Html.Attributes.title "Delete"
-                ]
-
-            else
-                [ Style.buttonDisabled theme
-                , Html.Attributes.title "Delete\nYou need to select items before"
-                ]
-    in
-    div ([ styleButtonMenu, Style.buttonIconic, Style.buttonDisabled theme ] ++ dynamicAttrs) [ Icons.delete ]
-
-
-btnSettings : Theme -> Config -> Html Msg
-btnSettings theme _ =
-    div
-        [ styleButtonMenu
-        , Style.buttonIconic
-        , Style.buttonEnabled theme
-        , Html.Attributes.title "Settings"
-        ]
-        [ Icons.settings ]
-
-
-styleButtonMenu : Attribute Msg
-styleButtonMenu =
-    class TC.pa3
-
-
 viewNotFound : Html Msg
 viewNotFound =
     let
         stylePage =
-            classes [ TC.flex, TC.flex_column, TC.justify_center ]
+            classes [ T.flex, T.flex_column, T.justify_center ]
 
         styleNotFound =
-            classes [ TC.f1, TC.tc ]
+            classes [ T.f1, T.tc ]
     in
     h1 [ Style.content, stylePage ]
         [ div [ styleNotFound ]

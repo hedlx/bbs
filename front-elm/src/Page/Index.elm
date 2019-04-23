@@ -14,7 +14,7 @@ import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import Spinner
 import Style
-import Tachyons.Classes as TC
+import Tachyons.Classes as T
 import Url.Builder
 
 
@@ -167,5 +167,5 @@ viewLast cfg { id, last } =
         nothing
 
     else
-        div [ class TC.pl5 ] <|
+        div [ class T.pl5 ] <|
             List.map (Post.view postEventHandlers cfg id) last

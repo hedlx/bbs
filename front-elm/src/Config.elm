@@ -3,7 +3,9 @@ module Config exposing
     , fetch
     , init
     , setLimits
+    , setTheme
     , setTimeZone
+    , toggleSettings
     )
 
 import Browser.Navigation as Nav
@@ -24,6 +26,7 @@ type alias Config =
     , theme : Theme
     , limits : Limits
     , timeZone : Maybe Zone
+    , isSettingsVisible : Bool
     }
 
 
@@ -40,10 +43,16 @@ init url key =
     in
     { key = key
     , urlApp = normalizedUrl
-    , theme = Theme.empty
+    , theme = Theme.default
     , limits = Limits.empty
     , timeZone = Nothing
+    , isSettingsVisible = False
     }
+
+
+setTheme : Theme -> Config -> Config
+setTheme newTheme cfg =
+    { cfg | theme = newTheme }
 
 
 setLimits : Limits -> Config -> Config
@@ -54,6 +63,11 @@ setLimits newLimits cfg =
 setTimeZone : Zone -> Config -> Config
 setTimeZone newZone cfg =
     { cfg | timeZone = Just newZone }
+
+
+toggleSettings : Config -> Config
+toggleSettings cfg =
+    { cfg | isSettingsVisible = not cfg.isSettingsVisible }
 
 
 type alias FetchMessages msg =

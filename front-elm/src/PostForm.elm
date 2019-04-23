@@ -34,7 +34,7 @@ import PostForm.Attachments as Attachments exposing (Attachments)
 import Spinner
 import Style
 import Tachyons exposing (classes)
-import Tachyons.Classes as TC
+import Tachyons.Classes as T
 import Task
 import Theme exposing (Theme)
 import Url.Builder
@@ -410,7 +410,7 @@ view : Theme -> Limits -> PostForm -> Html Msg
 view theme limits form =
     let
         style =
-            classes [ TC.h_100, TC.w_100, TC.flex, TC.flex_row ]
+            classes [ T.h_100, T.w_100, T.flex, T.flex_row ]
     in
     div [ style ]
         [ viewMeta theme limits form
@@ -422,7 +422,7 @@ viewMeta : Theme -> Limits -> PostForm -> Html Msg
 viewMeta theme limits form =
     let
         style =
-            classes [ TC.pl2, TC.pr3, TC.mw5, TC.flex, TC.flex_column ]
+            classes [ T.pl2, T.pr3, T.mw5, T.flex, T.flex_column ]
     in
     div [ style ] <|
         viewNameInput theme form
@@ -430,7 +430,7 @@ viewMeta theme limits form =
             ++ viewPassInput theme form
             ++ [ viewSubmit theme form
                , viewProblems theme form
-               , div [ class TC.flex_grow_1 ] []
+               , div [ class T.flex_grow_1 ] []
                ]
             ++ viewInfo limits form
 
@@ -490,7 +490,7 @@ viewPostBody : Theme -> PostForm -> Html Msg
 viewPostBody theme form =
     let
         style =
-            classes [ TC.pl3, TC.flex_grow_1, TC.flex, TC.flex_column ]
+            classes [ T.pl3, T.flex_grow_1, T.flex, T.flex_column ]
     in
     div [ style ] <|
         viewPostSubj theme form
@@ -523,7 +523,7 @@ viewPostSubj theme form =
 viewAttachments : Theme -> PostForm -> List (Html Msg)
 viewAttachments theme form =
     [ formLabel "Attached Images"
-    , div [ classes [ TC.flex, TC.justify_center ], styleFormElement ] <|
+    , div [ classes [ T.flex, T.justify_center ], styleFormElement ] <|
         List.map (viewAttachment theme) (attachments form)
             ++ [ viewButtonSelectAttachments theme form ]
     ]
@@ -546,17 +546,17 @@ viewAttachment theme { id, preview } =
 
         styleOverlay =
             classes
-                [ TC.absolute
-                , TC.h_100
-                , TC.w_100
-                , TC.pl3
-                , TC.pr3
-                , TC.flex
-                , TC.justify_center
-                , TC.flex_column
-                , TC.tc
-                , TC.child
-                , TC.bg_black_70
+                [ T.absolute
+                , T.h_100
+                , T.w_100
+                , T.pl3
+                , T.pr3
+                , T.flex
+                , T.justify_center
+                , T.flex_column
+                , T.tc
+                , T.child
+                , T.bg_black_70
                 ]
     in
     Maybe.map previewImg preview
@@ -569,18 +569,18 @@ viewPreviewLoadingSpinner theme =
 
 
 viewButtonSelectAttachments : Theme -> PostForm -> Html Msg
-viewButtonSelectAttachments theme form =
+viewButtonSelectAttachments theme _ =
     let
         style =
-            classes [ TC.b__dashed, TC.pa3, TC.tc, TC.br1, TC.bw1, TC.bg_transparent, theme.fgPost, theme.bInput ]
+            classes [ T.b__dashed, T.pa3, T.tc, T.br1, T.bw1, T.bg_transparent, theme.fgPost, theme.bInput ]
     in
     div
         [ style
-        , Style.flexFiller
-        , Style.button theme (isEnabled form)
+        , Style.flexFill
+        , Style.buttonEnabled
         , onClick SelectFiles
         ]
-        [ div [ Tachyons.classes [ TC.h_100, TC.flex, TC.flex_column, TC.justify_center ] ]
+        [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]
             [ div [] [ Html.text "Add Images" ] ]
         ]
 
@@ -589,7 +589,7 @@ viewPostComment : Theme -> PostForm -> List (Html Msg)
 viewPostComment theme form =
     let
         style =
-            classes [ TC.flex_grow_1, TC.pa1, TC.br1, TC.b__solid, TC.bw1, TC.w_100, theme.fgInput, theme.bgInput, theme.bInput ]
+            classes [ T.flex_grow_1, T.pa1, T.br1, T.b__solid, T.bw1, T.w_100, theme.fgInput, theme.bgInput, theme.bInput ]
     in
     [ formLabel "Comment"
     , textarea
@@ -611,10 +611,15 @@ viewSubmit theme form =
     let
         disabledAttrs =
             if isValid form && isEnabled form then
-                [ disabled False, Style.buttonEnabled theme ]
+                [ disabled False
+                , Style.buttonEnabled
+                , classes [ theme.fgButton, theme.bgButton ]
+                ]
 
             else
-                [ disabled True, Style.buttonDisabled theme ]
+                [ disabled True
+                , classes [ theme.fgButtonDisabled, theme.bgButtonDisabled ]
+                ]
     in
     button
         ([ onClick Submit
@@ -637,7 +642,7 @@ viewProblems theme form =
                         && not (hasAttachments form)
                     )
     in
-    div [ class TC.h3 ] [ textCantBeBlank ]
+    div [ class T.h3 ] [ textCantBeBlank ]
 
 
 viewInfo : Limits -> PostForm -> List (Html Msg)
@@ -676,22 +681,22 @@ formInfo strLabel strVal =
 
 styleTextInput : Theme -> Attribute Msg
 styleTextInput theme =
-    classes [ TC.pa1, TC.br1, TC.b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
+    classes [ T.pa1, T.br1, T.b__solid, theme.fgInput, theme.bgInput, theme.bInput ]
 
 
 styleFormElement : Attribute Msg
 styleFormElement =
-    classes [ TC.db, TC.mb3, TC.w_100 ]
+    classes [ T.db, T.mb3, T.w_100 ]
 
 
 styleFormMediaPreview : Attribute Msg
 styleFormMediaPreview =
-    classes [ TC.h4, TC.w4, TC.mr2, TC.relative, TC.hide_child, TC.pointer, TC.overflow_hidden, TC.br1, TC.cover, TC.bg_center ]
+    classes [ T.h4, T.w4, T.mr2, T.relative, T.hide_child, T.pointer, T.overflow_hidden, T.br1, T.cover, T.bg_center ]
 
 
 styleFromButton : Attribute Msg
 styleFromButton =
-    classes [ TC.mt3, TC.mb4 ]
+    classes [ T.mt3, T.mb4 ]
 
 
 unfocusOnEsc : String -> Attribute Msg

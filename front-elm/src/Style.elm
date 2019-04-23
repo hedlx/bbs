@@ -1,11 +1,9 @@
 module Style exposing
-    ( button
-    , buttonDisabled
-    , buttonEnabled
+    ( buttonEnabled
     , buttonIconic
     , content
     , contentNoScroll
-    , flexFiller
+    , flexFill
     , textButton
     )
 
@@ -15,27 +13,13 @@ import Tachyons.Classes exposing (..)
 import Theme exposing (Theme)
 
 
-button : Theme -> Bool -> Attribute msg
-button theme isEnabled =
-    if isEnabled then
-        buttonEnabled theme
-
-    else
-        buttonDisabled theme
+buttonEnabled : Attribute msg
+buttonEnabled =
+    classes [ pointer, dim ]
 
 
-buttonEnabled : Theme -> Attribute msg
-buttonEnabled theme =
-    classes [ pointer, dim, theme.bgButton, theme.fgButton ]
-
-
-buttonDisabled : Theme -> Attribute msg
-buttonDisabled theme =
-    classes [ theme.bgButtonDisabled, theme.fgButtonDisabled ]
-
-
-flexFiller : Attribute msg
-flexFiller =
+flexFill : Attribute msg
+flexFill =
     classes [ flex_grow_1 ]
 
 

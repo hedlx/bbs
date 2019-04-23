@@ -3,7 +3,6 @@ module Page.Thread exposing
     , State
     , Thread
     , decoder
-    , equal
     , init
     , replyTo
     , subject
@@ -101,11 +100,6 @@ replyForm state =
 
         Idle form _ ->
             form
-
-
-equal : State -> State -> Bool
-equal stateA stateB =
-    threadID stateA == threadID stateB
 
 
 mapReplyForm : (PostForm -> PostForm) -> State -> State

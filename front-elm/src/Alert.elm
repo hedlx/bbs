@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Http
 import Style.Animations as Animations
 import Tachyons exposing (classes)
-import Tachyons.Classes as TC
+import Tachyons.Classes as T
 import Theme exposing (Theme)
 import Toasty
 
@@ -133,15 +133,15 @@ viewAlert theme alert =
 stylePopUpStack : Theme -> Attribute msg
 stylePopUpStack theme =
     classes
-        [ TC.fixed
-        , TC.w_30
-        , TC.right_0
-        , TC.ma0
-        , TC.pa3
-        , TC.z_max
-        , TC.br3
-        , TC.fr
-        , TC.list
+        [ T.fixed
+        , T.w_30
+        , T.right_0
+        , T.ma0
+        , T.pa3
+        , T.z_max
+        , T.br3
+        , T.fr
+        , T.list
         , theme.font
         ]
 
@@ -149,14 +149,14 @@ stylePopUpStack theme =
 stylePopUp : Attribute msg
 stylePopUp =
     classes
-        [ TC.pl3
-        , TC.pr3
-        , TC.pt1
-        , TC.pb1
-        , TC.ma2
-        , TC.br1
-        , TC.dim
-        , TC.pointer
+        [ T.pl3
+        , T.pr3
+        , T.pt1
+        , T.pb1
+        , T.ma2
+        , T.br1
+        , T.dim
+        , T.pointer
         , Animations.fadein_r
         ]
 

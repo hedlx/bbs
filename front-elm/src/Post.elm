@@ -120,7 +120,7 @@ viewPostNo : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
 viewPostNo eventHandlers theme threadID post =
     viewHeadElement
         [ class theme.fgPostNo
-        , Style.buttonEnabled theme
+        , Style.buttonEnabled
         , onClick <| eventHandlers.onReplyToClicked threadID post.no
         ]
         [ text ("#" ++ String.fromInt post.no) ]
@@ -256,9 +256,9 @@ viewButtonHead : Theme -> String -> Html msg
 viewButtonHead theme btnText =
     viewHeadElement
         []
-        [ span [ class theme.fgButton ] [ text "[" ]
-        , span [ classes [ T.underline, T.dim, theme.fgButton ] ] [ text btnText ]
-        , span [ class theme.fgButton ] [ text "]" ]
+        [ span [ class theme.fgTextButton ] [ text "[" ]
+        , span [ classes [ T.underline, T.dim, theme.fgTextButton ] ] [ text btnText ]
+        , span [ class theme.fgTextButton ] [ text "]" ]
         ]
 
 
@@ -391,7 +391,7 @@ viewOpNo theme threadID =
 viewReply : EventHandlers msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
     span
-        [ Style.buttonEnabled theme
+        [ Style.buttonEnabled
         , onClick <| eventHandlers.onReplyToClicked threadID 0
         ]
         [ viewButtonHead theme "Reply" ]
@@ -410,7 +410,7 @@ viewSubject theme threadID subject =
     in
     viewThreadLink threadID <|
         [ viewHeadElement
-            [ Style.buttonEnabled theme, style ]
+            [ Style.buttonEnabled, style ]
             [ text subject ]
         ]
 

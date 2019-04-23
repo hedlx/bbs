@@ -1,4 +1,4 @@
-module Style.Animations exposing (css, fadein_r)
+module Style.Animations exposing (css, fadein_l, fadein_r)
 
 import Html exposing (Html, node, text)
 
@@ -11,7 +11,7 @@ css =
             @keyframes fadeInRight {
                 from {
                     opacity: 0;
-                    transform: translateX(50px);
+                    transform: translateX(15px);
                 }
 
                 to {
@@ -21,8 +21,25 @@ css =
             }
 
             .fadeInRight {
-                animation-duration: 0.5s;
+                animation-duration: 0.3s;
                 animation-name: fadeInRight;
+            }
+
+            @keyframes fadeInLeft {
+                from {
+                    opacity: 0;
+                    transform: translateX(-15px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            .fadeInLeft {
+                animation-duration: 0.3s;
+                animation-name: fadeInLeft;
             }
         """ ]
 
@@ -30,3 +47,8 @@ css =
 fadein_r : String
 fadein_r =
     "fadeInRight"
+
+
+fadein_l : String
+fadein_l =
+    "fadeInLeft"
