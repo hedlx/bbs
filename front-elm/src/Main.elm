@@ -15,6 +15,7 @@ import Http
 import Icons
 import Json.Encode as Encode
 import Limits exposing (Limits)
+import LocalStorage
 import Page exposing (Page)
 import Regex
 import Route
@@ -39,18 +40,23 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
         }
 
 
+
+-- Init
+
+
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
+init flags url key =
     route url
-        { cfg = Config.init url key
+        { cfg = Config.init flags url key
         , alerts = Alert.init
         , page = Page.NotFound
+        , isSettingsVisible = False
         }
 
 
@@ -62,6 +68,7 @@ type alias Model =
     { cfg : Config
     , alerts : Alert.State
     , page : Page
+    , isSettingsVisible : Bool
     }
 
 
@@ -78,6 +85,7 @@ type Msg
     | GotTimeZone Zone
     | ToggleSettings
     | ThemeSelected Theme.ID
+    | UserSettingsChanged Encode.Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,15 +135,23 @@ update msg model =
             ( mapConfig (Config.setTimeZone newZone) model, Cmd.none )
 
         ToggleSettings ->
-            ( mapConfig Config.toggleSettings model, Cmd.none )
+            ( { model | isSettingsVisible = not model.isSettingsVisible }, Cmd.none )
 
         ThemeSelected newThemeID ->
             let
                 newTheme =
-                    Dict.get newThemeID Theme.builtIn
-                        |> Maybe.withDefault Theme.default
+                    Theme.selectBuiltIn newThemeID
+
+                newCfg =
+                    Config.setTheme newTheme model.cfg
+
+                cmdSaveUserSettings =
+                    LocalStorage.saveUserSettings (Config.encodeUserSettings newCfg)
             in
-            ( mapConfig (Config.setTheme newTheme) model, Cmd.none )
+            ( { model | cfg = newCfg }, cmdSaveUserSettings )
+
+        UserSettingsChanged newFlags ->
+            ( mapConfig (Config.mergeFlags newFlags) model, Cmd.none )
 
 
 updatePage : ( Page, Cmd Page.Msg, List Alert ) -> Model -> ( Model, Cmd Msg )
@@ -203,11 +219,20 @@ replacePathWithFragment url =
 
 
 
+-- Subscriptions
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    LocalStorage.userSettingsChanged UserSettingsChanged
+
+
+
 -- View
 
 
 view : Model -> Browser.Document Msg
-view { cfg, page, alerts } =
+view { cfg, page, alerts, isSettingsVisible } =
     let
         pageTitle =
             Page.title page
@@ -231,7 +256,7 @@ view { cfg, page, alerts } =
         , Animations.css
         , div [ styleBody ]
             [ viewMenu cfg
-            , viewSettingsDialog cfg
+            , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map AlertMsg (Alert.view cfg.theme alerts)
             , Html.map PageMsg (Page.view cfg page)
             ]
@@ -358,11 +383,10 @@ viewSettingsDialog cfg =
                 , theme.bgSettings
                 ]
     in
-    Html.Extra.viewIf cfg.isSettingsVisible <|
-        div [ styleContainer ]
-            [ div [ style ]
-                [ viewSettingsOption "UI Theme" [ viewSelectTheme theme ] ]
-            ]
+    div [ styleContainer ]
+        [ div [ style ]
+            [ viewSettingsOption "UI Theme" [ viewSelectTheme theme ] ]
+        ]
 
 
 viewSettingsOption : String -> List (Html Msg) -> Html Msg

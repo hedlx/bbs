@@ -1,6 +1,8 @@
-module Theme exposing (ID, Theme, builtIn, default)
+module Theme exposing (ID, Theme, builtIn, decoder, default, encode, selectBuiltIn)
 
 import Dict exposing (Dict)
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Tachyons.Classes exposing (..)
 
 
@@ -49,15 +51,32 @@ type alias ID =
 
 builtIn : Dict ID Theme
 builtIn =
-    Dict.fromList
-        [ ( themeDark.id, themeDark )
-        , ( themeLight.id, themeLight )
-        ]
+    Dict.fromList <|
+        List.map (\theme -> ( theme.id, theme ))
+            [ themeDark
+            , themeLight
+            ]
 
 
 default : Theme
 default =
     themeDark
+
+
+selectBuiltIn : ID -> Theme
+selectBuiltIn themeID =
+    Dict.get themeID builtIn
+        |> Maybe.withDefault default
+
+
+decoder : Decoder Theme
+decoder =
+    Decode.map selectBuiltIn Decode.string
+
+
+encode : Theme -> Encode.Value
+encode theme =
+    Encode.string theme.id
 
 
 themeDark : Theme
@@ -114,7 +133,7 @@ themeLight =
     , fg = lightMainFG
     , bg = bg_washed_yellow
     , fgAlert = red
-    , fgSpinner = purple
+    , fgSpinner = dark_red
     , fgOpName = purple
     , fgThreadNo = purple
     , fgThreadSubject = red

@@ -1,16 +1,19 @@
 module Config exposing
     ( Config
+    , encodeUserSettings
     , fetch
     , init
+    , mergeFlags
     , setLimits
     , setTheme
     , setTimeZone
-    , toggleSettings
     )
 
 import Browser.Navigation as Nav
 import Env
 import Http
+import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
 import Limits exposing (Limits)
 import String.Extra
 import Task
@@ -26,12 +29,11 @@ type alias Config =
     , theme : Theme
     , limits : Limits
     , timeZone : Maybe Zone
-    , isSettingsVisible : Bool
     }
 
 
-init : Url -> Nav.Key -> Config
-init url key =
+init : Encode.Value -> Url -> Nav.Key -> Config
+init flags url key =
     let
         normalizedUrl =
             { url
@@ -46,8 +48,38 @@ init url key =
     , theme = Theme.default
     , limits = Limits.empty
     , timeZone = Nothing
-    , isSettingsVisible = False
     }
+        |> mergeFlags flags
+
+
+mergeFlags : Encode.Value -> Config -> Config
+mergeFlags flags cfg =
+    let
+        userSettings =
+            Decode.decodeValue decoderUserSettings flags
+                |> Result.withDefault defaultUserSettings
+    in
+    { cfg | theme = userSettings.theme }
+
+
+type alias UserSettings =
+    { theme : Theme }
+
+
+defaultUserSettings : UserSettings
+defaultUserSettings =
+    { theme = Theme.default }
+
+
+decoderUserSettings : Decoder UserSettings
+decoderUserSettings =
+    Decode.map UserSettings
+        (Decode.at [ "settings", "theme" ] Theme.decoder)
+
+
+encodeUserSettings : Config -> Encode.Value
+encodeUserSettings cfg =
+    Encode.object [ ( "theme", Theme.encode cfg.theme ) ]
 
 
 setTheme : Theme -> Config -> Config
@@ -63,11 +95,6 @@ setLimits newLimits cfg =
 setTimeZone : Zone -> Config -> Config
 setTimeZone newZone cfg =
     { cfg | timeZone = Just newZone }
-
-
-toggleSettings : Config -> Config
-toggleSettings cfg =
-    { cfg | isSettingsVisible = not cfg.isSettingsVisible }
 
 
 type alias FetchMessages msg =

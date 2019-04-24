@@ -48,7 +48,10 @@ npx elm install elm/json
     npx elm-format <file>
     ```
 
-- Run [elm-analyse](https://github.com/stil4m/elm-analyse) before commit
+- Run [elm-analyse](https://github.com/stil4m/elm-analyse) and clean all messages before commit
+    ```
+    npm run elm-analyse
+    ```
 
 ## Learn ELM
 [Gentle Introduction](https://elmprogramming.com/)
