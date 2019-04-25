@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::path::PathBuf;
-use subprocess::Exec;
+use std::process::Command;
+use std::process::Stdio;
 
 #[derive(Debug)]
 pub struct Info {
@@ -21,6 +22,13 @@ impl Type {
         match self {
             Type::Jpg => "jpg",
             Type::Png => "png",
+        }
+    }
+    pub fn from_ext(s: &str) -> Option<Self> {
+        match s {
+            "jpg" => Some(Type::Jpg),
+            "png" => Some(Type::Png),
+            _ => None,
         }
     }
 }
@@ -59,15 +67,19 @@ fn rest(fname: &PathBuf, dims: (u32, u32), type_: Type) -> Option<Info> {
     })
 }
 
-pub fn make_thumb(fname: &PathBuf) -> Option<PathBuf> {
+pub fn make_thumb(fname: &PathBuf) -> Option<(PathBuf, Type)> {
     let thumb_fname = fname.with_extension("thumb");
-    let im = Exec::cmd("./im/im.sh")
+    let im = Command::new("./im/im.sh")
         .arg(fname)
         .arg(&thumb_fname)
-        .capture()
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .output()
         .ok()?;
-    if !im.success() {
+    if !im.status.success() {
         return None;
     }
-    Some(thumb_fname)
+    let ext = std::str::from_utf8(&im.stdout).ok()?.trim();
+    Some((thumb_fname, Type::from_ext(ext)?))
 }

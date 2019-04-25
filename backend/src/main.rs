@@ -16,7 +16,6 @@ extern crate png;
 extern crate serde;
 extern crate serde_json;
 extern crate sha2;
-extern crate subprocess;
 
 mod data;
 mod db;

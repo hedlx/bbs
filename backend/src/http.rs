@@ -64,7 +64,7 @@ fn api_post_upload(
     if !db.have_file(&hash) {
         let info = image::get_info(&fname)
             .ok_or_else(|| Error::Upload("Cant parse file"))?;
-        let thumb_fname = image::make_thumb(&fname)
+        let (thumb_fname, thumb_type) = image::make_thumb(&fname)
             .ok_or_else(|| Error::Upload("Cant generate_thumb"))?;
 
         std::fs::rename(
@@ -76,7 +76,9 @@ fn api_post_upload(
         .map_err(|_| Error::Upload("Can't rename"))?;
         std::fs::rename(
             thumb_fname,
-            config.thumbs_dir.join(format!("{}.jpg", &hash)),
+            config
+                .thumbs_dir
+                .join(format!("{}.{}", &hash, thumb_type.ext())),
         )
         .map_err(|_| Error::Upload("Can't rename"))?;
         db.add_file(info, &hash);
