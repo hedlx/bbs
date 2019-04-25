@@ -2,6 +2,6 @@
 address = "127.0.0.1"
 tmp_dir = "../run/data/tmp"
 thumbs_dir = "../run/data/t"
-files_dir = "../run/data/f"
+files_dir = "../run/data/i"
 port = 8001
 databases = { db = { url = "postgres://postgres@127.0.0.1:5432" } }

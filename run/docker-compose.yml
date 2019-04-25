@@ -3,7 +3,7 @@ services:
   db:
     image: 'postgres:11.2'
     volumes:
-      - '../db/init:/docker-entrypoint-initdb.d:ro'
+    # - '../db/init:/docker-entrypoint-initdb.d:ro'
       - '../run/db-data:/var/lib/postgresql/data'
     ports: [ '127.0.0.1:5432:5432' ]
     network_mode: 'host'
@@ -11,6 +11,8 @@ services:
     image: 'nginx'
     volumes:
       - '../run/nginx.conf:/etc/nginx/nginx.conf:ro'
+      - '../run/data/i:/srv/i:ro'
+      - '../run/data/t:/srv/t:ro'
       - '../front-elm/static:/srv/elm:ro'
       - '../front/resources/public:/srv/clj:ro'
     ports: [ '127.0.0.1:8000:8000' ]

@@ -23,6 +23,10 @@ stdenv.mkDerivation {
     rust-channel.rust
     rust-channel.rust-src
 
+    imagemagick7
+    pngcrush
+    pngnq
+
     (rustracer.override { rustPlatform = rust-platform; })
 
     postgresql.lib
