@@ -86,6 +86,7 @@ type Msg
     | ToggleSettings
     | ThemeSelected Theme.ID
     | UserSettingsChanged Encode.Value
+    | ResetUserSettings
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -152,6 +153,9 @@ update msg model =
 
         UserSettingsChanged newFlags ->
             ( mapConfig (Config.mergeFlags newFlags) model, Cmd.none )
+
+        ResetUserSettings ->
+            ( mapConfig Config.resetUsertSettings model, LocalStorage.cleanUserSettings () )
 
 
 updatePage : ( Page, Cmd Page.Msg, List Alert ) -> Model -> ( Model, Cmd Msg )
@@ -248,7 +252,7 @@ view { cfg, page, alerts, isSettingsVisible } =
             cfg.theme
 
         styleBody =
-            classes [ theme.fg ]
+            classes [ theme.fg, theme.font ]
     in
     { title = title
     , body =
@@ -284,16 +288,16 @@ viewMenu cfg =
                 ]
     in
     div [ style ]
-        [ btnIndex theme
-        , btnNewThread theme
-        , btnDelete theme
+        [ viewBtnIndex theme
+        , viewBtnNewThread theme
+        , viewBtnDelete theme
         , div [ Style.flexFill ] []
-        , btnSettings theme
+        , viewBtnSettings theme
         ]
 
 
-btnIndex : Theme -> Html Msg
-btnIndex theme =
+viewBtnIndex : Theme -> Html Msg
+viewBtnIndex theme =
     a [ href <| Route.internalLink [] ]
         [ div
             [ styleButtonMenu
@@ -302,12 +306,12 @@ btnIndex theme =
             , Html.Attributes.title "Main Page"
             , class theme.fgMenuButton
             ]
-            [ Icons.hedlx ]
+            [ Icons.hedlx 32 ]
         ]
 
 
-btnNewThread : Theme -> Html Msg
-btnNewThread theme =
+viewBtnNewThread : Theme -> Html Msg
+viewBtnNewThread theme =
     a [ href <| Route.internalLink [ "new" ] ]
         [ div
             [ styleButtonMenu
@@ -316,12 +320,12 @@ btnNewThread theme =
             , Html.Attributes.title "Start New Thread"
             , class theme.fgMenuButton
             ]
-            [ Icons.add ]
+            [ Icons.add 32 ]
         ]
 
 
-btnDelete : Theme -> Html Msg
-btnDelete theme =
+viewBtnDelete : Theme -> Html Msg
+viewBtnDelete theme =
     let
         isEnabled =
             False
@@ -338,11 +342,12 @@ btnDelete theme =
                 , class theme.fgMenuButtonDisabled
                 ]
     in
-    div ([ styleButtonMenu, Style.buttonIconic ] ++ dynamicAttrs) [ Icons.delete ]
+    div ([ styleButtonMenu, Style.buttonIconic ] ++ dynamicAttrs)
+        [ Icons.delete 32 ]
 
 
-btnSettings : Theme -> Html Msg
-btnSettings theme =
+viewBtnSettings : Theme -> Html Msg
+viewBtnSettings theme =
     div
         [ styleButtonMenu
         , Style.buttonIconic
@@ -351,7 +356,7 @@ btnSettings theme =
         , onClick ToggleSettings
         , class theme.fgMenuButton
         ]
-        [ Icons.settings ]
+        [ Icons.settings 32 ]
 
 
 styleButtonMenu : Attribute Msg
@@ -369,15 +374,15 @@ viewSettingsDialog cfg =
             classes
                 [ T.fixed
                 , T.ml5
-                , T.pl3
-                , T.bottom_1
+                , T.pl2
+                , T.pb2
+                , T.bottom_0
                 , Animations.fadein_l
                 ]
 
         style =
             classes
                 [ T.w_100
-                , T.pa3
                 , T.br2
                 , theme.fgSettings
                 , theme.bgSettings
@@ -385,21 +390,91 @@ viewSettingsDialog cfg =
     in
     div [ styleContainer ]
         [ div [ style ]
-            [ viewSettingsOption "UI Theme" [ viewSelectTheme theme ] ]
+            [ viewSettingsHeader theme
+            , viewSettingsOptions theme
+            ]
+        ]
+
+
+viewSettingsHeader : Theme -> Html Msg
+viewSettingsHeader theme =
+    div [ classes [ T.w_100, T.h2, T.pa1 ] ]
+        [ viewButtonCloseSettings theme ]
+
+
+viewButtonCloseSettings : Theme -> Html Msg
+viewButtonCloseSettings _ =
+    div
+        [ class T.fr
+        , onClick ToggleSettings
+        , Style.buttonIconic
+        , Style.buttonEnabled
+        , title "Close"
+        ]
+        [ Icons.close 20 ]
+
+
+viewSettingsOptions : Theme -> Html Msg
+viewSettingsOptions theme =
+    div [ class T.pa3 ]
+        [ viewSettingsOption "UI Theme" [ viewSelectTheme theme ]
+        , viewButtonResetSettings theme
         ]
 
 
 viewSettingsOption : String -> List (Html Msg) -> Html Msg
 viewSettingsOption settingLabel optionBody =
-    div [] (span [ class T.mr3 ] [ text settingLabel ] :: optionBody)
+    div [ class T.mb3 ] (span [ class T.mr3 ] [ text settingLabel ] :: optionBody)
+
+
+viewButtonResetSettings : Theme -> Html Msg
+viewButtonResetSettings theme =
+    let
+        style =
+            classes
+                [ T.w_100
+                , T.tc
+                , T.f6
+                , T.br2
+                , T.pa1
+                , T.outline_0
+                , theme.bInput
+                , theme.fgButton
+                , theme.bgButton
+                ]
+    in
+    button
+        [ style
+        , Style.buttonEnabled
+        , onClick ResetUserSettings
+        , title "Cleans all BBS data from the browser storage"
+        ]
+        [ text "Clean (Reset)" ]
 
 
 viewSelectTheme : Theme -> Html Msg
 viewSelectTheme currentTheme =
-    select [ onChange ThemeSelected ] <|
-        Dict.foldr (addSelectThemeOption currentTheme.id) [] Theme.builtIn
+    let
+        style =
+            classes
+                [ T.br2
+                , T.outline_0
+                , currentTheme.bInput
+                , currentTheme.fgInput
+                , currentTheme.bgInput
+                ]
+    in
+    select [ style, onChange ThemeSelected ] <|
+        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
 
 
-addSelectThemeOption : Theme.ID -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
-addSelectThemeOption seletedID themeID theme options =
-    option [ value themeID, selected (seletedID == themeID) ] [ text theme.name ] :: options
+addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
+addSelectThemeOption currentTheme themeID theme options =
+    option
+        [ Html.Attributes.style "background-color" "#eee"
+        , Html.Attributes.style "color" "#000"
+        , value themeID
+        , selected (currentTheme.id == themeID)
+        ]
+        [ text theme.name ]
+        :: options

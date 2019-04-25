@@ -4,6 +4,7 @@ module Config exposing
     , fetch
     , init
     , mergeFlags
+    , resetUsertSettings
     , setLimits
     , setTheme
     , setTimeZone
@@ -62,6 +63,21 @@ mergeFlags flags cfg =
     { cfg | theme = userSettings.theme }
 
 
+setTheme : Theme -> Config -> Config
+setTheme newTheme cfg =
+    { cfg | theme = newTheme }
+
+
+setLimits : Limits -> Config -> Config
+setLimits newLimits cfg =
+    { cfg | limits = newLimits }
+
+
+setTimeZone : Zone -> Config -> Config
+setTimeZone newZone cfg =
+    { cfg | timeZone = Just newZone }
+
+
 type alias UserSettings =
     { theme : Theme }
 
@@ -82,19 +98,9 @@ encodeUserSettings cfg =
     Encode.object [ ( "theme", Theme.encode cfg.theme ) ]
 
 
-setTheme : Theme -> Config -> Config
-setTheme newTheme cfg =
-    { cfg | theme = newTheme }
-
-
-setLimits : Limits -> Config -> Config
-setLimits newLimits cfg =
-    { cfg | limits = newLimits }
-
-
-setTimeZone : Zone -> Config -> Config
-setTimeZone newZone cfg =
-    { cfg | timeZone = Just newZone }
+resetUsertSettings : Config -> Config
+resetUsertSettings cfg =
+    { cfg | theme = defaultUserSettings.theme }
 
 
 type alias FetchMessages msg =

@@ -22,12 +22,17 @@
       });
 
       app.ports.saveUserSettings.subscribe(function(settings) {
-        localStorage.setItem(storageKey, JSON.stringify({"settings": settings}));
+        var data = {"settings": settings};
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      });
+
+      app.ports.cleanUserSettings.subscribe(function() {
+        localStorage.removeItem(storageKey);
       });
 
       window.addEventListener("storage", function(event) {
         if (event.storageArea === localStorage && event.key === storageKey) {
-          app.ports.userSettingsChanged.send(event.newValue);
+          app.ports.userSettingsChanged.send(JSON.parse(event.newValue));
         }
       }, false);
     </script>

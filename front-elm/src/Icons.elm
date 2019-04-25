@@ -1,4 +1,4 @@
-module Icons exposing (add, delete, hedlx, search, settings, spinner)
+module Icons exposing (add, close, delete, hedlx, reset, search, settings, spinner)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -10,33 +10,42 @@ import Octicons
 options : Octicons.Options
 options =
     Octicons.defaultOptions
-        |> Octicons.size 32
-        >> Octicons.color "currentColor"
+        |> Octicons.color "currentColor"
 
 
-search : Html msg
-search =
-    Octicons.search options
+search : Int -> Html msg
+search size =
+    Octicons.search (Octicons.size size options)
 
 
-settings : Html msg
-settings =
-    Octicons.gear options
+settings : Int -> Html msg
+settings size =
+    Octicons.gear (Octicons.size size options)
 
 
-add : Html msg
-add =
-    Octicons.plus options
+add : Int -> Html msg
+add size =
+    Octicons.plus (Octicons.size size options)
 
 
-delete : Html msg
-delete =
-    Octicons.trashcan options
+delete : Int -> Html msg
+delete size =
+    Octicons.trashcan (Octicons.size size options)
 
 
-hedlx : Html msg
-hedlx =
-    HedlxSvg.icon
+close : Int -> Html msg
+close size =
+    Octicons.x (Octicons.size size options)
+
+
+reset : Int -> Html msg
+reset size =
+    Octicons.sync (Octicons.size size options)
+
+
+hedlx : Int -> Html msg
+hedlx size =
+    HedlxSvg.icon size
 
 
 spinner : Float -> Html msg
