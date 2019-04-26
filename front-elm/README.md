@@ -50,7 +50,7 @@ npx elm install elm/json
 
 - Run [elm-analyse](https://github.com/stil4m/elm-analyse) and clean all messages before commit
     ```
-    npm run elm-analyse
+    npm run analyse
     ```
 
 ## Learn ELM

@@ -31,6 +31,7 @@ type alias Theme =
     , fgTextButton : String
     , fgButton : String
     , bgButton : String
+    , bgButtonHover : String
     , fgButtonDisabled : String
     , bgButtonDisabled : String
     , fgInput : String
@@ -42,6 +43,7 @@ type alias Theme =
     , bgPopUpErr : String
     , fgSettings : String
     , bgSettings : String
+    , shadowSettings : String
     }
 
 
@@ -99,12 +101,13 @@ themeDark =
     , fgPostTrip = white
     , bgPost = bg_dark_gray
     , fgMenu = darkMainFG
-    , bgMenu = bg_black_30
+    , bgMenu = bg_black_50
     , fgMenuButton = white_80
     , fgMenuButtonDisabled = white_20
     , fgTextButton = white_80
     , fgButton = white_80
     , bgButton = bg_dark_gray
+    , bgButtonHover = hover_bg_mid_gray
     , fgButtonDisabled = white_20
     , bgButtonDisabled = bg_near_black
     , fgInput = darkMainFG
@@ -114,8 +117,9 @@ themeDark =
     , bgPopUpWarn = bg_orange
     , fgPopUpErr = white
     , bgPopUpErr = bg_red
-    , fgSettings = darkMainFG
+    , fgSettings = silver
     , bgSettings = bg_black
+    , shadowSettings = shadow_1
     }
 
 
@@ -150,6 +154,7 @@ themeLight =
     , fgTextButton = purple
     , fgButton = white
     , bgButton = bg_red
+    , bgButtonHover = hover_bg_dark_red
     , fgButtonDisabled = b__black_20
     , bgButtonDisabled = bg_black_20
     , fgInput = lightMainFG
@@ -161,6 +166,7 @@ themeLight =
     , bgPopUpErr = bg_red
     , fgSettings = white
     , bgSettings = bg_purple
+    , shadowSettings = shadow_5
     }
 
 

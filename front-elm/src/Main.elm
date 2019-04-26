@@ -56,7 +56,7 @@ init flags url key =
         { cfg = Config.init flags url key
         , alerts = Alert.init
         , page = Page.NotFound
-        , isSettingsVisible = False
+        , isSettingsVisible = True
         }
 
 
@@ -84,9 +84,12 @@ type Msg
     | GotLimits (Result Http.Error Limits)
     | GotTimeZone Zone
     | ToggleSettings
-    | ThemeSelected Theme.ID
-    | UserSettingsChanged Encode.Value
-    | ResetUserSettings
+    | SettingsStorageChanged Encode.Value
+    | SettingsThemeChanged Theme.ID
+    | SettingsNameChanged String
+    | SettingsTripChanged String
+    | SettingsPassChanged String
+    | SettingsReset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -138,24 +141,30 @@ update msg model =
         ToggleSettings ->
             ( { model | isSettingsVisible = not model.isSettingsVisible }, Cmd.none )
 
-        ThemeSelected newThemeID ->
+        SettingsThemeChanged newThemeID ->
             let
                 newTheme =
                     Theme.selectBuiltIn newThemeID
 
                 newCfg =
                     Config.setTheme newTheme model.cfg
-
-                cmdSaveUserSettings =
-                    LocalStorage.saveUserSettings (Config.encodeUserSettings newCfg)
             in
-            ( { model | cfg = newCfg }, cmdSaveUserSettings )
+            ( { model | cfg = newCfg }, saveUserSettings newCfg )
 
-        UserSettingsChanged newFlags ->
+        SettingsStorageChanged newFlags ->
             ( mapConfig (Config.mergeFlags newFlags) model, Cmd.none )
 
-        ResetUserSettings ->
-            ( mapConfig Config.resetUsertSettings model, LocalStorage.cleanUserSettings () )
+        SettingsNameChanged newName ->
+            updateUserSettings (Config.setName newName) model
+
+        SettingsTripChanged newTrip ->
+            updateUserSettings (Config.setTrip newTrip) model
+
+        SettingsPassChanged newPass ->
+            updateUserSettings (Config.setPass newPass) model
+
+        SettingsReset ->
+            ( mapConfig Config.resetUserSettings model, LocalStorage.cleanUserSettings () )
 
 
 updatePage : ( Page, Cmd Page.Msg, List Alert ) -> Model -> ( Model, Cmd Msg )
@@ -179,6 +188,20 @@ updatePage ( newPage, pageCmd, pageAlerts ) model =
 mapConfig : (Config -> Config) -> Model -> Model
 mapConfig f model =
     { model | cfg = f model.cfg }
+
+
+updateUserSettings : (Config -> Config) -> Model -> ( Model, Cmd Msg )
+updateUserSettings f model =
+    let
+        newCfg =
+            f model.cfg
+    in
+    ( { model | cfg = newCfg }, saveUserSettings newCfg )
+
+
+saveUserSettings : Config -> Cmd Msg
+saveUserSettings cfg =
+    LocalStorage.saveUserSettings (Config.encodeUserSettings cfg)
 
 
 isShouldHandleUrl : Config -> Url -> Bool
@@ -210,7 +233,7 @@ route url model =
             )
     in
     replacePathWithFragment url
-        |> Page.route model.cfg model.page
+        |> Page.route model.page
         >> fromPage
 
 
@@ -228,7 +251,7 @@ replacePathWithFragment url =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    LocalStorage.userSettingsChanged UserSettingsChanged
+    LocalStorage.userSettingsChanged SettingsStorageChanged
 
 
 
@@ -287,11 +310,10 @@ viewMenu cfg =
                 , theme.bgMenu
                 ]
     in
-    div [ style ]
+    nav [ style ]
         [ viewBtnIndex theme
         , viewBtnNewThread theme
         , viewBtnDelete theme
-        , div [ Style.flexFill ] []
         , viewBtnSettings theme
         ]
 
@@ -302,9 +324,8 @@ viewBtnIndex theme =
         [ div
             [ styleButtonMenu
             , Style.buttonIconic
-            , Style.buttonEnabled
             , Html.Attributes.title "Main Page"
-            , class theme.fgMenuButton
+            , classes [ T.dim, theme.fgMenuButton ]
             ]
             [ Icons.hedlx 32 ]
         ]
@@ -316,9 +337,8 @@ viewBtnNewThread theme =
         [ div
             [ styleButtonMenu
             , Style.buttonIconic
-            , Style.buttonEnabled
             , Html.Attributes.title "Start New Thread"
-            , class theme.fgMenuButton
+            , classes [ T.dim, theme.fgMenuButton ]
             ]
             [ Icons.add 32 ]
         ]
@@ -332,14 +352,13 @@ viewBtnDelete theme =
 
         dynamicAttrs =
             if isEnabled then
-                [ Style.buttonEnabled
-                , Html.Attributes.title "Delete"
+                [ Html.Attributes.title "Delete"
                 , class theme.fgMenuButton
                 ]
 
             else
                 [ Html.Attributes.title "Delete\nYou need to select items before"
-                , class theme.fgMenuButtonDisabled
+                , classes [ theme.fgMenuButtonDisabled ]
                 ]
     in
     div ([ styleButtonMenu, Style.buttonIconic ] ++ dynamicAttrs)
@@ -349,12 +368,12 @@ viewBtnDelete theme =
 viewBtnSettings : Theme -> Html Msg
 viewBtnSettings theme =
     div
-        [ styleButtonMenu
+        [ classes [ T.bottom_0, T.absolute ]
+        , styleButtonMenu
         , Style.buttonIconic
-        , Style.buttonEnabled
         , Html.Attributes.title "Settings"
         , onClick ToggleSettings
-        , class theme.fgMenuButton
+        , classes [ T.dim, theme.fgMenuButton ]
         ]
         [ Icons.settings 32 ]
 
@@ -377,6 +396,7 @@ viewSettingsDialog cfg =
                 , T.pl2
                 , T.pb2
                 , T.bottom_0
+                , T.z_max
                 , Animations.fadein_l
                 ]
 
@@ -386,12 +406,13 @@ viewSettingsDialog cfg =
                 , T.br2
                 , theme.fgSettings
                 , theme.bgSettings
+                , theme.shadowSettings
                 ]
     in
     div [ styleContainer ]
         [ div [ style ]
             [ viewSettingsHeader theme
-            , viewSettingsOptions theme
+            , viewSettingsOptions theme cfg
             ]
         ]
 
@@ -405,26 +426,90 @@ viewSettingsHeader theme =
 viewButtonCloseSettings : Theme -> Html Msg
 viewButtonCloseSettings _ =
     div
-        [ class T.fr
+        [ classes [ T.fr, T.dim ]
         , onClick ToggleSettings
         , Style.buttonIconic
-        , Style.buttonEnabled
         , title "Close"
         ]
         [ Icons.close 20 ]
 
 
-viewSettingsOptions : Theme -> Html Msg
-viewSettingsOptions theme =
+viewSettingsOptions : Theme -> Config -> Html Msg
+viewSettingsOptions theme cfg =
     div [ class T.pa3 ]
-        [ viewSettingsOption "UI Theme" [ viewSelectTheme theme ]
+        [ viewSettingsOption "Name"
+            [ viewOptionStringInput theme "text" SettingsNameChanged cfg.name Env.defaultName ]
+        , viewSettingsOption "Trip Secret"
+            [ viewOptionStringInput theme "text" SettingsTripChanged cfg.trip "" ]
+        , viewSettingsOption "Password"
+            [ viewOptionStringInput theme "password" SettingsPassChanged cfg.pass "" ]
+        , viewSettingsOption "UI Theme"
+            [ viewSelectTheme theme ]
         , viewButtonResetSettings theme
         ]
 
 
+viewOptionStringInput : Theme -> String -> (String -> Msg) -> String -> String -> Html Msg
+viewOptionStringInput theme inputType toMsg currentValue placegolderValue =
+    let
+        style =
+            classes
+                [ T.f7
+                , T.pa1
+                , T.br1
+                , T.b__solid
+                , theme.fontMono
+                , theme.fgInput
+                , theme.bgInput
+                , theme.bInput
+                ]
+    in
+    input
+        [ type_ inputType
+        , value currentValue
+        , style
+        , onInput toMsg
+        , placeholder placegolderValue
+        ]
+        []
+
+
 viewSettingsOption : String -> List (Html Msg) -> Html Msg
 viewSettingsOption settingLabel optionBody =
-    div [ class T.mb3 ] (span [ class T.mr3 ] [ text settingLabel ] :: optionBody)
+    div [ classes [ T.h2, T.mb2 ] ]
+        [ div [ classes [ T.fl, T.mr3, T.pt1 ] ] [ text settingLabel ]
+        , div [ classes [ T.fr ] ] optionBody
+        ]
+
+
+viewSelectTheme : Theme -> Html Msg
+viewSelectTheme currentTheme =
+    let
+        style =
+            classes
+                [ T.br1
+                , T.pa1
+                , T.f6
+                , T.outline_0
+                , currentTheme.bInput
+                , currentTheme.fgInput
+                , currentTheme.bgInput
+                ]
+    in
+    select [ style, onChange SettingsThemeChanged ] <|
+        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
+
+
+addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
+addSelectThemeOption currentTheme themeID theme options =
+    option
+        [ Html.Attributes.style "background-color" "#eee"
+        , Html.Attributes.style "color" "#000"
+        , value themeID
+        , selected (currentTheme.id == themeID)
+        ]
+        [ text theme.name ]
+        :: options
 
 
 viewButtonResetSettings : Theme -> Html Msg
@@ -445,36 +530,8 @@ viewButtonResetSettings theme =
     in
     button
         [ style
-        , Style.buttonEnabled
-        , onClick ResetUserSettings
-        , title "Cleans all BBS data from the browser storage"
+        , Style.buttonEnabled theme
+        , onClick SettingsReset
+        , title "Resets settings and cleans all BBS data from the browser storage"
         ]
-        [ text "Clean (Reset)" ]
-
-
-viewSelectTheme : Theme -> Html Msg
-viewSelectTheme currentTheme =
-    let
-        style =
-            classes
-                [ T.br2
-                , T.outline_0
-                , currentTheme.bInput
-                , currentTheme.fgInput
-                , currentTheme.bgInput
-                ]
-    in
-    select [ style, onChange ThemeSelected ] <|
-        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
-
-
-addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
-addSelectThemeOption currentTheme themeID theme options =
-    option
-        [ Html.Attributes.style "background-color" "#eee"
-        , Html.Attributes.style "color" "#000"
-        , value themeID
-        , selected (currentTheme.id == themeID)
-        ]
-        [ text theme.name ]
-        :: options
+        [ text "Reset Settings" ]

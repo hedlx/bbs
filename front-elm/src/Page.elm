@@ -37,14 +37,6 @@ type alias ParserPage =
     Parser (PageAndCmd -> PageAndCmd) PageAndCmd
 
 
-type alias InjPage a =
-    a -> Page
-
-
-type alias InjMsg msg =
-    msg -> Msg
-
-
 type alias ResponseToModel =
     ( Page, Cmd Msg, List Alert )
 
@@ -85,11 +77,11 @@ equal pageA pageB =
             False
 
 
-route : Config -> Page -> Url -> PageAndCmd
-route cfg page url =
+route : Page -> Url -> PageAndCmd
+route page url =
     let
         ( pageRoute, cmdRoute ) =
-            Parser.parse (urlParser cfg) url
+            Parser.parse urlParser url
                 |> Maybe.withDefault ( NotFound, Cmd.none )
     in
     if equal page pageRoute then
@@ -99,16 +91,24 @@ route cfg page url =
         ( pageRoute, cmdRoute )
 
 
-urlParser : Config -> ParserPage
-urlParser cfg =
+urlParser : ParserPage
+urlParser =
     oneOf
         [ oneOf [ top, s "threads" ]
             |> Parser.map (mapPageInit Index IndexMsg <| Index.init)
         , oneOf [ s "new", s "threads" </> s "new" ]
-            |> Parser.map (mapPageInit NewThread NewThreadMsg <| NewThread.init cfg)
+            |> Parser.map (mapPageInit NewThread NewThreadMsg <| NewThread.init)
         , oneOf [ int, s "threads" </> int ]
-            |> Parser.map (mapPageInit Thread ThreadMsg << Thread.init cfg)
+            |> Parser.map (mapPageInit Thread ThreadMsg << Thread.init)
         ]
+
+
+type alias InjPage a =
+    a -> Page
+
+
+type alias InjMsg msg =
+    msg -> Msg
 
 
 mapPageInit : InjPage a -> InjMsg msg -> ( a, Cmd msg ) -> PageAndCmd
@@ -169,7 +169,7 @@ handleResponse cfg currentPage reponse =
         Response.ReplyTo tID postNo ->
             let
                 ( pageThread, pageCmd ) =
-                    Thread.init cfg tID
+                    Thread.init tID
                         |> Tuple.mapFirst (Thread.replyTo cfg.limits postNo)
 
                 cmdReplaceUrl =

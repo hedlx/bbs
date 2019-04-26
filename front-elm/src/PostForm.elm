@@ -7,6 +7,7 @@ module PostForm exposing
     , disable
     , empty
     , enable
+    , enableSubj
     , focus
     , isAutofocus
     , setSubj
@@ -18,6 +19,7 @@ module PostForm exposing
 import Alert exposing (Alert)
 import Attachment exposing (Attachment)
 import Browser.Dom as Dom
+import Config exposing (Config)
 import Env
 import File exposing (File)
 import File.Select as Select
@@ -51,33 +53,111 @@ type PostForm
 type alias PostForm_ =
     { isEnabled : Bool
     , isAutofocus : Bool
-    , name : String
-    , trip : String
-    , pass : String
-    , subj : Maybe String
+    , name : Maybe String
+    , trip : Maybe String
+    , pass : Maybe String
+    , subj : Optional String
     , text : String
     , attachments : Attachments
     }
 
 
+type Optional a
+    = Hidden
+    | Visible a
+
+
+optToMaybe : Optional a -> Maybe a
+optToMaybe opt =
+    case opt of
+        Hidden ->
+            Nothing
+
+        Visible a ->
+            Just a
+
+
+mapOpt : (a -> b) -> Optional a -> Optional b
+mapOpt f opt =
+    case opt of
+        Hidden ->
+            Hidden
+
+        Visible a ->
+            Visible (f a)
+
+
 empty : PostForm
 empty =
+    PostForm emptyRaw
+
+
+emptyRaw : PostForm_
+emptyRaw =
+    { isEnabled = True
+    , isAutofocus = False
+    , name = Nothing
+    , trip = Nothing
+    , pass = Nothing
+    , subj = Hidden
+    , text = ""
+    , attachments = Attachments.empty
+    }
+
+
+clean : PostForm -> PostForm
+clean (PostForm form) =
     PostForm
-        { isEnabled = True
-        , isAutofocus = False
-        , name = ""
-        , trip = ""
-        , pass = ""
-        , subj = Nothing
-        , text = ""
-        , attachments = Attachments.empty
+        { emptyRaw
+            | name = Just ""
+            , trip = Just ""
+            , pass = Just ""
+            , subj = mapOpt (\_ -> "") form.subj
         }
 
 
-isEmpty : PostForm -> Bool
-isEmpty (PostForm form) =
+reset : PostForm -> PostForm
+reset (PostForm form) =
+    PostForm
+        { emptyRaw
+            | name = Nothing
+            , trip = Nothing
+            , pass = Nothing
+            , subj = mapOpt (\_ -> "") form.subj
+        }
+
+
+isUserDataEmpty : PostForm -> Bool
+isUserDataEmpty (PostForm form) =
+    form.name
+        == Nothing
+        && form.trip
+        == Nothing
+        && form.pass
+        == Nothing
+
+
+isBlank : PostForm -> Bool
+isBlank (PostForm form) =
     String.isEmpty form.text
-        && String.isEmpty form.pass
+        && isMaybeStrEmpty (optToMaybe form.subj)
+        && isMaybeStrEmpty form.name
+        && isMaybeStrEmpty form.trip
+        && isMaybeStrEmpty form.pass
+        && Attachments.isEmpty form.attachments
+
+
+isMaybeStrEmpty : Maybe String -> Bool
+isMaybeStrEmpty maybeStr =
+    case maybeStr of
+        Nothing ->
+            True
+
+        Just "" ->
+            True
+
+        _ ->
+            False
 
 
 isTextBlank : PostForm -> Bool
@@ -88,7 +168,7 @@ isTextBlank (PostForm form) =
 isValid : PostForm -> Bool
 isValid postForm =
     not (isTextBlank postForm)
-        || not (List.isEmpty <| attachments postForm)
+        || not (Attachments.isEmpty (attachments postForm))
 
 
 isEnabled : PostForm -> Bool
@@ -106,24 +186,24 @@ hasAttachments (PostForm form) =
     not (Attachments.isEmpty form.attachments)
 
 
-name : PostForm -> String
-name (PostForm form) =
-    form.name
+name : Config -> PostForm -> String
+name cfg (PostForm form) =
+    Maybe.withDefault cfg.name form.name
 
 
-trip : PostForm -> String
-trip (PostForm form) =
-    form.trip
+trip : Config -> PostForm -> String
+trip cfg (PostForm form) =
+    Maybe.withDefault cfg.trip form.trip
 
 
-pass : PostForm -> String
-pass (PostForm form) =
-    form.pass
+pass : Config -> PostForm -> String
+pass cfg (PostForm form) =
+    Maybe.withDefault cfg.pass form.pass
 
 
 subj : PostForm -> Maybe String
 subj (PostForm form) =
-    form.subj
+    optToMaybe form.subj
 
 
 text : PostForm -> String
@@ -131,9 +211,9 @@ text (PostForm form) =
     form.text
 
 
-attachments : PostForm -> List Attachment
+attachments : PostForm -> Attachments
 attachments (PostForm form) =
-    Attachments.toList form.attachments
+    form.attachments
 
 
 notUploadedAttachments : PostForm -> List Attachment
@@ -152,6 +232,16 @@ enable (PostForm form) =
     PostForm { form | isEnabled = True }
 
 
+enableSubj : PostForm -> PostForm
+enableSubj (PostForm form) =
+    case form.subj of
+        Hidden ->
+            PostForm { form | subj = Visible "" }
+
+        Visible _ ->
+            PostForm form
+
+
 autofocus : PostForm -> PostForm
 autofocus (PostForm form) =
     PostForm { form | isAutofocus = True }
@@ -159,22 +249,26 @@ autofocus (PostForm form) =
 
 setName : Limits -> String -> PostForm -> PostForm
 setName limits newName (PostForm form) =
-    PostForm { form | name = limitString limits.maxLenName <| String.trimLeft newName }
+    PostForm { form | name = Just << limitString limits.maxLenName <| String.trimLeft newName }
 
 
 setTrip : String -> PostForm -> PostForm
 setTrip newTrip (PostForm form) =
-    PostForm { form | trip = String.trim newTrip }
+    PostForm { form | trip = Just (String.trim newTrip) }
 
 
 setPass : String -> PostForm -> PostForm
 setPass newPass (PostForm form) =
-    PostForm { form | pass = String.trim newPass }
+    PostForm { form | pass = Just (String.trim newPass) }
 
 
 setSubj : Limits -> String -> PostForm -> PostForm
 setSubj limits newSubj (PostForm form) =
-    PostForm { form | subj = Just (limitString limits.maxLenSubj <| String.trimLeft newSubj) }
+    let
+        newSubjTrimmed =
+            limitString limits.maxLenSubj (String.trimLeft newSubj)
+    in
+    PostForm { form | subj = mapOpt (\_ -> newSubjTrimmed) form.subj }
 
 
 setText : Limits -> String -> PostForm -> PostForm
@@ -255,36 +349,39 @@ focus _ =
     Dom.focus "post-form-text" |> Task.attempt (\_ -> NoOp)
 
 
-submit : List String -> PostForm -> Cmd Msg
-submit submitPath postForm =
+submit : List String -> Config -> PostForm -> Cmd Msg
+submit submitPath cfg postForm =
     Http.post
         { url = Url.Builder.crossOrigin Env.urlAPI submitPath []
-        , body = Http.jsonBody (toJson postForm)
+        , body = Http.jsonBody (encode cfg postForm)
         , expect = Http.expectWhatever FormSubmitted
         }
 
 
-toJson : PostForm -> Encode.Value
-toJson (PostForm form) =
+encode : Config -> PostForm -> Encode.Value
+encode cfg postForm =
     let
+        nameForm =
+            name cfg postForm
+
         fixedName =
-            if String.isEmpty (String.trim form.name) then
+            if String.isEmpty nameForm then
                 Env.defaultName
 
             else
-                String.trim form.name
+                nameForm
 
         formSubjOrEmpty =
-            form.subj
+            subj postForm
                 |> Maybe.map (\subjVal -> [ ( "subject", Encode.string subjVal ) ])
                 >> Maybe.withDefault []
     in
     Encode.object <|
         [ ( "name", Encode.string fixedName )
-        , ( "secret", Encode.string form.trip )
-        , ( "password", Encode.string form.pass )
-        , ( "text", Encode.string form.text )
-        , ( "media", Attachments.encode form.attachments )
+        , ( "secret", Encode.string (trip cfg postForm) )
+        , ( "password", Encode.string (pass cfg postForm) )
+        , ( "text", Encode.string (text postForm) )
+        , ( "media", Attachments.encode (attachments postForm) )
         ]
             ++ formSubjOrEmpty
 
@@ -295,6 +392,8 @@ toJson (PostForm form) =
 
 type Msg
     = NoOp
+    | Clean
+    | Reset
     | NameChanged String
     | TripChanged String
     | PassChanged String
@@ -316,14 +415,20 @@ type Response
     | Submitted PostForm
 
 
-update : List String -> Limits -> Msg -> PostForm -> Response
-update submitPath limits msg postForm =
+update : List String -> Config -> Msg -> PostForm -> Response
+update submitPath cfg msg postForm =
     case msg of
         NoOp ->
             Ok postForm Cmd.none
 
+        Clean ->
+            Ok (clean postForm) Cmd.none
+
+        Reset ->
+            Ok (reset postForm) Cmd.none
+
         NameChanged newVal ->
-            Ok (setName limits newVal postForm) Cmd.none
+            Ok (setName cfg.limits newVal postForm) Cmd.none
 
         TripChanged newVal ->
             Ok (setTrip newVal postForm) Cmd.none
@@ -332,10 +437,10 @@ update submitPath limits msg postForm =
             Ok (setPass newVal postForm) Cmd.none
 
         SubjChanged newVal ->
-            Ok (setSubj limits newVal postForm) Cmd.none
+            Ok (setSubj cfg.limits newVal postForm) Cmd.none
 
         TextChanged newVal ->
-            Ok (setText limits newVal postForm) Cmd.none
+            Ok (setText cfg.limits newVal postForm) Cmd.none
 
         SelectFiles ->
             Ok postForm (Select.files Env.fileFormats FilesSelected)
@@ -367,7 +472,7 @@ update submitPath limits msg postForm =
 
                 cmd =
                     if List.isEmpty uploadCmds then
-                        submit submitPath postForm
+                        submit submitPath cfg postForm
 
                     else
                         Cmd.batch uploadCmds
@@ -394,7 +499,7 @@ update submitPath limits msg postForm =
 
                         cmd =
                             if List.isEmpty (notUploadedAttachments newPostForm) then
-                                submit submitPath newPostForm
+                                submit submitPath cfg newPostForm
 
                             else
                                 Cmd.none
@@ -406,61 +511,69 @@ update submitPath limits msg postForm =
 -- View
 
 
-view : Theme -> Limits -> PostForm -> Html Msg
-view theme limits form =
+view : Config -> PostForm -> Html Msg
+view cfg form =
     let
         style =
             classes [ T.h_100, T.w_100, T.flex, T.flex_row ]
     in
     div [ style ]
-        [ viewMeta theme limits form
-        , viewPostBody theme form
+        [ viewMeta cfg form
+        , viewPostBody cfg.theme form
         ]
 
 
-viewMeta : Theme -> Limits -> PostForm -> Html Msg
-viewMeta theme limits form =
+viewMeta : Config -> PostForm -> Html Msg
+viewMeta cfg form =
     let
+        theme =
+            cfg.theme
+
+        limits =
+            cfg.limits
+
         style =
             classes [ T.pl2, T.pr3, T.mw5, T.flex, T.flex_column ]
     in
     div [ style ] <|
-        viewNameInput theme form
-            ++ viewTripInput theme form
-            ++ viewPassInput theme form
-            ++ [ viewSubmit theme form
+        viewNameInput cfg form
+            ++ viewTripInput cfg form
+            ++ viewPassInput cfg form
+            ++ [ viewCleanReset cfg form
+               , viewSubmit theme form
                , viewProblems theme form
                , div [ class T.flex_grow_1 ] []
                ]
             ++ viewInfo limits form
 
 
-viewNameInput : Theme -> PostForm -> List (Html Msg)
-viewNameInput theme form =
+viewNameInput : Config -> PostForm -> List (Html Msg)
+viewNameInput cfg form =
     [ formLabel "Name"
     , input
         [ id "post-form-input"
         , unfocusOnEsc "post-form-input"
         , type_ "text"
-        , value <| name form
-        , styleTextInput theme
+        , value (name cfg form)
+        , styleTextInput cfg.theme
         , styleFormElement
         , onInput NameChanged
-        , placeholder "Anonymous"
+        , placeholder Env.defaultName
+        , disabled << not <| isEnabled form
         ]
         []
     ]
 
 
-viewTripInput : Theme -> PostForm -> List (Html Msg)
-viewTripInput theme form =
+viewTripInput : Config -> PostForm -> List (Html Msg)
+viewTripInput cfg form =
     [ formLabel "Tripcode Secret"
     , input
         [ id "post-form-trip"
         , unfocusOnEsc "post-form-trip"
         , type_ "text"
-        , value <| trip form
-        , styleTextInput theme
+        , value (trip cfg form)
+        , styleTextInput cfg.theme
         , styleFormElement
         , onInput TripChanged
         , disabled << not <| isEnabled form
@@ -469,15 +582,15 @@ viewTripInput theme form =
     ]
 
 
-viewPassInput : Theme -> PostForm -> List (Html Msg)
-viewPassInput theme form =
+viewPassInput : Config -> PostForm -> List (Html Msg)
+viewPassInput cfg form =
     [ formLabel "Password"
     , input
         [ id "post-form-pass"
         , unfocusOnEsc "post-form-pass"
         , type_ "password"
-        , value <| pass form
-        , styleTextInput theme
+        , value (pass cfg form)
+        , styleTextInput cfg.theme
         , styleFormElement
         , onInput PassChanged
         , disabled << not <| isEnabled form
@@ -524,7 +637,7 @@ viewAttachments : Theme -> PostForm -> List (Html Msg)
 viewAttachments theme form =
     [ formLabel "Attached Images"
     , div [ classes [ T.flex, T.justify_center ], styleFormElement ] <|
-        List.map (viewAttachment theme) (attachments form)
+        List.map (viewAttachment theme) (Attachments.toList (attachments form))
             ++ [ viewButtonSelectAttachments theme form ]
     ]
 
@@ -577,7 +690,7 @@ viewButtonSelectAttachments theme _ =
     div
         [ style
         , Style.flexFill
-        , Style.buttonEnabled
+        , Style.buttonEnabled theme
         , onClick SelectFiles
         ]
         [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]
@@ -606,13 +719,55 @@ viewPostComment theme form =
     ]
 
 
+viewCleanReset : Config -> PostForm -> Html Msg
+viewCleanReset cfg form =
+    let
+        theme =
+            cfg.theme
+
+        isMetaExists =
+            not (String.isEmpty cfg.name && String.isEmpty cfg.trip && String.isEmpty cfg.pass)
+
+        isResetVisible =
+            isMetaExists && (not (isUserDataEmpty form) || not (isBlank form))
+    in
+    if isResetVisible then
+        button
+            ([ onClick Reset
+             , title "Reset all fields"
+             ]
+                ++ buttonAttrs theme True
+            )
+            [ Html.text "Reset" ]
+
+    else
+        button
+            ([ onClick Clean
+             , title "Clean all fields"
+             ]
+                ++ buttonAttrs theme (not (isBlank form) || isMetaExists)
+            )
+            [ Html.text "Clean" ]
+
+
 viewSubmit : Theme -> PostForm -> Html Msg
 viewSubmit theme form =
     let
-        disabledAttrs =
-            if isValid form && isEnabled form then
+        isBtnEnabled =
+            isEnabled form && isValid form
+    in
+    button
+        (onClick Submit :: buttonAttrs theme isBtnEnabled)
+        [ Html.text "Post" ]
+
+
+buttonAttrs : Theme -> Bool -> List (Attribute Msg)
+buttonAttrs theme isBtnEnabled =
+    let
+        dynamicAttrs =
+            if isBtnEnabled then
                 [ disabled False
-                , Style.buttonEnabled
+                , Style.buttonEnabled theme
                 , classes [ theme.fgButton, theme.bgButton ]
                 ]
 
@@ -621,15 +776,11 @@ viewSubmit theme form =
                 , classes [ theme.fgButtonDisabled, theme.bgButtonDisabled ]
                 ]
     in
-    button
-        ([ onClick Submit
-         , Style.textButton theme
-         , styleFromButton
-         , styleFormElement
-         ]
-            ++ disabledAttrs
-        )
-        [ Html.text "Post" ]
+    [ Style.textButton theme
+    , styleFromButton
+    , styleFormElement
+    ]
+        ++ dynamicAttrs
 
 
 viewProblems : Theme -> PostForm -> Html Msg
@@ -642,7 +793,7 @@ viewProblems theme form =
                         && not (hasAttachments form)
                     )
     in
-    div [ class T.h3 ] [ textCantBeBlank ]
+    div [ classes [ T.h3, T.mt2 ] ] [ textCantBeBlank ]
 
 
 viewInfo : Limits -> PostForm -> List (Html Msg)
@@ -696,7 +847,7 @@ styleFormMediaPreview =
 
 styleFromButton : Attribute Msg
 styleFromButton =
-    classes [ T.mt3, T.mb4 ]
+    classes [ T.mt3 ]
 
 
 unfocusOnEsc : String -> Attribute Msg

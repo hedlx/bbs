@@ -4,16 +4,20 @@ module Config exposing
     , fetch
     , init
     , mergeFlags
-    , resetUsertSettings
+    , resetUserSettings
     , setLimits
+    , setName
+    , setPass
     , setTheme
     , setTimeZone
+    , setTrip
     )
 
 import Browser.Navigation as Nav
 import Env
 import Http
 import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra as DecodeExt
 import Json.Encode as Encode
 import Limits exposing (Limits)
 import String.Extra
@@ -28,6 +32,9 @@ type alias Config =
     { key : Nav.Key
     , urlApp : Url
     , theme : Theme
+    , name : String
+    , trip : String
+    , pass : String
     , limits : Limits
     , timeZone : Maybe Zone
     }
@@ -47,6 +54,9 @@ init flags url key =
     { key = key
     , urlApp = normalizedUrl
     , theme = Theme.default
+    , name = ""
+    , trip = ""
+    , pass = ""
     , limits = Limits.empty
     , timeZone = Nothing
     }
@@ -60,12 +70,32 @@ mergeFlags flags cfg =
             Decode.decodeValue decoderUserSettings flags
                 |> Result.withDefault defaultUserSettings
     in
-    { cfg | theme = userSettings.theme }
+    { cfg
+        | name = userSettings.name
+        , trip = userSettings.trip
+        , pass = userSettings.pass
+        , theme = userSettings.theme
+    }
 
 
 setTheme : Theme -> Config -> Config
 setTheme newTheme cfg =
     { cfg | theme = newTheme }
+
+
+setName : String -> Config -> Config
+setName newName cfg =
+    { cfg | name = newName }
+
+
+setTrip : String -> Config -> Config
+setTrip newTrip cfg =
+    { cfg | trip = newTrip }
+
+
+setPass : String -> Config -> Config
+setPass newPass cfg =
+    { cfg | pass = newPass }
 
 
 setLimits : Limits -> Config -> Config
@@ -79,28 +109,57 @@ setTimeZone newZone cfg =
 
 
 type alias UserSettings =
-    { theme : Theme }
+    { name : String
+    , trip : String
+    , pass : String
+    , theme : Theme
+    }
 
 
 defaultUserSettings : UserSettings
 defaultUserSettings =
-    { theme = Theme.default }
+    { name = ""
+    , trip = ""
+    , pass = ""
+    , theme = Theme.default
+    }
 
 
 decoderUserSettings : Decoder UserSettings
 decoderUserSettings =
-    Decode.map UserSettings
-        (Decode.at [ "settings", "theme" ] Theme.decoder)
+    Decode.map4 UserSettings
+        (DecodeExt.withDefault defaultUserSettings.name <|
+            Decode.at [ "settings", "name" ] Decode.string
+        )
+        (DecodeExt.withDefault defaultUserSettings.trip <|
+            Decode.at [ "settings", "trip" ] Decode.string
+        )
+        (DecodeExt.withDefault defaultUserSettings.pass <|
+            Decode.at [ "settings", "pass" ] Decode.string
+        )
+        (DecodeExt.withDefault defaultUserSettings.theme <|
+            Decode.at [ "settings", "theme" ] Theme.decoder
+        )
 
 
 encodeUserSettings : Config -> Encode.Value
 encodeUserSettings cfg =
-    Encode.object [ ( "theme", Theme.encode cfg.theme ) ]
+    Encode.object
+        [ ( "name", Encode.string cfg.name )
+        , ( "trip", Encode.string cfg.trip )
+        , ( "pass", Encode.string cfg.pass )
+        , ( "theme", Theme.encode cfg.theme )
+        ]
 
 
-resetUsertSettings : Config -> Config
-resetUsertSettings cfg =
-    { cfg | theme = defaultUserSettings.theme }
+resetUserSettings : Config -> Config
+resetUserSettings cfg =
+    { cfg
+        | name = defaultUserSettings.name
+        , trip = defaultUserSettings.trip
+        , pass = defaultUserSettings.pass
+        , theme = defaultUserSettings.theme
+    }
 
 
 type alias FetchMessages msg =

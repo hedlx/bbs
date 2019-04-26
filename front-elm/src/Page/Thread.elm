@@ -35,8 +35,8 @@ import Theme exposing (Theme)
 import Url.Builder
 
 
-init : Config -> ID -> ( State, Cmd Msg )
-init _ tID =
+init : ID -> ( State, Cmd Msg )
+init tID =
     ( Loading PostForm.empty tID, getThread tID )
 
 
@@ -173,7 +173,7 @@ update cfg msg state =
                     Response.Ok state Cmd.none
 
                 Idle form thread ->
-                    case updatePostForm (threadID state) cfg.limits subMsg form of
+                    case updatePostForm (threadID state) cfg subMsg form of
                         PostForm.Ok newForm newCmd ->
                             Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd)
 
@@ -211,7 +211,7 @@ update cfg msg state =
                 Response.ReplyTo tID postNo
 
 
-updatePostForm : ID -> Limits -> PostForm.Msg -> PostForm -> PostForm.Response
+updatePostForm : ID -> Config -> PostForm.Msg -> PostForm -> PostForm.Response
 updatePostForm tID =
     PostForm.update (path tID)
 
@@ -277,4 +277,4 @@ viewPosts cfg { id, messages } =
 viewReplyForm : Config -> PostForm -> Html Msg
 viewReplyForm cfg form =
     Html.map PostFormMsg <|
-        div [ class T.mt4 ] [ PostForm.view cfg.theme cfg.limits form ]
+        div [ class T.mt4 ] [ PostForm.view cfg form ]

@@ -13,9 +13,9 @@ import Tachyons.Classes exposing (..)
 import Theme exposing (Theme)
 
 
-buttonEnabled : Attribute msg
-buttonEnabled =
-    classes [ pointer, dim ]
+buttonEnabled : Theme -> Attribute msg
+buttonEnabled theme =
+    classes [ pointer, bg_animate, theme.bgButtonHover ]
 
 
 flexFill : Attribute msg
@@ -25,7 +25,7 @@ flexFill =
 
 buttonIconic : Attribute msg
 buttonIconic =
-    classes [ bg_transparent, b__none, outline_0 ]
+    classes [ bg_transparent, b__none, outline_0, pointer ]
 
 
 content : Attribute msg

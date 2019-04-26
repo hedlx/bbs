@@ -21,7 +21,6 @@ import Json.Decode.Extra as DecodeExt
 import List.Extra
 import Media exposing (Media)
 import Route
-import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
@@ -74,7 +73,7 @@ decoder : Decoder Post
 decoder =
     Decode.map6 Post
         (Decode.field "no" Decode.int)
-        (DecodeExt.withDefault "Anonymous" <| Decode.field "name" Decode.string)
+        (DecodeExt.withDefault Env.defaultName <| Decode.field "name" Decode.string)
         (DecodeExt.withDefault "" <| Decode.field "trip" Decode.string)
         (Decode.field "text" (Decode.oneOf [ Decode.string, Decode.null "" ]))
         (Decode.field "ts" Decode.int)
@@ -119,8 +118,7 @@ viewPostHead eventHandlers { theme, timeZone } threadID post =
 viewPostNo : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
 viewPostNo eventHandlers theme threadID post =
     viewHeadElement
-        [ class theme.fgPostNo
-        , Style.buttonEnabled
+        [ classes [ T.link, T.pointer, theme.fgPostNo ]
         , onClick <| eventHandlers.onReplyToClicked threadID post.no
         ]
         [ text ("#" ++ String.fromInt post.no) ]
@@ -391,7 +389,7 @@ viewOpNo theme threadID =
 viewReply : EventHandlers msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
     span
-        [ Style.buttonEnabled
+        [ classes [ T.link, T.pointer ]
         , onClick <| eventHandlers.onReplyToClicked threadID 0
         ]
         [ viewButtonHead theme "Reply" ]
@@ -406,11 +404,11 @@ viewSubject : Theme -> ThreadID -> String -> Html msg
 viewSubject theme threadID subject =
     let
         style =
-            classes [ T.f4, theme.fgThreadSubject ]
+            classes [ T.f4, T.link, T.pointer, theme.fgThreadSubject ]
     in
     viewThreadLink threadID <|
         [ viewHeadElement
-            [ Style.buttonEnabled, style ]
+            [ style ]
             [ text subject ]
         ]
 
