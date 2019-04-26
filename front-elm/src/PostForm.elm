@@ -685,12 +685,22 @@ viewButtonSelectAttachments : Theme -> PostForm -> Html Msg
 viewButtonSelectAttachments theme _ =
     let
         style =
-            classes [ T.b__dashed, T.pa3, T.tc, T.br1, T.bw1, T.bg_transparent, theme.fgPost, theme.bInput ]
+            classes
+                [ T.b__dashed
+                , T.pa3
+                , T.tc
+                , T.br1
+                , T.bw1
+                , T.dim
+                , T.pointer
+                , T.bg_transparent
+                , theme.fgPost
+                , theme.bInput
+                ]
     in
     div
         [ style
         , Style.flexFill
-        , Style.buttonEnabled theme
         , onClick SelectFiles
         ]
         [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]

@@ -62,7 +62,7 @@ builtIn =
 
 default : Theme
 default =
-    themeDark
+    themeLight
 
 
 selectBuiltIn : ID -> Theme

@@ -56,7 +56,7 @@ init flags url key =
         { cfg = Config.init flags url key
         , alerts = Alert.init
         , page = Page.NotFound
-        , isSettingsVisible = True
+        , isSettingsVisible = False
         }
 
 
@@ -281,7 +281,7 @@ view { cfg, page, alerts, isSettingsVisible } =
     , body =
         [ Tachyons.tachyons.css
         , Animations.css
-        , div [ styleBody ]
+        , main_ [ styleBody ]
             [ viewMenu cfg
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map AlertMsg (Alert.view cfg.theme alerts)
@@ -409,7 +409,7 @@ viewSettingsDialog cfg =
                 , theme.shadowSettings
                 ]
     in
-    div [ styleContainer ]
+    aside [ styleContainer ]
         [ div [ style ]
             [ viewSettingsHeader theme
             , viewSettingsOptions theme cfg
