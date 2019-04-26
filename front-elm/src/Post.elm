@@ -89,7 +89,7 @@ view eventHandlers cfg threadID post =
         style =
             classes [ T.mb3, T.pa2, T.br1, theme.bgPost ]
     in
-    div [ style ]
+    article [ style ]
         [ viewPostHead eventHandlers cfg threadID post
         , viewBody eventHandlers theme threadID post
         ]
@@ -108,7 +108,7 @@ viewPostHead eventHandlers { theme, timeZone } threadID post =
                 , theme.bgPost
                 ]
     in
-    div [ style ]
+    header [ style ]
         [ viewPostNo eventHandlers theme threadID post
         , viewName theme post
         , viewPostTime timeZone post
@@ -235,7 +235,7 @@ viewBody eventHandlers theme threadID post =
         style =
             classes [ T.pa1, T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
     in
-    div
+    section
         [ style
         , Html.Attributes.style "white-space" "pre-wrap"
         , Html.Attributes.style "word-wrap" "break-word"
@@ -314,6 +314,7 @@ viewMediaPreview media =
         (attrsSizes
             ++ [ stylePostMedia
                , src <| Media.urlPreview media
+               , alt "[Attached media]"
                ]
         )
         []
@@ -325,6 +326,7 @@ viewMediaFull media =
         [ img
             [ stylePostMedia
             , src <| Media.url media
+            , alt "[Attached media]"
             ]
             []
         ]
@@ -348,7 +350,7 @@ viewOp eventHandlers cfg op =
         style =
             classes [ T.mb3, T.pa2, T.br1, theme.bgPost ]
     in
-    div [ style ]
+    article [ style ]
         [ viewOpHead eventHandlers cfg op
         , viewBody eventHandlers theme op.threadID op.post
         ]
@@ -371,7 +373,7 @@ viewOpHead eventHandlers { theme, timeZone } { threadID, subject, post } =
             Maybe.map (viewSubject theme threadID) subject
                 |> Maybe.withDefault nothing
     in
-    div [ style ]
+    header [ style ]
         [ viewOpNo theme threadID
         , subjectOrNothing
         , viewName { theme | fgPostName = theme.fgOpName } post

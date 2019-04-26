@@ -517,7 +517,7 @@ view cfg form =
         style =
             classes [ T.h_100, T.w_100, T.flex, T.flex_row ]
     in
-    div [ style ]
+    Html.form [ style ]
         [ viewMeta cfg form
         , viewPostBody cfg.theme form
         ]
@@ -539,8 +539,8 @@ viewMeta cfg form =
         viewNameInput cfg form
             ++ viewTripInput cfg form
             ++ viewPassInput cfg form
-            ++ [ viewCleanReset cfg form
-               , viewSubmit theme form
+            ++ [ viewBtnCleanOrReset cfg form
+               , viewBtnSubmit theme form
                , viewProblems theme form
                , div [ class T.flex_grow_1 ] []
                ]
@@ -729,8 +729,8 @@ viewPostComment theme form =
     ]
 
 
-viewCleanReset : Config -> PostForm -> Html Msg
-viewCleanReset cfg form =
+viewBtnCleanOrReset : Config -> PostForm -> Html Msg
+viewBtnCleanOrReset cfg form =
     let
         theme =
             cfg.theme
@@ -760,8 +760,8 @@ viewCleanReset cfg form =
             [ Html.text "Clean" ]
 
 
-viewSubmit : Theme -> PostForm -> Html Msg
-viewSubmit theme form =
+viewBtnSubmit : Theme -> PostForm -> Html Msg
+viewBtnSubmit theme form =
     let
         isBtnEnabled =
             isEnabled form && isValid form
@@ -786,7 +786,8 @@ buttonAttrs theme isBtnEnabled =
                 , classes [ theme.fgButtonDisabled, theme.bgButtonDisabled ]
                 ]
     in
-    [ Style.textButton theme
+    [ type_ "button"
+    , Style.textButton theme
     , styleFromButton
     , styleFormElement
     ]

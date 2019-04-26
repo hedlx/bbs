@@ -155,7 +155,7 @@ toggleMediaPreviewThread postNo mediaID threadPw =
 
 viewThreadPreview : Config -> ThreadPreview -> Html Msg
 viewThreadPreview cfg threadPw =
-    div []
+    section []
         [ Post.viewOp postEventHandlers cfg (toOp threadPw)
         , viewLast cfg threadPw
         ]
@@ -167,5 +167,5 @@ viewLast cfg { id, last } =
         nothing
 
     else
-        div [ class T.pl5 ] <|
+        section [ class T.pl5 ] <|
             List.map (Post.view postEventHandlers cfg id) last

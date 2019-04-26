@@ -374,6 +374,7 @@ viewBtnSettings theme =
         , Html.Attributes.title "Settings"
         , onClick ToggleSettings
         , classes [ T.dim, theme.fgMenuButton ]
+        , tabindex 0
         ]
         [ Icons.settings 32 ]
 

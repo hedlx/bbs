@@ -237,7 +237,7 @@ view cfg state =
 
 viewThread : Config -> PostForm -> Thread -> Html Msg
 viewThread cfg form thread =
-    div
+    section
         [ -- This id is required to get scrolling manipulations working
           id "page-content"
         , Style.content
@@ -259,7 +259,7 @@ viewSubject theme thread =
                 ("Thread #" ++ String.fromInt thread.id)
                 thread.subject
     in
-    h1 [ style ] [ text strSubject ]
+    header [] [ h1 [ style ] [ text strSubject ] ]
 
 
 postEventHandlers : Post.EventHandlers Msg
