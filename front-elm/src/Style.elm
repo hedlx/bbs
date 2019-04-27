@@ -3,7 +3,6 @@ module Style exposing
     , buttonIconic
     , content
     , contentNoScroll
-    , flexFill
     , textButton
     )
 
@@ -18,11 +17,6 @@ buttonEnabled theme =
     classes [ pointer, bg_animate, theme.bgButtonHover ]
 
 
-flexFill : Attribute msg
-flexFill =
-    classes [ flex_grow_1 ]
-
-
 buttonIconic : Attribute msg
 buttonIconic =
     classes [ bg_transparent, b__none, outline_0, pointer ]
@@ -30,7 +24,7 @@ buttonIconic =
 
 content : Attribute msg
 content =
-    classes [ ml5, pa3, min_vh_100, pr4, overflow_x_hidden, overflow_y_visible ]
+    classes [ pa1, pt5, ml5_ns, pa3_ns, min_vh_100, pr4_ns, overflow_x_hidden, overflow_y_visible ]
 
 
 contentNoScroll : Attribute msg

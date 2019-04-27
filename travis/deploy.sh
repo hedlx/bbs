@@ -63,11 +63,7 @@ elm)
 	# TODO move to ~/tmp/elm
 	ssh -C $ssh_opts hedlx.org 'rm -rf front-elm.tmp'
 	scp -C $ssh_opts -r front-elm/static hedlx.org:front-elm.tmp
-	ssh -C $ssh_opts hedlx.org 'cd front-elm.tmp && \
-		mv index.html main.js manifest.json /srv/www/bbs/elm/ && \
-		mkdir -p /srv/www/bbs/elm/icons && \
-	   	mv icons/* /srv/www/bbs/elm && \
-		echo moved'
+	ssh -C $ssh_opts hedlx.org 'cd front-elm.tmp && rsync -av index.html main.js manifest.json icons /srv/www/bbs/elm/ && echo moved'
 	;;
 clojure)
 	[ -f "./front/resources/public/index.html" ] || die "No front/resources/public/index.html"

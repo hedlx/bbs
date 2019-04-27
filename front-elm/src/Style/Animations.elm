@@ -1,4 +1,4 @@
-module Style.Animations exposing (css, fadein_l, fadein_r)
+module Style.Animations exposing (css, fadein_left_ns, fadein_right, fadein_top_s)
 
 import Html exposing (Html, node, text)
 
@@ -20,7 +20,7 @@ css =
                 }
             }
 
-            .fadeInRight {
+            .fadein-right {
                 animation-duration: 0.3s;
                 animation-name: fadeInRight;
             }
@@ -37,18 +37,44 @@ css =
                 }
             }
 
-            .fadeInLeft {
-                animation-duration: 0.3s;
-                animation-name: fadeInLeft;
+            @media screen and (min-width: 30em) {
+                .fadein-left-ns {
+                    animation-duration: 0.3s;
+                    animation-name: fadeInLeft;
+                }
+            }
+
+            @keyframes fadeInTop {
+                from {
+                    opacity: 0;
+                    transform: translateY(-15px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @media screen and (max-width: 30em) {
+                .fadein-top-s {
+                    animation-duration: 0.3s;
+                    animation-name: fadeInTop;
+                }
             }
         """ ]
 
 
-fadein_r : String
-fadein_r =
-    "fadeInRight"
+fadein_right : String
+fadein_right =
+    "fadein-right"
 
 
-fadein_l : String
-fadein_l =
-    "fadeInLeft"
+fadein_left_ns : String
+fadein_left_ns =
+    "fadein-left-ns"
+
+
+fadein_top_s : String
+fadein_top_s =
+    "fadein-top-s"

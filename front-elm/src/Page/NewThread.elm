@@ -6,6 +6,8 @@ import Html.Events exposing (..)
 import Page.Response as Response exposing (Response)
 import PostForm exposing (PostForm)
 import Style
+import Tachyons exposing (classes)
+import Tachyons.Classes as T
 
 
 init : ( State, Cmd Msg )
@@ -62,5 +64,8 @@ updatePostForm =
 
 view : Config -> State -> Html Msg
 view cfg form =
-    div [ Style.content, Style.contentNoScroll ]
-        [ Html.map PostFormMsg (PostForm.view cfg form) ]
+    div
+        [ Style.content, Style.contentNoScroll ]
+        [ div [ classes [ T.pt4, T.pr3, T.pt0_ns, T.pr0_ns ] ]
+            [ Html.map PostFormMsg (PostForm.view cfg form) ]
+        ]

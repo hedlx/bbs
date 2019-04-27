@@ -515,7 +515,7 @@ view : Config -> PostForm -> Html Msg
 view cfg form =
     let
         style =
-            classes [ T.h_100, T.w_100, T.flex, T.flex_row ]
+            classes [ T.h_100, T.w_100, T.flex, T.flex_column_reverse, T.flex_row_ns ]
     in
     Html.form [ style ]
         [ viewMeta cfg form
@@ -533,7 +533,15 @@ viewMeta cfg form =
             cfg.limits
 
         style =
-            classes [ T.pl2, T.pr3, T.mw5, T.flex, T.flex_column ]
+            classes
+                [ T.pl2
+                , T.pr3_ns
+                , T.w_100
+                , T.w_auto_ns
+                , T.mw5_ns
+                , T.flex
+                , T.flex_column
+                ]
     in
     div [ style ] <|
         viewNameInput cfg form
@@ -543,8 +551,8 @@ viewMeta cfg form =
                , viewBtnSubmit theme form
                , viewProblems theme form
                , div [ class T.flex_grow_1 ] []
+               , div [ classes [ T.dn, T.dib_ns ] ] (viewInfo limits form)
                ]
-            ++ viewInfo limits form
 
 
 viewNameInput : Config -> PostForm -> List (Html Msg)
@@ -603,7 +611,7 @@ viewPostBody : Theme -> PostForm -> Html Msg
 viewPostBody theme form =
     let
         style =
-            classes [ T.pl3, T.flex_grow_1, T.flex, T.flex_column ]
+            classes [ T.pl2, T.pl3_ns, T.flex_grow_1, T.flex, T.flex_column ]
     in
     div [ style ] <|
         viewPostSubj theme form
@@ -686,13 +694,14 @@ viewButtonSelectAttachments theme _ =
     let
         style =
             classes
-                [ T.b__dashed
+                [ T.flex_grow_1
                 , T.pa3
                 , T.tc
                 , T.br1
                 , T.bw1
                 , T.dim
                 , T.pointer
+                , T.b__dashed
                 , T.bg_transparent
                 , theme.fgPost
                 , theme.bInput
@@ -700,7 +709,6 @@ viewButtonSelectAttachments theme _ =
     in
     div
         [ style
-        , Style.flexFill
         , onClick SelectFiles
         ]
         [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]
@@ -712,7 +720,19 @@ viewPostComment : Theme -> PostForm -> List (Html Msg)
 viewPostComment theme form =
     let
         style =
-            classes [ T.flex_grow_1, T.pa1, T.br1, T.b__solid, T.bw1, T.w_100, theme.fgInput, theme.bgInput, theme.bInput ]
+            classes
+                [ T.flex_grow_1
+                , T.h4
+                , T.h_auto_ns
+                , T.pa1
+                , T.br1
+                , T.b__solid
+                , T.bw1
+                , T.w_100
+                , theme.fgInput
+                , theme.bgInput
+                , theme.bInput
+                ]
     in
     [ formLabel "Comment"
     , textarea
@@ -848,7 +868,7 @@ styleTextInput theme =
 
 styleFormElement : Attribute Msg
 styleFormElement =
-    classes [ T.db, T.mb3, T.w_100 ]
+    classes [ T.db, T.mb3, T.w_100_ns ]
 
 
 styleFormMediaPreview : Attribute Msg

@@ -277,4 +277,4 @@ viewPosts cfg { id, messages } =
 viewReplyForm : Config -> PostForm -> Html Msg
 viewReplyForm cfg form =
     Html.map PostFormMsg <|
-        div [ class T.mt4 ] [ PostForm.view cfg form ]
+        div [ classes [ T.mt4, T.pr2, T.pr0_ns ] ] [ PostForm.view cfg form ]

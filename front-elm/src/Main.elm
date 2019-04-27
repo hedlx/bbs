@@ -302,10 +302,11 @@ viewMenu cfg =
                 [ T.fixed
                 , T.pa0
                 , T.fl
-                , T.h_100
-                , T.w3
+                , T.w3_ns
+                , T.h_100_ns
+                , T.w_100
                 , T.flex
-                , T.flex_column
+                , T.flex_column_ns
                 , T.items_center
                 , theme.bgMenu
                 ]
@@ -368,7 +369,7 @@ viewBtnDelete theme =
 viewBtnSettings : Theme -> Html Msg
 viewBtnSettings theme =
     div
-        [ classes [ T.bottom_0, T.absolute ]
+        [ classes [ T.bottom_0_ns, T.right_0, T.absolute ]
         , styleButtonMenu
         , Style.buttonIconic
         , Html.Attributes.title "Settings"
@@ -393,12 +394,17 @@ viewSettingsDialog cfg =
         styleContainer =
             classes
                 [ T.fixed
-                , T.ml5
-                , T.pl2
-                , T.pb2
-                , T.bottom_0
+                , T.w_100
+                , T.w_auto_ns
+                , T.pa2
+                , T.ml5_ns
+                , T.pl2_ns
+                , T.pb2_ns
+                , T.bottom_0_ns
+                , T.mt5
                 , T.z_max
-                , Animations.fadein_l
+                , Animations.fadein_left_ns
+                , Animations.fadein_top_s
                 ]
 
         style =

@@ -157,7 +157,7 @@ stylePopUp =
         , T.br1
         , T.dim
         , T.pointer
-        , Animations.fadein_r
+        , Animations.fadein_right
         ]
 
 

@@ -14,6 +14,7 @@ import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import Spinner
 import Style
+import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Url.Builder
 
@@ -120,8 +121,10 @@ view : Config -> State -> Html Msg
 view cfg state =
     case state of
         Idle threads ->
-            div [ Style.content, id "page-content" ] <|
-                List.map (viewThreadPreview cfg) threads
+            div [ Style.content, id "page-content" ]
+                [ div [ classes [ T.pt3, T.pt0_ns ] ] <|
+                    List.map (viewThreadPreview cfg) threads
+                ]
 
         Loading ->
             Spinner.view cfg.theme 256
@@ -167,5 +170,5 @@ viewLast cfg { id, last } =
         nothing
 
     else
-        section [ class T.pl5 ] <|
+        section [ classes [ T.pl3, T.pl4_ns, T.pl5_l ] ] <|
             List.map (Post.view postEventHandlers cfg id) last
