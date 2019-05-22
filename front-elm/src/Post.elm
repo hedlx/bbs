@@ -87,7 +87,7 @@ view eventHandlers cfg threadID post =
             cfg.theme
 
         style =
-            classes [ T.mb2, T.mb3_ns, T.pa2, T.br1, theme.bgPost ]
+            classes [ T.mb2, T.mb1_ns, T.pa2, T.br1, theme.bgPost ]
     in
     article [ style ]
         [ viewPostHead eventHandlers cfg threadID post
