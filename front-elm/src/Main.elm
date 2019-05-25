@@ -282,7 +282,7 @@ view { cfg, page, alerts, isSettingsVisible } =
         [ Tachyons.tachyons.css
         , Animations.css
         , main_ [ styleBody ]
-            [ viewMenu cfg
+            [ viewNavigationMenu cfg
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map AlertMsg (Alert.view cfg.theme alerts)
             , Html.map PageMsg (Page.view cfg page)
@@ -291,8 +291,8 @@ view { cfg, page, alerts, isSettingsVisible } =
     }
 
 
-viewMenu : Config -> Html Msg
-viewMenu cfg =
+viewNavigationMenu : Config -> Html Msg
+viewNavigationMenu cfg =
     let
         theme =
             cfg.theme
@@ -308,6 +308,7 @@ viewMenu cfg =
                 , T.flex
                 , T.flex_column_ns
                 , T.items_center
+                , T.z_max
                 , theme.bgMenu
                 ]
     in
