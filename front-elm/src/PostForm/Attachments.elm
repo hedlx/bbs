@@ -5,6 +5,7 @@ module PostForm.Attachments exposing
     , encode
     , isEmpty
     , isExists
+    , length
     , remove
     , toList
     , updateAttachment
@@ -87,3 +88,8 @@ updateAttachment id update (Attachments table) =
 toList : Attachments -> List Attachment
 toList (Attachments table) =
     table.attachments
+
+
+length : Attachments -> Int
+length (Attachments table) =
+    List.length table.attachments

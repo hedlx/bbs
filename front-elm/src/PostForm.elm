@@ -23,6 +23,7 @@ import Config exposing (Config)
 import Env
 import File exposing (File)
 import File.Select as Select
+import Filesize
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -34,6 +35,7 @@ import Keyboard.Events
 import Limits exposing (Limits)
 import PostForm.Attachments as Attachments exposing (Attachments)
 import Spinner
+import String.Extra
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -281,13 +283,121 @@ appendToText limits str (PostForm form) =
     PostForm { form | text = limitString limits.maxLenText (form.text ++ str) }
 
 
-addFiles : List File -> PostForm -> ( PostForm, Cmd Msg )
-addFiles files (PostForm form) =
+addFiles : Limits -> List File -> PostForm -> Response
+addFiles limits files postForm =
     let
-        ( newAttachments, cmdGeneratePreviews ) =
-            Attachments.add PreviewGenerated files form.attachments
+        alerts =
+            fileCountAlerts limits.maxCountMedia
+                (List.length files + Attachments.length (attachments postForm))
+                ++ fileNameLengthAlerts limits.maxLenMediaName files
+                ++ fileSizeAlerts limits.maxSizeMediaFile files
     in
-    ( PostForm { form | attachments = newAttachments }, cmdGeneratePreviews )
+    if List.isEmpty alerts then
+        let
+            (PostForm form) =
+                postForm
+
+            ( newAttachments, cmdGeneratePreviews ) =
+                Attachments.add PreviewGenerated files form.attachments
+
+            newPostForm =
+                PostForm { form | attachments = newAttachments }
+        in
+        Ok newPostForm cmdGeneratePreviews
+
+    else
+        Err (Alert.Batch alerts) postForm
+
+
+fileCountAlerts : Maybe Int -> Int -> List Alert
+fileCountAlerts maxCountMedia totalCountMedia =
+    case maxCountMedia of
+        Nothing ->
+            []
+
+        Just maxN ->
+            if maxN < totalCountMedia then
+                [ Alert.Warning <|
+                    String.concat
+                        [ "Can't add more than "
+                        , String.fromInt maxN
+                        , " files"
+                        ]
+                ]
+
+            else
+                []
+
+
+fileNameLengthAlerts : Maybe Int -> List File -> List Alert
+fileNameLengthAlerts maxLenMediaName files =
+    case maxLenMediaName of
+        Nothing ->
+            []
+
+        Just maxN ->
+            let
+                tooLongNames =
+                    List.filter (isFileNameLengthTooLong maxN) files
+                        |> List.map File.name
+                        >> List.map (String.Extra.ellipsis 32)
+                        >> List.map String.Extra.quote
+            in
+            if List.isEmpty tooLongNames then
+                []
+
+            else
+                [ Alert.Warning <|
+                    String.concat
+                        [ "Name of attached file should be shorter than "
+                        , String.fromInt maxN
+                        , " symbols. Please rename "
+                        , String.Extra.pluralize "file" "files" (List.length tooLongNames)
+                        , ": "
+                        , String.join ", " tooLongNames
+                        , "."
+                        ]
+                ]
+
+
+isFileNameLengthTooLong : Int -> File -> Bool
+isFileNameLengthTooLong maxLen file =
+    maxLen < String.length (File.name file)
+
+
+fileSizeAlerts : Maybe Int -> List File -> List Alert
+fileSizeAlerts maxSizeMediaFile files =
+    case maxSizeMediaFile of
+        Nothing ->
+            []
+
+        Just maxN ->
+            let
+                tooBigFileNames =
+                    List.filter (isFileSizeTooBig maxN) files
+                        |> List.map File.name
+                        >> List.map String.Extra.quote
+            in
+            if List.isEmpty tooBigFileNames then
+                []
+
+            else
+                [ Alert.Warning <|
+                    String.concat
+                        [ "File can't be bigger than "
+                        , Filesize.format maxN
+                        , ". Can't attach "
+                        , String.Extra.pluralize "file" "files" (List.length tooBigFileNames)
+                        , ": "
+                        , String.join ", " tooBigFileNames
+                        , "."
+                        ]
+                ]
+
+
+isFileSizeTooBig : Int -> File -> Bool
+isFileSizeTooBig maxSize file =
+    maxSize < File.size file
 
 
 setPreview : Attachment.ID -> Attachment.Preview -> PostForm -> PostForm
@@ -446,14 +556,7 @@ update submitPath cfg msg postForm =
             Ok postForm (Select.files Env.fileFormats FilesSelected)
 
         FilesSelected file moreFiles ->
-            let
-                selectedFiles =
-                    file :: moreFiles
-
-                ( newPostForm, cmdGeneratePreviews ) =
-                    addFiles selectedFiles postForm
-            in
-            Ok newPostForm cmdGeneratePreviews
+            addFiles cfg.limits (file :: moreFiles) postForm
 
         PreviewGenerated attachID preview ->
             Ok (setPreview attachID preview postForm) Cmd.none
@@ -519,7 +622,7 @@ view cfg form =
     in
     Html.form [ style ]
         [ viewMeta cfg form
-        , viewPostBody cfg.theme form
+        , viewPostBody cfg form
         ]
 
 
@@ -607,16 +710,16 @@ viewPassInput cfg form =
     ]
 
 
-viewPostBody : Theme -> PostForm -> Html Msg
-viewPostBody theme form =
+viewPostBody : Config -> PostForm -> Html Msg
+viewPostBody cfg form =
     let
         style =
             classes [ T.pl2, T.pl3_ns, T.flex_grow_1, T.flex, T.flex_column ]
     in
     div [ style ] <|
-        viewPostSubj theme form
-            ++ viewPostComment theme form
-            ++ viewAttachments theme form
+        viewPostSubj cfg.theme form
+            ++ viewPostComment cfg.theme form
+            ++ viewAttachments cfg form
 
 
 viewPostSubj : Theme -> PostForm -> List (Html Msg)
@@ -641,12 +744,43 @@ viewPostSubj theme form =
             []
 
 
-viewAttachments : Theme -> PostForm -> List (Html Msg)
-viewAttachments theme form =
-    [ formLabel "Attached Images"
+viewAttachments : Config -> PostForm -> List (Html Msg)
+viewAttachments cfg form =
+    let
+        ( labelText, addButtonOrNothing ) =
+            case cfg.limits.maxCountMedia of
+                Nothing ->
+                    ( "Attached Images (...)"
+                    , viewButtonSelectAttachments cfg.theme form
+                    )
+
+                Just maxN ->
+                    let
+                        attachedCount =
+                            Attachments.length (attachments form)
+
+                        labelWithFileCount =
+                            String.concat
+                                [ "Attached Images ("
+                                , String.fromInt attachedCount
+                                , "/"
+                                , String.fromInt maxN
+                                , ")"
+                                ]
+
+                        btnOrNothing =
+                            if attachedCount < maxN then
+                                viewButtonSelectAttachments cfg.theme form
+
+                            else
+                                div [ class T.flex_grow_1 ] []
+                    in
+                    ( labelWithFileCount, btnOrNothing )
+    in
+    [ formLabel labelText
     , div [ classes [ T.flex, T.justify_center ], styleFormElement ] <|
-        List.map (viewAttachment theme) (Attachments.toList (attachments form))
-            ++ [ viewButtonSelectAttachments theme form ]
+        List.map (viewAttachment cfg.theme) (Attachments.toList (attachments form))
+            ++ [ addButtonOrNothing ]
     ]
 
 

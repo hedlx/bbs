@@ -1,4 +1,13 @@
-module Alert exposing (Alert(..), Msg, State, add, fromHttpError, init, update, view)
+module Alert exposing
+    ( Alert(..)
+    , Msg
+    , State
+    , add
+    , fromHttpError
+    , init
+    , update
+    , view
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -15,8 +24,15 @@ import Toasty
 
 
 type Alert
-    = Warning String
+    = None
+    | Warning String
     | Error String
+    | Batch (List Alert)
+
+
+type Toast
+    = ToastWarning String
+    | ToastError String
 
 
 fromHttpError : Http.Error -> Alert
@@ -61,10 +77,34 @@ fromHttpError error =
 add : (Msg -> msg) -> Alert -> State -> ( State, Cmd msg )
 add toMsg alert (Alerts state) =
     let
+        toastAdders =
+            List.map
+                (Toasty.addPersistentToast Toasty.config (toMsg << ToastyMsg))
+                (toToastList alert)
+
+        addToasts =
+            List.foldl (<<) identity toastAdders
+
         ( newState, cmd ) =
-            Toasty.addPersistentToast Toasty.config (toMsg << ToastyMsg) alert ( state, Cmd.none )
+            addToasts ( state, Cmd.none )
     in
     ( Alerts newState, cmd )
+
+
+toToastList : Alert -> List Toast
+toToastList alert =
+    case alert of
+        None ->
+            []
+
+        Warning description ->
+            [ ToastWarning description ]
+
+        Error description ->
+            [ ToastError description ]
+
+        Batch alerts ->
+            List.concatMap toToastList alerts
 
 
 
@@ -72,11 +112,11 @@ add toMsg alert (Alerts state) =
 
 
 type State
-    = Alerts { toasties : Toasty.Stack Alert }
+    = Alerts { toasties : Toasty.Stack Toast }
 
 
 type Msg
-    = ToastyMsg (Toasty.Msg Alert)
+    = ToastyMsg (Toasty.Msg Toast)
 
 
 init : State
@@ -105,7 +145,7 @@ update msg (Alerts state) =
 
 view : Theme -> State -> Html Msg
 view theme (Alerts state) =
-    Toasty.view (configView theme) (viewAlert theme) ToastyMsg state.toasties
+    Toasty.view (configView theme) (viewToast theme) ToastyMsg state.toasties
 
 
 configView : Theme -> Toasty.Config msg
@@ -114,19 +154,19 @@ configView theme =
         |> Toasty.containerAttrs [ stylePopUpStack theme ]
 
 
-viewAlert : Theme -> Alert -> Html msg
-viewAlert theme alert =
-    case alert of
-        Warning description ->
+viewToast : Theme -> Toast -> Html msg
+viewToast theme toast =
+    case toast of
+        ToastWarning description ->
             div [ stylePopUp, stylePopUpWarn theme ]
                 [ p [] [ h3 [] [ text "Warning" ] ]
-                , p [] [ text description ]
+                , p [ style "word-break" "break-word" ] [ text description ]
                 ]
 
-        Error description ->
+        ToastError description ->
             div [ stylePopUp, stylePopUpErr theme ]
                 [ p [] [ h3 [] [ text "Error" ] ]
-                , p [] [ text description ]
+                , p [ style "word-break" "break-word" ] [ text description ]
                 ]
 
 
@@ -134,7 +174,7 @@ stylePopUpStack : Theme -> Attribute msg
 stylePopUpStack theme =
     classes
         [ T.fixed
-        , T.w_30
+        , T.w_30_ns
         , T.right_0
         , T.ma0
         , T.pa3

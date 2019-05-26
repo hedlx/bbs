@@ -167,17 +167,11 @@ update msg model =
             ( mapConfig Config.resetUserSettings model, LocalStorage.cleanUserSettings () )
 
 
-updatePage : ( Page, Cmd Page.Msg, List Alert ) -> Model -> ( Model, Cmd Msg )
-updatePage ( newPage, pageCmd, pageAlerts ) model =
+updatePage : ( Page, Cmd Page.Msg, Alert ) -> Model -> ( Model, Cmd Msg )
+updatePage ( newPage, pageCmd, pageAlert ) model =
     let
-        alertAdders =
-            List.map (Alert.add AlertMsg) pageAlerts
-
-        addPageAlerts =
-            List.foldl Update.Extra.compose Update.Extra.return alertAdders
-
         ( newAlerts, cmdsAlerts ) =
-            addPageAlerts model.alerts
+            Alert.add AlertMsg pageAlert model.alerts
 
         pageCmdMapped =
             Cmd.map PageMsg pageCmd

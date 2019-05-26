@@ -38,7 +38,7 @@ type alias ParserPage =
 
 
 type alias ResponseToModel =
-    ( Page, Cmd Msg, List Alert )
+    ( Page, Cmd Msg, Alert )
 
 
 title : Page -> String
@@ -155,16 +155,16 @@ handleResponse : Config -> Page -> Response Page Msg -> ResponseToModel
 handleResponse cfg currentPage reponse =
     case reponse of
         Response.Ok newPage cmdPage ->
-            ( newPage, cmdPage, [] )
+            ( newPage, cmdPage, Alert.None )
 
         Response.Failed alert newPage cmdPage ->
-            ( newPage, cmdPage, [ alert ] )
+            ( newPage, cmdPage, alert )
 
         Response.Err alert ->
-            ( currentPage, Cmd.none, [ alert ] )
+            ( currentPage, Cmd.none, alert )
 
         Response.Redirect path ->
-            ( currentPage, Nav.pushUrl cfg.key (Route.internalLink path), [] )
+            ( currentPage, Nav.pushUrl cfg.key (Route.internalLink path), Alert.None )
 
         Response.ReplyTo tID postNo ->
             let
@@ -177,7 +177,7 @@ handleResponse cfg currentPage reponse =
             in
             ( Thread pageThread
             , Cmd.batch [ cmdReplaceUrl, Cmd.map ThreadMsg pageCmd ]
-            , []
+            , Alert.None
             )
 
 
