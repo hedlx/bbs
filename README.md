@@ -1,4 +1,5 @@
-# hwd
-[![Build Status](https://travis-ci.org/hedlx/hwd.svg?branch=master)](https://travis-ci.org/hedlx/hwd)
+# Hedlx BBS
+[![Build Status](https://travis-ci.org/hedlx/bbs.svg?branch=master)](https://travis-ci.org/hedlx/bbs)
 
-Consolidated repo for all crazy ideas related to web
+An elegant message board software, for a more civilized age.
+
