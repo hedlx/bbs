@@ -143,14 +143,21 @@ reset (PostForm form) =
         }
 
 
-isUserDataEmpty : PostForm -> Bool
-isUserDataEmpty (PostForm form) =
+isJustEmpty : PostForm -> Bool
+isJustEmpty (PostForm form) =
     form.name
         == Just ""
         && form.trip
         == Just ""
         && form.pass
         == Just ""
+        && form.text
+        == ""
+        && (form.subj
+                == Hidden
+                || form.subj
+                == Visible ""
+           )
 
 
 isBlank : PostForm -> Bool
@@ -340,7 +347,7 @@ alertLongFileName maxLen filename =
         ("File '{{ }}' has too long name"
             |> StrF.value (String.Extra.ellipsis 16 filename)
         )
-        ("File name can't be longer than {{ }} characters"
+        ("File name shouldn't be longer than {{ }} characters"
             |> StrF.value (String.fromInt maxLen)
         )
 
@@ -352,7 +359,7 @@ alertBigFile maxSize file =
             |> StrF.namedValue "name" (String.Extra.ellipsis 16 (File.name file))
             >> StrF.namedValue "size" (Filesize.formatBase2 (File.size file))
         )
-        ("File size can't exceed {{ }}"
+        ("File size shouldn't exceed {{ }}"
             |> StrF.value (Filesize.formatBase2 maxSize)
         )
 
@@ -924,7 +931,7 @@ viewBtnCleanOrReset cfg form =
             not (String.isEmpty cfg.name && String.isEmpty cfg.trip && String.isEmpty cfg.pass)
 
         isResetVisible =
-            isMetaExists && isUserDataEmpty form
+            isMetaExists && isJustEmpty form
     in
     if isResetVisible then
         button

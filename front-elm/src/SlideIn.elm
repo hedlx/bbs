@@ -96,7 +96,8 @@ styleSlideInStack : Theme -> Attribute msg
 styleSlideInStack theme =
     classes
         [ T.fixed
-        , T.w_30_ns
+        , T.w_auto_ns
+        , T.mw9_ns
         , T.right_0
         , T.ma0
         , T.pa3
