@@ -13,6 +13,7 @@ type alias Theme =
     , fontMono : String
     , fg : String
     , bg : String
+    , fgRemark : String
     , fgAlert : String
     , fgSpinner : String
     , fgOpName : String
@@ -89,6 +90,7 @@ themeDark =
     , fontMono = code
     , fg = darkMainFG
     , bg = bg_near_black
+    , fgRemark = white_30
     , fgAlert = red
     , fgSpinner = darkMainFG
     , fgOpName = light_blue
@@ -136,6 +138,7 @@ themeLight =
     , fontMono = code
     , fg = lightMainFG
     , bg = bg_washed_yellow
+    , fgRemark = black_50
     , fgAlert = red
     , fgSpinner = dark_red
     , fgOpName = dark_blue

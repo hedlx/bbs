@@ -23,6 +23,7 @@
             "elm-community/json-extra": "4.0.0",
             "elm-community/list-extra": "8.1.0",
             "elm-community/string-extra": "4.0.1",
+            "jorgengranseth/elm-string-format": "1.0.1",
             "justgage/tachyons-elm": "4.1.3",
             "ohanhi/keyboard": "2.0.0",
             "pablen/toasty": "1.2.0"

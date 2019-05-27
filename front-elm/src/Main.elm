@@ -17,6 +17,7 @@ import Json.Encode as Encode
 import Limits exposing (Limits)
 import LocalStorage
 import Page exposing (Page)
+import PopUp exposing (PopUp)
 import Regex
 import Route
 import String.Extra
@@ -54,7 +55,7 @@ init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     route url
         { cfg = Config.init flags url key
-        , alerts = Alert.init
+        , popUp = PopUp.init
         , page = Page.NotFound
         , isSettingsVisible = False
         }
@@ -66,7 +67,7 @@ init flags url key =
 
 type alias Model =
     { cfg : Config
-    , alerts : Alert.State
+    , popUp : PopUp
     , page : Page
     , isSettingsVisible : Bool
     }
@@ -80,7 +81,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | PageMsg Page.Msg
-    | AlertMsg Alert.Msg
+    | PopUpMsg PopUp.Msg
     | GotLimits (Result Http.Error Limits)
     | GotTimeZone Zone
     | ToggleSettings
@@ -113,24 +114,25 @@ update msg model =
         UrlChanged url ->
             route url model
 
-        AlertMsg subMsg ->
+        PopUpMsg subMsg ->
             let
-                ( newAlerts, cmd ) =
-                    Alert.update subMsg model.alerts
+                ( newPopUp, cmd ) =
+                    PopUp.update subMsg model.popUp
             in
-            ( { model | alerts = newAlerts }, Cmd.map AlertMsg cmd )
+            ( { model | popUp = newPopUp }, Cmd.map PopUpMsg cmd )
 
         GotLimits (Err _) ->
             let
                 alert =
-                    Alert.Warning """
-                        Failed to get metadata from the server. 
+                    Alert.Warning
+                        "Failed to get metadata from the server"
+                        """ 
                         App functionality can be restricted. 
                         Please, check your Internet connection and reload the page.
-                    """
+                        """
             in
-            Alert.add AlertMsg alert model.alerts
-                |> Update.Extra.map (\newAlerts -> { model | alerts = newAlerts })
+            PopUp.addAlert PopUpMsg alert model.popUp
+                |> Update.Extra.map (\newPopUp -> { model | popUp = newPopUp })
 
         GotLimits (Ok newLimits) ->
             ( mapConfig (Config.setLimits newLimits) model, Cmd.none )
@@ -170,13 +172,12 @@ update msg model =
 updatePage : ( Page, Cmd Page.Msg, Alert ) -> Model -> ( Model, Cmd Msg )
 updatePage ( newPage, pageCmd, pageAlert ) model =
     let
-        ( newAlerts, cmdsAlerts ) =
-            Alert.add AlertMsg pageAlert model.alerts
-
-        pageCmdMapped =
-            Cmd.map PageMsg pageCmd
+        ( newPopUp, cmdPopUp ) =
+            PopUp.addAlert PopUpMsg pageAlert model.popUp
     in
-    ( { model | page = newPage, alerts = newAlerts }, Cmd.batch [ pageCmdMapped, cmdsAlerts ] )
+    ( { model | page = newPage, popUp = newPopUp }
+    , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdPopUp ]
+    )
 
 
 mapConfig : (Config -> Config) -> Model -> Model
@@ -253,7 +254,7 @@ subscriptions _ =
 
 
 view : Model -> Browser.Document Msg
-view { cfg, page, alerts, isSettingsVisible } =
+view { cfg, page, popUp, isSettingsVisible } =
     let
         pageTitle =
             Page.title page
@@ -278,7 +279,7 @@ view { cfg, page, alerts, isSettingsVisible } =
         , main_ [ styleBody ]
             [ viewNavigationMenu cfg
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
-            , Html.map AlertMsg (Alert.view cfg.theme alerts)
+            , Html.map PopUpMsg (PopUp.view cfg.theme popUp)
             , Html.map PageMsg (Page.view cfg page)
             ]
         ]

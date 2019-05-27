@@ -36,6 +36,7 @@ import Limits exposing (Limits)
 import PostForm.Attachments as Attachments exposing (Attachments)
 import Spinner
 import String.Extra
+import String.Format as StrF
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -284,13 +285,15 @@ appendToText limits str (PostForm form) =
 
 
 addFiles : Limits -> List File -> PostForm -> Response
-addFiles limits files postForm =
+addFiles { maxCountMedia, maxLenMediaName, maxSizeMediaFile } files postForm =
     let
+        totalFiles =
+            List.length files + Attachments.length (attachments postForm)
+
         alerts =
-            fileCountAlerts limits.maxCountMedia
-                (List.length files + Attachments.length (attachments postForm))
-                ++ fileNameLengthAlerts limits.maxLenMediaName files
-                ++ fileSizeAlerts limits.maxSizeMediaFile files
+            assertFilesCount maxCountMedia totalFiles
+                ++ assertFileNameLengths maxLenMediaName files
+                ++ assertFileSizes maxSizeMediaFile files
     in
     if List.isEmpty alerts then
         let
@@ -309,55 +312,61 @@ addFiles limits files postForm =
         Err (Alert.Batch alerts) postForm
 
 
-fileCountAlerts : Maybe Int -> Int -> List Alert
-fileCountAlerts maxCountMedia totalCountMedia =
-    case maxCountMedia of
+alertCantAddMoreFiles : Int -> Alert
+alertCantAddMoreFiles maxCount =
+    Alert.Warning
+        ("Can't add more than {{ }} files"
+            |> StrF.value (String.fromInt maxCount)
+        )
+        "Attach less files or make more posts!"
+
+
+alertLongFileName : Int -> String -> Alert
+alertLongFileName maxLen filename =
+    Alert.Warning
+        ("Too long file name: {{ }}"
+            |> StrF.value (String.Extra.ellipsis 32 filename)
+        )
+        ("File name can't be longer than {{ }} characters"
+            |> StrF.value (String.fromInt maxLen)
+        )
+
+
+alertBigFile : Int -> String -> Alert
+alertBigFile maxSize filename =
+    Alert.Warning
+        ("File '{{ }}' is too big"
+            |> StrF.value filename
+        )
+        ("File size can't exceed {{ }}"
+            |> StrF.value (Filesize.format maxSize)
+        )
+
+
+assertFilesCount : Maybe Int -> Int -> List Alert
+assertFilesCount maybeMaxCount total =
+    case maybeMaxCount of
         Nothing ->
             []
 
-        Just maxN ->
-            if maxN < totalCountMedia then
-                [ Alert.Warning <|
-                    String.concat
-                        [ "Can't add more than "
-                        , String.fromInt maxN
-                        , " files"
-                        ]
-                ]
+        Just maxCount ->
+            if maxCount < total then
+                [ alertCantAddMoreFiles maxCount ]
 
             else
                 []
 
 
-fileNameLengthAlerts : Maybe Int -> List File -> List Alert
-fileNameLengthAlerts maxLenMediaName files =
+assertFileNameLengths : Maybe Int -> List File -> List Alert
+assertFileNameLengths maxLenMediaName files =
     case maxLenMediaName of
         Nothing ->
             []
 
-        Just maxN ->
-            let
-                tooLongNames =
-                    List.filter (isFileNameLengthTooLong maxN) files
-                        |> List.map File.name
-                        >> List.map (String.Extra.ellipsis 32)
-                        >> List.map String.Extra.quote
-            in
-            if List.isEmpty tooLongNames then
-                []
-
-            else
-                [ Alert.Warning <|
-                    String.concat
-                        [ "Name of attached file should be shorter than "
-                        , String.fromInt maxN
-                        , " symbols. Please rename "
-                        , String.Extra.pluralize "file" "files" (List.length tooLongNames)
-                        , ": "
-                        , String.join ", " tooLongNames
-                        , "."
-                        ]
-                ]
+        Just maxLen ->
+            List.filter (isFileNameLengthTooLong maxLen) files
+                |> List.map File.name
+                >> List.map (alertLongFileName maxLen)
 
 
 isFileNameLengthTooLong : Int -> File -> Bool
@@ -365,34 +374,16 @@ isFileNameLengthTooLong maxLen file =
     maxLen < String.length (File.name file)
 
 
-fileSizeAlerts : Maybe Int -> List File -> List Alert
-fileSizeAlerts maxSizeMediaFile files =
+assertFileSizes : Maybe Int -> List File -> List Alert
+assertFileSizes maxSizeMediaFile files =
     case maxSizeMediaFile of
         Nothing ->
             []
 
-        Just maxN ->
-            let
-                tooBigFileNames =
-                    List.filter (isFileSizeTooBig maxN) files
-                        |> List.map File.name
-                        >> List.map String.Extra.quote
-            in
-            if List.isEmpty tooBigFileNames then
-                []
-
-            else
-                [ Alert.Warning <|
-                    String.concat
-                        [ "File can't be bigger than "
-                        , Filesize.format maxN
-                        , ". Can't attach "
-                        , String.Extra.pluralize "file" "files" (List.length tooBigFileNames)
-                        , ": "
-                        , String.join ", " tooBigFileNames
-                        , "."
-                        ]
-                ]
+        Just maxSize ->
+            List.filter (isFileSizeTooBig maxSize) files
+                |> List.map File.name
+                >> List.map (alertBigFile maxSize)
 
 
 isFileSizeTooBig : Int -> File -> Bool
@@ -660,7 +651,7 @@ viewMeta cfg form =
 
 viewNameInput : Config -> PostForm -> List (Html Msg)
 viewNameInput cfg form =
-    [ formLabel "Name"
+    [ formLabel [ Html.text "Name" ]
     , input
         [ id "post-form-input"
         , unfocusOnEsc "post-form-input"
@@ -678,7 +669,7 @@ viewNameInput cfg form =
 
 viewTripInput : Config -> PostForm -> List (Html Msg)
 viewTripInput cfg form =
-    [ formLabel "Tripcode Secret"
+    [ formLabel [ Html.text "Tripcode Secret" ]
     , input
         [ id "post-form-trip"
         , unfocusOnEsc "post-form-trip"
@@ -695,7 +686,7 @@ viewTripInput cfg form =
 
 viewPassInput : Config -> PostForm -> List (Html Msg)
 viewPassInput cfg form =
-    [ formLabel "Password"
+    [ formLabel [ Html.text "Password" ]
     , input
         [ id "post-form-pass"
         , unfocusOnEsc "post-form-pass"
@@ -726,7 +717,7 @@ viewPostSubj : Theme -> PostForm -> List (Html Msg)
 viewPostSubj theme form =
     case subj form of
         Just subjVal ->
-            [ formLabel "Subject"
+            [ formLabel [ Html.text "Subject" ]
             , input
                 [ id "post-form-subj"
                 , unfocusOnEsc "post-form-subj"
@@ -747,40 +738,30 @@ viewPostSubj theme form =
 viewAttachments : Config -> PostForm -> List (Html Msg)
 viewAttachments cfg form =
     let
-        ( labelText, addButtonOrNothing ) =
-            case cfg.limits.maxCountMedia of
+        theme =
+            cfg.theme
+
+        strMaxSize =
+            case cfg.limits.maxSizeMediaFile of
+                Just maxSize ->
+                    "(Maximum file size is {{ }})"
+                        |> StrF.value (Filesize.format maxSize)
+
                 Nothing ->
-                    ( "Attached Images (...)"
-                    , viewButtonSelectAttachments cfg.theme form
-                    )
+                    "(...)"
 
-                Just maxN ->
-                    let
-                        attachedCount =
-                            Attachments.length (attachments form)
+        viewLabel =
+            formLabel
+                [ Html.text "Attached Images "
+                , span [ class theme.fgRemark ] [ Html.text strMaxSize ]
+                ]
 
-                        labelWithFileCount =
-                            String.concat
-                                [ "Attached Images ("
-                                , String.fromInt attachedCount
-                                , "/"
-                                , String.fromInt maxN
-                                , ")"
-                                ]
-
-                        btnOrNothing =
-                            if attachedCount < maxN then
-                                viewButtonSelectAttachments cfg.theme form
-
-                            else
-                                div [ class T.flex_grow_1 ] []
-                    in
-                    ( labelWithFileCount, btnOrNothing )
+        viewAttached =
+            List.map (viewAttachment theme) (Attachments.toList (attachments form))
     in
-    [ formLabel labelText
-    , div [ classes [ T.flex, T.justify_center ], styleFormElement ] <|
-        List.map (viewAttachment cfg.theme) (Attachments.toList (attachments form))
-            ++ [ addButtonOrNothing ]
+    [ viewLabel
+    , div [ classes [ T.flex, T.justify_center ], styleFormElement ]
+        (viewAttached ++ [ viewAddAttachmentsArea cfg form ])
     ]
 
 
@@ -823,8 +804,39 @@ viewPreviewLoadingSpinner theme =
     div [ styleFormMediaPreview ] [ Spinner.view theme 64 ]
 
 
-viewButtonSelectAttachments : Theme -> PostForm -> Html Msg
-viewButtonSelectAttachments theme _ =
+viewAddAttachmentsArea : Config -> PostForm -> Html Msg
+viewAddAttachmentsArea { theme, limits } postForm =
+    let
+        attachedCount =
+            Attachments.length (attachments postForm)
+
+        strFileCount =
+            case limits.maxCountMedia of
+                Just maxCount ->
+                    "{{ count }}/{{ maxCount }}"
+                        |> StrF.namedValue "count" (String.fromInt attachedCount)
+                        >> StrF.namedValue "maxCount" (String.fromInt maxCount)
+
+                Nothing ->
+                    "..."
+
+        strLabel =
+            "Add Images ({{ }})"
+                |> StrF.value strFileCount
+
+        canAddMoreFiles =
+            Maybe.map ((<) attachedCount) limits.maxCountMedia
+                |> Maybe.withDefault True
+    in
+    if canAddMoreFiles then
+        viewButtonSelectAttachments theme strLabel
+
+    else
+        div [ class T.flex_grow_1 ] []
+
+
+viewButtonSelectAttachments : Theme -> String -> Html Msg
+viewButtonSelectAttachments theme strLabel =
     let
         style =
             classes
@@ -842,11 +854,9 @@ viewButtonSelectAttachments theme _ =
                 ]
     in
     div
-        [ style
-        , onClick SelectFiles
-        ]
+        [ style, onClick SelectFiles ]
         [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]
-            [ div [] [ Html.text "Add Images" ] ]
+            [ div [] [ Html.text strLabel ] ]
         ]
 
 
@@ -868,7 +878,7 @@ viewPostComment theme form =
                 , theme.bInput
                 ]
     in
-    [ formLabel "Comment"
+    [ formLabel [ Html.text "Comment" ]
     , textarea
         [ id "post-form-text"
         , unfocusOnEsc "post-form-text"
@@ -985,9 +995,9 @@ formProblem theme str =
     div [ styleFormElement, classes [ theme.fgAlert ] ] [ Html.text str ]
 
 
-formLabel : String -> Html Msg
-formLabel str =
-    label [ styleFormElement ] [ Html.text str ]
+formLabel : List (Html Msg) -> Html Msg
+formLabel labelBody =
+    label [ styleFormElement ] labelBody
 
 
 formInfo : String -> String -> Html Msg
