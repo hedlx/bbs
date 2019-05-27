@@ -28,18 +28,6 @@ import Url exposing (Url)
 import Url.Builder
 
 
-type alias Config =
-    { key : Nav.Key
-    , urlApp : Url
-    , theme : Theme
-    , name : String
-    , trip : String
-    , pass : String
-    , limits : Limits
-    , timeZone : Maybe Zone
-    }
-
-
 init : Encode.Value -> Url -> Nav.Key -> Config
 init flags url key =
     let
@@ -61,6 +49,18 @@ init flags url key =
     , timeZone = Nothing
     }
         |> mergeFlags flags
+
+
+type alias Config =
+    { key : Nav.Key
+    , urlApp : Url
+    , theme : Theme
+    , name : String
+    , trip : String
+    , pass : String
+    , limits : Limits
+    , timeZone : Maybe Zone
+    }
 
 
 mergeFlags : Encode.Value -> Config -> Config

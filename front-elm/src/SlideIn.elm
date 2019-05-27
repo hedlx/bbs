@@ -1,4 +1,4 @@
-module PopUp exposing (Msg, PopUp, addAlert, init, update, view)
+module SlideIn exposing (Msg, SlideIn, addAlert, init, update, view)
 
 import Alert exposing (Alert)
 import Html exposing (..)
@@ -10,17 +10,17 @@ import Theme exposing (Theme)
 import Toasty
 
 
-init : PopUp
+init : SlideIn
 init =
-    PopUp { toasties = Toasty.initialState }
+    SlideIn { toasties = Toasty.initialState }
 
 
 
 -- Model
 
 
-type PopUp
-    = PopUp { toasties : Toasty.Stack Toast }
+type SlideIn
+    = SlideIn { toasties : Toasty.Stack Toast }
 
 
 type Toast
@@ -28,8 +28,8 @@ type Toast
     | ToastError Alert.Title Alert.Description
 
 
-addAlert : (Msg -> msg) -> Alert -> PopUp -> ( PopUp, Cmd msg )
-addAlert toMsg alert (PopUp state) =
+addAlert : (Msg -> msg) -> Alert -> SlideIn -> ( SlideIn, Cmd msg )
+addAlert toMsg alert (SlideIn state) =
     let
         toastAdders =
             List.map
@@ -42,7 +42,7 @@ addAlert toMsg alert (PopUp state) =
         ( newState, cmd ) =
             addToasts ( state, Cmd.none )
     in
-    ( PopUp newState, cmd )
+    ( SlideIn newState, cmd )
 
 
 alertToToasts : Alert -> List Toast
@@ -69,52 +69,52 @@ type Msg
     = ToastyMsg (Toasty.Msg Toast)
 
 
-update : Msg -> PopUp -> ( PopUp, Cmd Msg )
-update msg (PopUp state) =
+update : Msg -> SlideIn -> ( SlideIn, Cmd Msg )
+update msg (SlideIn state) =
     case msg of
         ToastyMsg msgToasty ->
             let
                 ( newState, cmds ) =
                     Toasty.update Toasty.config ToastyMsg msgToasty state
             in
-            ( PopUp newState, cmds )
+            ( SlideIn newState, cmds )
 
 
 
 -- View
 
 
-view : Theme -> PopUp -> Html Msg
-view theme (PopUp state) =
+view : Theme -> SlideIn -> Html Msg
+view theme (SlideIn state) =
     Toasty.view (configView theme) (viewToast theme) ToastyMsg state.toasties
 
 
 configView : Theme -> Toasty.Config msg
 configView theme =
     Toasty.config
-        |> Toasty.containerAttrs [ stylePopUpStack theme ]
+        |> Toasty.containerAttrs [ styleSlideInStack theme ]
 
 
 viewToast : Theme -> Toast -> Html msg
 viewToast theme toast =
     case toast of
         ToastWarning title desc ->
-            viewToastAlert (stylePopUpWarn theme) title desc
+            viewToastAlert (styleSlideInWarn theme) title desc
 
         ToastError title desc ->
-            viewToastAlert (stylePopUpErr theme) title desc
+            viewToastAlert (styleSlideInErr theme) title desc
 
 
 viewToastAlert : Attribute msg -> Alert.Title -> Alert.Description -> Html msg
 viewToastAlert attrStyle title desc =
-    div [ stylePopUp, attrStyle ]
+    div [ styleSlideIn, attrStyle ]
         [ h3 [] [ text title ]
         , p [ style "word-break" "break-word" ] [ text desc ]
         ]
 
 
-stylePopUpStack : Theme -> Attribute msg
-stylePopUpStack theme =
+styleSlideInStack : Theme -> Attribute msg
+styleSlideInStack theme =
     classes
         [ T.fixed
         , T.w_30_ns
@@ -129,8 +129,8 @@ stylePopUpStack theme =
         ]
 
 
-stylePopUp : Attribute msg
-stylePopUp =
+styleSlideIn : Attribute msg
+styleSlideIn =
     classes
         [ T.pl3
         , T.pr3
@@ -144,11 +144,11 @@ stylePopUp =
         ]
 
 
-stylePopUpWarn : Theme -> Attribute msg
-stylePopUpWarn theme =
-    classes [ theme.fgPopUpWarn, theme.bgPopUpWarn ]
+styleSlideInWarn : Theme -> Attribute msg
+styleSlideInWarn theme =
+    classes [ theme.fgSlideInWarn, theme.bgSlideInWarn ]
 
 
-stylePopUpErr : Theme -> Attribute msg
-stylePopUpErr theme =
-    classes [ theme.fgPopUpErr, theme.bgPopUpErr ]
+styleSlideInErr : Theme -> Attribute msg
+styleSlideInErr theme =
+    classes [ theme.fgSlideInErr, theme.bgSlideInErr ]

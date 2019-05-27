@@ -17,7 +17,7 @@ import Json.Encode as Encode
 import Limits exposing (Limits)
 import LocalStorage
 import Page exposing (Page)
-import PopUp exposing (PopUp)
+import SlideIn exposing (SlideIn)
 import Regex
 import Route
 import String.Extra
@@ -47,15 +47,11 @@ main =
         }
 
 
-
--- Init
-
-
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     route url
         { cfg = Config.init flags url key
-        , popUp = PopUp.init
+        , slideIn = SlideIn.init
         , page = Page.NotFound
         , isSettingsVisible = False
         }
@@ -67,7 +63,7 @@ init flags url key =
 
 type alias Model =
     { cfg : Config
-    , popUp : PopUp
+    , slideIn : SlideIn
     , page : Page
     , isSettingsVisible : Bool
     }
@@ -81,7 +77,7 @@ type Msg
     = LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | PageMsg Page.Msg
-    | PopUpMsg PopUp.Msg
+    | SlideInMsg SlideIn.Msg
     | GotLimits (Result Http.Error Limits)
     | GotTimeZone Zone
     | ToggleSettings
@@ -114,12 +110,12 @@ update msg model =
         UrlChanged url ->
             route url model
 
-        PopUpMsg subMsg ->
+        SlideInMsg subMsg ->
             let
-                ( newPopUp, cmd ) =
-                    PopUp.update subMsg model.popUp
+                ( newSlideIn, cmd ) =
+                    SlideIn.update subMsg model.slideIn
             in
-            ( { model | popUp = newPopUp }, Cmd.map PopUpMsg cmd )
+            ( { model | slideIn = newSlideIn }, Cmd.map SlideInMsg cmd )
 
         GotLimits (Err _) ->
             let
@@ -131,8 +127,8 @@ update msg model =
                         Please, check your Internet connection and reload the page.
                         """
             in
-            PopUp.addAlert PopUpMsg alert model.popUp
-                |> Update.Extra.map (\newPopUp -> { model | popUp = newPopUp })
+            SlideIn.addAlert SlideInMsg alert model.slideIn
+                |> Update.Extra.map (\newSlideIn -> { model | slideIn = newSlideIn })
 
         GotLimits (Ok newLimits) ->
             ( mapConfig (Config.setLimits newLimits) model, Cmd.none )
@@ -172,11 +168,11 @@ update msg model =
 updatePage : ( Page, Cmd Page.Msg, Alert ) -> Model -> ( Model, Cmd Msg )
 updatePage ( newPage, pageCmd, pageAlert ) model =
     let
-        ( newPopUp, cmdPopUp ) =
-            PopUp.addAlert PopUpMsg pageAlert model.popUp
+        ( newSlideIn, cmdSlideIn ) =
+            SlideIn.addAlert SlideInMsg pageAlert model.slideIn
     in
-    ( { model | page = newPage, popUp = newPopUp }
-    , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdPopUp ]
+    ( { model | page = newPage, slideIn = newSlideIn }
+    , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdSlideIn ]
     )
 
 
@@ -254,7 +250,7 @@ subscriptions _ =
 
 
 view : Model -> Browser.Document Msg
-view { cfg, page, popUp, isSettingsVisible } =
+view { cfg, page, slideIn, isSettingsVisible } =
     let
         pageTitle =
             Page.title page
@@ -279,7 +275,7 @@ view { cfg, page, popUp, isSettingsVisible } =
         , main_ [ styleBody ]
             [ viewNavigationMenu cfg
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
-            , Html.map PopUpMsg (PopUp.view cfg.theme popUp)
+            , Html.map SlideInMsg (SlideIn.view cfg.theme slideIn)
             , Html.map PageMsg (Page.view cfg page)
             ]
         ]

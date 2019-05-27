@@ -38,10 +38,10 @@ type alias Theme =
     , fgInput : String
     , bgInput : String
     , bInput : String
-    , fgPopUpWarn : String
-    , bgPopUpWarn : String
-    , fgPopUpErr : String
-    , bgPopUpErr : String
+    , fgSlideInWarn : String
+    , bgSlideInWarn : String
+    , fgSlideInErr : String
+    , bgSlideInErr : String
     , fgSettings : String
     , bgSettings : String
     , shadowSettings : String
@@ -115,10 +115,10 @@ themeDark =
     , fgInput = darkMainFG
     , bgInput = bg_black_30
     , bInput = b__white_10
-    , fgPopUpWarn = white
-    , bgPopUpWarn = bg_orange
-    , fgPopUpErr = white
-    , bgPopUpErr = bg_red
+    , fgSlideInWarn = white
+    , bgSlideInWarn = bg_orange
+    , fgSlideInErr = white
+    , bgSlideInErr = bg_red
     , fgSettings = silver
     , bgSettings = bg_black
     , shadowSettings = shadow_1
@@ -163,10 +163,10 @@ themeLight =
     , fgInput = lightMainFG
     , bgInput = bg_white
     , bInput = b__black_40
-    , fgPopUpWarn = white
-    , bgPopUpWarn = bg_orange
-    , fgPopUpErr = white
-    , bgPopUpErr = bg_red
+    , fgSlideInWarn = white
+    , bgSlideInWarn = bg_orange
+    , fgSlideInErr = white
+    , bgSlideInErr = bg_red
     , fgSettings = white
     , bgSettings = bg_purple
     , shadowSettings = shadow_5
