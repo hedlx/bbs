@@ -178,7 +178,7 @@ update cfg msg state =
                             Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd)
 
                         PostForm.Err alert newForm ->
-                            Response.Failed alert (Idle newForm thread) Cmd.none
+                            Response.Failed (Alert.map PostFormMsg alert) (Idle newForm thread) Cmd.none
 
                         PostForm.Submitted _ ->
                             Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread (threadID state))

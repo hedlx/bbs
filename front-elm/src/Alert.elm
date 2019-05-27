@@ -1,13 +1,14 @@
-module Alert exposing (Alert(..), Description, Title, fromHttpError)
+module Alert exposing (Alert(..), Description, Title, fromHttpError, map)
 
 import Http
 
 
-type Alert
+type Alert msg
     = None
     | Warning Title Description
     | Error Title Description
-    | Batch (List Alert)
+    | Confirm Title Description msg
+    | Batch (List (Alert msg))
 
 
 type alias Title =
@@ -18,7 +19,26 @@ type alias Description =
     String
 
 
-fromHttpError : Http.Error -> Alert
+map : (msgA -> msgB) -> Alert msgA -> Alert msgB
+map f alert =
+    case alert of
+        None ->
+            None
+
+        Warning title desc ->
+            Warning title desc
+
+        Error title desc ->
+            Error title desc
+
+        Confirm title desc msg ->
+            Confirm title desc (f msg)
+
+        Batch alerts ->
+            Batch (List.map (map f) alerts)
+
+
+fromHttpError : Http.Error -> Alert msg
 fromHttpError error =
     let
         pleaseCheckConnection =

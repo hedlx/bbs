@@ -4,6 +4,7 @@ import Alert exposing (Alert)
 import Browser
 import Browser.Navigation as Nav
 import Config exposing (Config)
+import Dialog exposing (Dialog)
 import Dict
 import Env
 import Html exposing (..)
@@ -17,9 +18,9 @@ import Json.Encode as Encode
 import Limits exposing (Limits)
 import LocalStorage
 import Page exposing (Page)
-import SlideIn exposing (SlideIn)
 import Regex
 import Route
+import SlideIn exposing (SlideIn)
 import String.Extra
 import Style
 import Style.Animations as Animations
@@ -51,9 +52,10 @@ init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     route url
         { cfg = Config.init flags url key
-        , slideIn = SlideIn.init
         , page = Page.NotFound
         , isSettingsVisible = False
+        , slideIn = SlideIn.init
+        , dialog = Dialog.closed
         }
 
 
@@ -63,9 +65,10 @@ init flags url key =
 
 type alias Model =
     { cfg : Config
-    , slideIn : SlideIn
     , page : Page
     , isSettingsVisible : Bool
+    , slideIn : SlideIn
+    , dialog : Dialog Msg
     }
 
 
@@ -82,11 +85,14 @@ type Msg
     | GotTimeZone Zone
     | ToggleSettings
     | SettingsStorageChanged Encode.Value
-    | SettingsThemeChanged Theme.ID
-    | SettingsNameChanged String
-    | SettingsTripChanged String
-    | SettingsPassChanged String
-    | SettingsReset
+    | SetTheme Theme.ID
+    | SetName String
+    | SetTrip String
+    | SetPass String
+    | ResetSettingsWithConfirmation
+    | ResetSettings
+    | CancelDialog
+    | ConfirmDialog
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -127,8 +133,7 @@ update msg model =
                         Please, check your Internet connection and reload the page.
                         """
             in
-            SlideIn.addAlert SlideInMsg alert model.slideIn
-                |> Update.Extra.map (\newSlideIn -> { model | slideIn = newSlideIn })
+            dispatchAlert alert model
 
         GotLimits (Ok newLimits) ->
             ( mapConfig (Config.setLimits newLimits) model, Cmd.none )
@@ -139,7 +144,7 @@ update msg model =
         ToggleSettings ->
             ( { model | isSettingsVisible = not model.isSettingsVisible }, Cmd.none )
 
-        SettingsThemeChanged newThemeID ->
+        SetTheme newThemeID ->
             let
                 newTheme =
                     Theme.selectBuiltIn newThemeID
@@ -152,27 +157,87 @@ update msg model =
         SettingsStorageChanged newFlags ->
             ( mapConfig (Config.mergeFlags newFlags) model, Cmd.none )
 
-        SettingsNameChanged newName ->
+        SetName newName ->
             updateUserSettings (Config.setName newName) model
 
-        SettingsTripChanged newTrip ->
+        SetTrip newTrip ->
             updateUserSettings (Config.setTrip newTrip) model
 
-        SettingsPassChanged newPass ->
+        SetPass newPass ->
             updateUserSettings (Config.setPass newPass) model
 
-        SettingsReset ->
-            ( mapConfig Config.resetUserSettings model, LocalStorage.cleanUserSettings () )
+        ResetSettingsWithConfirmation ->
+            ( { model
+                | dialog =
+                    Dialog.visible
+                        "Are you sure?"
+                        "Your name, password and tripcode will be lost."
+                        ResetSettings
+              }
+            , Cmd.none
+            )
+
+        ResetSettings ->
+            ( mapConfig Config.resetUserSettings { model | dialog = Dialog.closed }
+            , LocalStorage.cleanUserSettings ()
+            )
+
+        CancelDialog ->
+            ( { model | dialog = Dialog.cancel model.dialog }, Cmd.none )
+
+        ConfirmDialog ->
+            let
+                ( newDialog, maybeMsg ) =
+                    Dialog.confirm model.dialog
+            in
+            case maybeMsg of
+                Nothing ->
+                    ( model, Cmd.none )
+
+                Just confirmedMsg ->
+                    update confirmedMsg { model | dialog = newDialog }
 
 
-updatePage : ( Page, Cmd Page.Msg, Alert ) -> Model -> ( Model, Cmd Msg )
+dispatchAlert : Alert Msg -> Model -> ( Model, Cmd Msg )
+dispatchAlert alert model =
+    case alert of
+        Alert.None ->
+            ( model, Cmd.none )
+
+        Alert.Warning title desc ->
+            let
+                ( newSlideIn, cmd ) =
+                    SlideIn.add (SlideIn.Warning title desc) model.slideIn
+            in
+            ( { model | slideIn = newSlideIn }, Cmd.map SlideInMsg cmd )
+
+        Alert.Error title desc ->
+            let
+                ( newSlideIn, cmd ) =
+                    SlideIn.add (SlideIn.Error title desc) model.slideIn
+            in
+            ( { model | slideIn = newSlideIn }, Cmd.map SlideInMsg cmd )
+
+        Alert.Confirm title desc okMsg ->
+            ( { model | dialog = Dialog.visible title desc okMsg }, Cmd.none )
+
+        Alert.Batch alerts ->
+            let
+                dispatchBatch =
+                    List.map dispatchAlert alerts
+                        |> List.foldl Update.Extra.compose Update.Extra.return
+            in
+            dispatchBatch model
+
+
+updatePage : ( Page, Cmd Page.Msg, Alert Page.Msg ) -> Model -> ( Model, Cmd Msg )
 updatePage ( newPage, pageCmd, pageAlert ) model =
     let
-        ( newSlideIn, cmdSlideIn ) =
-            SlideIn.addAlert SlideInMsg pageAlert model.slideIn
+        ( newModel, cmdAlert ) =
+            dispatchAlert (Alert.map PageMsg pageAlert) model
     in
-    ( { model | page = newPage, slideIn = newSlideIn }
-    , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdSlideIn ]
+    ( { newModel | page = newPage }
+    , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdAlert ]
     )
 
 
@@ -250,7 +315,7 @@ subscriptions _ =
 
 
 view : Model -> Browser.Document Msg
-view { cfg, page, slideIn, isSettingsVisible } =
+view { cfg, page, isSettingsVisible, slideIn, dialog } =
     let
         pageTitle =
             Page.title page
@@ -274,6 +339,7 @@ view { cfg, page, slideIn, isSettingsVisible } =
         , Animations.css
         , main_ [ styleBody ]
             [ viewNavigationMenu cfg
+            , Dialog.view cfg.theme { onOk = ConfirmDialog, onCancel = CancelDialog } dialog
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map SlideInMsg (SlideIn.view cfg.theme slideIn)
             , Html.map PageMsg (Page.view cfg page)
@@ -394,7 +460,7 @@ viewSettingsDialog cfg =
                 , T.pb2_ns
                 , T.bottom_0_ns
                 , T.mt5
-                , T.z_max
+                , T.z_999
                 , Animations.fadein_left_ns
                 , Animations.fadein_top_s
                 ]
@@ -403,8 +469,8 @@ viewSettingsDialog cfg =
             classes
                 [ T.w_100
                 , T.br2
-                , theme.fgSettings
-                , theme.bgSettings
+                , theme.fgDialog
+                , theme.bgDialog
                 , theme.shadowSettings
                 ]
     in
@@ -437,11 +503,11 @@ viewSettingsOptions : Theme -> Config -> Html Msg
 viewSettingsOptions theme cfg =
     div [ class T.pa3 ]
         [ viewSettingsOption "Name"
-            [ viewOptionStringInput theme "text" SettingsNameChanged cfg.name Env.defaultName ]
+            [ viewOptionStringInput theme "text" SetName cfg.name Env.defaultName ]
         , viewSettingsOption "Trip Secret"
-            [ viewOptionStringInput theme "text" SettingsTripChanged cfg.trip "" ]
+            [ viewOptionStringInput theme "text" SetTrip cfg.trip "" ]
         , viewSettingsOption "Password"
-            [ viewOptionStringInput theme "password" SettingsPassChanged cfg.pass "" ]
+            [ viewOptionStringInput theme "password" SetPass cfg.pass "" ]
         , viewSettingsOption "UI Theme"
             [ viewSelectTheme theme ]
         , viewButtonResetSettings theme
@@ -495,7 +561,7 @@ viewSelectTheme currentTheme =
                 , currentTheme.bgInput
                 ]
     in
-    select [ style, onChange SettingsThemeChanged ] <|
+    select [ style, onChange SetTheme ] <|
         Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
 
 
@@ -530,7 +596,7 @@ viewButtonResetSettings theme =
     button
         [ style
         , Style.buttonEnabled theme
-        , onClick SettingsReset
+        , onClick ResetSettingsWithConfirmation
         , title "Resets settings and cleans all BBS data from the browser storage"
         ]
         [ text "Reset Settings" ]

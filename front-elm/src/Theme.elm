@@ -42,8 +42,8 @@ type alias Theme =
     , bgSlideInWarn : String
     , fgSlideInErr : String
     , bgSlideInErr : String
-    , fgSettings : String
-    , bgSettings : String
+    , fgDialog : String
+    , bgDialog : String
     , shadowSettings : String
     }
 
@@ -119,8 +119,8 @@ themeDark =
     , bgSlideInWarn = bg_orange
     , fgSlideInErr = white
     , bgSlideInErr = bg_red
-    , fgSettings = silver
-    , bgSettings = bg_black
+    , fgDialog = silver
+    , bgDialog = bg_black
     , shadowSettings = shadow_1
     }
 
@@ -167,8 +167,8 @@ themeLight =
     , bgSlideInWarn = bg_orange
     , fgSlideInErr = white
     , bgSlideInErr = bg_red
-    , fgSettings = white
-    , bgSettings = bg_purple
+    , fgDialog = white
+    , bgDialog = bg_purple
     , shadowSettings = shadow_5
     }
 

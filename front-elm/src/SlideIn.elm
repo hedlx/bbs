@@ -1,6 +1,5 @@
-module SlideIn exposing (Msg, SlideIn, addAlert, init, update, view)
+module SlideIn exposing (Msg, SlideIn, Toast(..), add, init, update, view)
 
-import Alert exposing (Alert)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Style.Animations as Animations
@@ -24,45 +23,25 @@ type SlideIn
 
 
 type Toast
-    = ToastWarning Alert.Title Alert.Description
-    | ToastError Alert.Title Alert.Description
+    = Warning Title Description
+    | Error Title Description
 
 
-addAlert : (Msg -> msg) -> Alert -> SlideIn -> ( SlideIn, Cmd msg )
-addAlert toMsg alert (SlideIn state) =
+type alias Title =
+    String
+
+
+type alias Description =
+    String
+
+
+add : Toast -> SlideIn -> ( SlideIn, Cmd Msg )
+add toast (SlideIn state) =
     let
-        toastAdders =
-            List.map
-                (Toasty.addPersistentToast Toasty.config (toMsg << ToastyMsg))
-                (alertToToasts alert)
-
-        addToasts =
-            List.foldl (<<) identity toastAdders
-
         ( newState, cmd ) =
-            addToasts ( state, Cmd.none )
+            Toasty.addPersistentToast Toasty.config ToastyMsg toast ( state, Cmd.none )
     in
     ( SlideIn newState, cmd )
-
-
-alertToToasts : Alert -> List Toast
-alertToToasts alert =
-    case alert of
-        Alert.None ->
-            []
-
-        Alert.Warning title desc ->
-            [ ToastWarning title desc ]
-
-        Alert.Error title desc ->
-            [ ToastError title desc ]
-
-        Alert.Batch alerts ->
-            List.concatMap alertToToasts alerts
-
-
-
--- Update
 
 
 type Msg
@@ -98,14 +77,14 @@ configView theme =
 viewToast : Theme -> Toast -> Html msg
 viewToast theme toast =
     case toast of
-        ToastWarning title desc ->
+        Warning title desc ->
             viewToastAlert (styleSlideInWarn theme) title desc
 
-        ToastError title desc ->
+        Error title desc ->
             viewToastAlert (styleSlideInErr theme) title desc
 
 
-viewToastAlert : Attribute msg -> Alert.Title -> Alert.Description -> Html msg
+viewToastAlert : Attribute msg -> Title -> Description -> Html msg
 viewToastAlert attrStyle title desc =
     div [ styleSlideIn, attrStyle ]
         [ h3 [] [ text title ]

@@ -1,5 +1,6 @@
 module Page.NewThread exposing (Msg, State, init, update, view)
 
+import Alert
 import Config exposing (Config)
 import Html exposing (..)
 import Html.Events exposing (..)
@@ -47,7 +48,7 @@ update cfg msg state =
                     Response.Ok newState (Cmd.map PostFormMsg newCmd)
 
                 PostForm.Err alert newState ->
-                    Response.Failed alert newState Cmd.none
+                    Response.Failed (Alert.map PostFormMsg alert) newState Cmd.none
 
                 PostForm.Submitted _ ->
                     Response.Redirect []

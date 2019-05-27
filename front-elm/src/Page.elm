@@ -38,7 +38,7 @@ type alias ParserPage =
 
 
 type alias ResponseToModel =
-    ( Page, Cmd Msg, Alert )
+    ( Page, Cmd Msg, Alert Msg )
 
 
 title : Page -> String

@@ -108,6 +108,19 @@ emptyRaw =
     }
 
 
+alertChangesWillBeLost : Msg -> Alert Msg
+alertChangesWillBeLost msg =
+    Alert.Confirm
+        "Are you sure?"
+        "All changes will be lost."
+        msg
+
+
+isCleanConfirmationRequired : PostForm -> Bool
+isCleanConfirmationRequired postForm =
+    not (isBlank postForm)
+
+
 clean : PostForm -> PostForm
 clean (PostForm form) =
     PostForm
@@ -122,7 +135,7 @@ clean (PostForm form) =
 reset : PostForm -> PostForm
 reset (PostForm form) =
     PostForm
-        { emptyRaw
+        { form
             | name = Nothing
             , trip = Nothing
             , pass = Nothing
@@ -133,11 +146,11 @@ reset (PostForm form) =
 isUserDataEmpty : PostForm -> Bool
 isUserDataEmpty (PostForm form) =
     form.name
-        == Nothing
+        == Just ""
         && form.trip
-        == Nothing
+        == Just ""
         && form.pass
-        == Nothing
+        == Just ""
 
 
 isBlank : PostForm -> Bool
@@ -312,7 +325,7 @@ addFiles { maxCountMedia, maxLenMediaName, maxSizeMediaFile } files postForm =
         Err (Alert.Batch alerts) postForm
 
 
-alertCantAddMoreFiles : Int -> Alert
+alertCantAddMoreFiles : Int -> Alert Msg
 alertCantAddMoreFiles maxCount =
     Alert.Warning
         ("Can't add more than {{ }} files"
@@ -321,29 +334,30 @@ alertCantAddMoreFiles maxCount =
         "Attach less files or make more posts!"
 
 
-alertLongFileName : Int -> String -> Alert
+alertLongFileName : Int -> String -> Alert Msg
 alertLongFileName maxLen filename =
     Alert.Warning
-        ("Too long file name: {{ }}"
-            |> StrF.value (String.Extra.ellipsis 32 filename)
+        ("File '{{ }}' has too long name"
+            |> StrF.value (String.Extra.ellipsis 16 filename)
         )
         ("File name can't be longer than {{ }} characters"
             |> StrF.value (String.fromInt maxLen)
         )
 
 
-alertBigFile : Int -> String -> Alert
-alertBigFile maxSize filename =
+alertBigFile : Int -> File -> Alert Msg
+alertBigFile maxSize file =
     Alert.Warning
-        ("File '{{ }}' is too big"
-            |> StrF.value filename
+        ("File '{{ name }}' is too big ({{ size }})"
+            |> StrF.namedValue "name" (String.Extra.ellipsis 16 (File.name file))
+            >> StrF.namedValue "size" (Filesize.formatBase2 (File.size file))
         )
         ("File size can't exceed {{ }}"
-            |> StrF.value (Filesize.format maxSize)
+            |> StrF.value (Filesize.formatBase2 maxSize)
         )
 
 
-assertFilesCount : Maybe Int -> Int -> List Alert
+assertFilesCount : Maybe Int -> Int -> List (Alert Msg)
 assertFilesCount maybeMaxCount total =
     case maybeMaxCount of
         Nothing ->
@@ -357,7 +371,7 @@ assertFilesCount maybeMaxCount total =
                 []
 
 
-assertFileNameLengths : Maybe Int -> List File -> List Alert
+assertFileNameLengths : Maybe Int -> List File -> List (Alert Msg)
 assertFileNameLengths maxLenMediaName files =
     case maxLenMediaName of
         Nothing ->
@@ -374,7 +388,7 @@ isFileNameLengthTooLong maxLen file =
     maxLen < String.length (File.name file)
 
 
-assertFileSizes : Maybe Int -> List File -> List Alert
+assertFileSizes : Maybe Int -> List File -> List (Alert Msg)
 assertFileSizes maxSizeMediaFile files =
     case maxSizeMediaFile of
         Nothing ->
@@ -382,8 +396,7 @@ assertFileSizes maxSizeMediaFile files =
 
         Just maxSize ->
             List.filter (isFileSizeTooBig maxSize) files
-                |> List.map File.name
-                >> List.map (alertBigFile maxSize)
+                |> List.map (alertBigFile maxSize)
 
 
 isFileSizeTooBig : Int -> File -> Bool
@@ -493,13 +506,14 @@ encode cfg postForm =
 
 type Msg
     = NoOp
+    | CleanWithConfirmation
     | Clean
     | Reset
-    | NameChanged String
-    | TripChanged String
-    | PassChanged String
-    | SubjChanged String
-    | TextChanged String
+    | SetName String
+    | SetTrip String
+    | SetPass String
+    | SetSubj String
+    | SetText String
     | SelectFiles
     | FilesSelected File (List File)
     | PreviewGenerated Int String
@@ -512,7 +526,7 @@ type Msg
 
 type Response
     = Ok PostForm (Cmd Msg)
-    | Err Alert PostForm
+    | Err (Alert Msg) PostForm
     | Submitted PostForm
 
 
@@ -522,25 +536,32 @@ update submitPath cfg msg postForm =
         NoOp ->
             Ok postForm Cmd.none
 
+        CleanWithConfirmation ->
+            if isCleanConfirmationRequired postForm then
+                Err (alertChangesWillBeLost Clean) postForm
+
+            else
+                update submitPath cfg Clean postForm
+
         Clean ->
             Ok (clean postForm) Cmd.none
 
         Reset ->
             Ok (reset postForm) Cmd.none
 
-        NameChanged newVal ->
+        SetName newVal ->
             Ok (setName cfg.limits newVal postForm) Cmd.none
 
-        TripChanged newVal ->
+        SetTrip newVal ->
             Ok (setTrip newVal postForm) Cmd.none
 
-        PassChanged newVal ->
+        SetPass newVal ->
             Ok (setPass newVal postForm) Cmd.none
 
-        SubjChanged newVal ->
+        SetSubj newVal ->
             Ok (setSubj cfg.limits newVal postForm) Cmd.none
 
-        TextChanged newVal ->
+        SetText newVal ->
             Ok (setText cfg.limits newVal postForm) Cmd.none
 
         SelectFiles ->
@@ -659,7 +680,7 @@ viewNameInput cfg form =
         , value (name cfg form)
         , styleTextInput cfg.theme
         , styleFormElement
-        , onInput NameChanged
+        , onInput SetName
         , placeholder Env.defaultName
         , disabled << not <| isEnabled form
         ]
@@ -677,7 +698,7 @@ viewTripInput cfg form =
         , value (trip cfg form)
         , styleTextInput cfg.theme
         , styleFormElement
-        , onInput TripChanged
+        , onInput SetTrip
         , disabled << not <| isEnabled form
         ]
         []
@@ -694,7 +715,7 @@ viewPassInput cfg form =
         , value (pass cfg form)
         , styleTextInput cfg.theme
         , styleFormElement
-        , onInput PassChanged
+        , onInput SetPass
         , disabled << not <| isEnabled form
         ]
         []
@@ -725,7 +746,7 @@ viewPostSubj theme form =
                 , value subjVal
                 , styleFormElement
                 , styleTextInput theme
-                , onInput SubjChanged
+                , onInput SetSubj
                 , disabled << not <| isEnabled form
                 ]
                 []
@@ -745,7 +766,7 @@ viewAttachments cfg form =
             case cfg.limits.maxSizeMediaFile of
                 Just maxSize ->
                     "(Maximum file size is {{ }})"
-                        |> StrF.value (Filesize.format maxSize)
+                        |> StrF.value (Filesize.formatBase2 maxSize)
 
                 Nothing ->
                     "(...)"
@@ -885,7 +906,7 @@ viewPostComment theme form =
         , value <| text form
         , style
         , styleFormElement
-        , onInput TextChanged
+        , onInput SetText
         , Html.Attributes.style "resize" "none"
         , disabled << not <| isEnabled form
         ]
@@ -903,7 +924,7 @@ viewBtnCleanOrReset cfg form =
             not (String.isEmpty cfg.name && String.isEmpty cfg.trip && String.isEmpty cfg.pass)
 
         isResetVisible =
-            isMetaExists && (not (isUserDataEmpty form) || not (isBlank form))
+            isMetaExists && isUserDataEmpty form
     in
     if isResetVisible then
         button
@@ -912,11 +933,11 @@ viewBtnCleanOrReset cfg form =
              ]
                 ++ buttonAttrs theme True
             )
-            [ Html.text "Reset" ]
+            [ Html.text "Reset to Default" ]
 
     else
         button
-            ([ onClick Clean
+            ([ onClick CleanWithConfirmation
              , title "Clean all fields"
              ]
                 ++ buttonAttrs theme (not (isBlank form) || isMetaExists)
