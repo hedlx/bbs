@@ -245,7 +245,7 @@ viewThread cfg form thread =
     <|
         [ viewSubject cfg.theme thread ]
             ++ viewPosts cfg thread
-            ++ [ viewReplyForm cfg form ]
+            ++ [ viewPostForm cfg form ]
 
 
 viewSubject : Theme -> Thread -> Html Msg
@@ -274,7 +274,7 @@ viewPosts cfg { id, messages } =
     List.map (Html.Lazy.lazy4 Post.view postEventHandlers cfg id) messages
 
 
-viewReplyForm : Config -> PostForm -> Html Msg
-viewReplyForm cfg form =
+viewPostForm : Config -> PostForm -> Html Msg
+viewPostForm cfg form =
     Html.map PostFormMsg <|
-        div [ classes [ T.mt4, T.pr2, T.pr0_ns ] ] [ PostForm.view cfg form ]
+        div [ classes [ T.mt4 ] ] [ PostForm.view cfg form ]

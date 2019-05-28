@@ -789,7 +789,7 @@ viewAttachments cfg form =
             List.map (viewAttachment theme) (Attachments.toList (attachments form))
     in
     [ viewLabel
-    , div [ classes [ T.flex, T.justify_center ], styleFormElement ]
+    , div [ classes [ T.flex, T.justify_start, T.mb3 ] ]
         (viewAttached ++ [ viewAddAttachmentsArea cfg form ])
     ]
 
@@ -800,13 +800,18 @@ viewAttachment theme { id, preview } =
         previewImg base64Img =
             div
                 [ styleFormMediaPreview
+                , Html.Attributes.style "flex-basis" "100%"
                 , Html.Attributes.style "background-image" <| String.concat [ "url('", base64Img, "')" ]
                 , onClick <| RemoveFile id
                 ]
                 [ overlay ]
 
         overlay =
-            div [ styleOverlay, Html.Attributes.style "visibility" "none" ]
+            div
+                [ styleOverlay
+                , Html.Attributes.style "visibility" "none"
+                , title "Click to Remove"
+                ]
                 [ div [] [ Html.text "Click to Remove" ] ]
 
         styleOverlay =
@@ -861,7 +866,7 @@ viewAddAttachmentsArea { theme, limits } postForm =
         viewButtonSelectAttachments theme strLabel
 
     else
-        div [ class T.flex_grow_1 ] []
+        nothing
 
 
 viewButtonSelectAttachments : Theme -> String -> Html Msg
@@ -871,6 +876,7 @@ viewButtonSelectAttachments theme strLabel =
             classes
                 [ T.flex_grow_1
                 , T.pa3
+                , T.mr1
                 , T.tc
                 , T.br1
                 , T.bw1
@@ -919,7 +925,6 @@ viewPostComment theme form =
                 , T.br1
                 , T.b__solid
                 , T.bw1
-                , T.w_100
                 , theme.fgInput
                 , theme.bgInput
                 , theme.bInput
@@ -930,8 +935,8 @@ viewPostComment theme form =
         [ id "post-form-text"
         , unfocusOnEsc "post-form-text"
         , value <| text form
-        , style
         , styleFormElement
+        , style
         , onInput SetText
         , Html.Attributes.style "resize" "none"
         , disabled << not <| isEnabled form
@@ -1059,12 +1064,24 @@ styleTextInput theme =
 
 styleFormElement : Attribute Msg
 styleFormElement =
-    classes [ T.db, T.mb3, T.w_100_ns ]
+    classes [ T.db, T.mr1, T.mb3, T.w_100_ns ]
 
 
 styleFormMediaPreview : Attribute Msg
 styleFormMediaPreview =
-    classes [ T.h4, T.w4, T.mr2, T.relative, T.hide_child, T.pointer, T.overflow_hidden, T.br1, T.cover, T.bg_center ]
+    classes
+        [ T.h4
+        , T.mw4
+        , T.mr1
+        , T.mb1
+        , T.relative
+        , T.hide_child
+        , T.pointer
+        , T.overflow_hidden
+        , T.br1
+        , T.cover
+        , T.bg_center
+        ]
 
 
 styleFromButton : Attribute Msg
