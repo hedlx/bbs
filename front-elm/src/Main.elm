@@ -7,6 +7,7 @@ import Config exposing (Config)
 import Dialog exposing (Dialog)
 import Dict
 import Env
+import FilesDrop
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -77,7 +78,8 @@ type alias Model =
 
 
 type Msg
-    = LinkClicked Browser.UrlRequest
+    = NoOp
+    | LinkClicked Browser.UrlRequest
     | UrlChanged Url
     | PageMsg Page.Msg
     | SlideInMsg SlideIn.Msg
@@ -98,6 +100,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         PageMsg subMsg ->
             updatePage (Page.update model.cfg subMsg model.page) model
 
@@ -337,7 +342,13 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
     , body =
         [ Tachyons.tachyons.css
         , Animations.css
-        , main_ [ styleBody ]
+        , main_
+            [ styleBody
+
+            -- Ignoring dropped files on top level to prevent
+            , FilesDrop.onDragOver NoOp
+            , FilesDrop.onDrop (\_ -> NoOp)
+            ]
             [ viewNavigationMenu cfg
             , Dialog.view cfg.theme { onOk = ConfirmDialog, onCancel = CancelDialog } dialog
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)

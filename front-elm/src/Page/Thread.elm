@@ -15,6 +15,8 @@ module Page.Thread exposing
 import Alert
 import Config exposing (Config)
 import Env
+import File exposing (File)
+import FilesDrop
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Extra exposing (..)
@@ -61,10 +63,12 @@ type alias ID =
 
 
 type Msg
-    = GotThread (Result Http.Error Thread)
+    = NoOp
+    | GotThread (Result Http.Error Thread)
     | PostFormMsg PostForm.Msg
     | MediaClicked Int String
     | ReplyToClicked Int Int
+    | FilesDropped (List File)
 
 
 path : ID -> List String
@@ -92,8 +96,8 @@ threadID state =
             thread.id
 
 
-replyForm : State -> PostForm
-replyForm state =
+postForm : State -> PostForm
+postForm state =
     case state of
         Loading form _ ->
             form
@@ -102,8 +106,8 @@ replyForm state =
             form
 
 
-mapReplyForm : (PostForm -> PostForm) -> State -> State
-mapReplyForm f state =
+mapPostForm : (PostForm -> PostForm) -> State -> State
+mapPostForm f state =
     case state of
         Loading form tID ->
             Loading (f form) tID
@@ -119,7 +123,7 @@ updatePost postNo f thread =
 
 replyTo : Limits -> Post.No -> State -> State
 replyTo limits postNo =
-    mapReplyForm
+    mapPostForm
         (\form ->
             if postNo == 0 then
                 PostForm.autofocus form
@@ -167,35 +171,25 @@ getThread tID =
 update : Config -> Msg -> State -> Response State Msg
 update cfg msg state =
     case msg of
+        NoOp ->
+            Response.None
+
         PostFormMsg subMsg ->
             case state of
-                Loading _ _ ->
-                    Response.Ok state Cmd.none
-
                 Idle form thread ->
-                    case updatePostForm (threadID state) cfg subMsg form of
-                        PostForm.Ok newForm newCmd ->
-                            Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd)
+                    updatePostForm (threadID state) cfg subMsg form
+                        |> handlePostFormResponse thread
 
-                        PostForm.Err alert newForm ->
-                            Response.Failed (Alert.map PostFormMsg alert) (Idle newForm thread) Cmd.none
-
-                        PostForm.Submitted _ ->
-                            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread (threadID state))
+                Loading _ _ ->
+                    Response.None
 
         GotThread (Ok thread) ->
             let
-                currentReplyForm =
-                    replyForm state
-
-                cmdFocusForm =
-                    if PostForm.isAutofocus currentReplyForm then
-                        focusReplyForm currentReplyForm
-
-                    else
-                        Cmd.none
+                currentPostForm =
+                    postForm state
             in
-            Response.Ok (Idle (PostForm.enable currentReplyForm) thread) cmdFocusForm
+            Response.Ok (Idle (PostForm.enable currentPostForm) thread) Cmd.none
+                |> Response.andThenIf (PostForm.isAutofocus currentPostForm) focusPostForm
 
         GotThread (Err error) ->
             Response.Err (Alert.fromHttpError error)
@@ -205,10 +199,21 @@ update cfg msg state =
 
         ReplyToClicked tID postNo ->
             if tID == threadID state then
-                Response.Ok (replyTo cfg.limits postNo state) (focusReplyForm (replyForm state))
+                Response.Ok (replyTo cfg.limits postNo state) Cmd.none
+                    |> Response.andThen focusPostForm
 
             else
                 Response.ReplyTo tID postNo
+
+        FilesDropped files ->
+            case state of
+                Idle form thread ->
+                    PostForm.addFiles cfg.limits files form
+                        |> handlePostFormResponse thread
+                        >> Response.andThen focusPostForm
+
+                Loading _ _ ->
+                    Response.None
 
 
 updatePostForm : ID -> Config -> PostForm.Msg -> PostForm -> PostForm.Response
@@ -216,9 +221,27 @@ updatePostForm tID =
     PostForm.update (path tID)
 
 
-focusReplyForm : PostForm -> Cmd Msg
-focusReplyForm form =
-    Cmd.map PostFormMsg (PostForm.focus form)
+handlePostFormResponse : Thread -> PostForm.Response -> Response State Msg
+handlePostFormResponse thread postFormResponse =
+    case postFormResponse of
+        PostForm.Ok newForm newCmd ->
+            Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd)
+
+        PostForm.Err alert newForm ->
+            Response.Failed (Alert.map PostFormMsg alert) (Idle newForm thread) Cmd.none
+
+        PostForm.Submitted _ ->
+            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id)
+
+
+focusPostForm : State -> Response State Msg
+focusPostForm state =
+    case state of
+        Idle form _ ->
+            Response.Ok state (Cmd.map PostFormMsg (PostForm.focus form))
+
+        _ ->
+            Response.Ok state Cmd.none
 
 
 
@@ -241,6 +264,8 @@ viewThread cfg form thread =
         [ -- This id is required to get scrolling manipulations working
           id "page-content"
         , Style.content
+        , FilesDrop.onDragOver NoOp
+        , FilesDrop.onDrop FilesDropped
         ]
     <|
         [ viewSubject cfg.theme thread ]

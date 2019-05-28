@@ -2,6 +2,7 @@ module PostForm exposing
     ( Msg
     , PostForm
     , Response(..)
+    , addFiles
     , appendToText
     , autofocus
     , disable
@@ -29,7 +30,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Extra exposing (..)
 import Http
-import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Keyboard
 import Keyboard.Events
@@ -891,26 +891,10 @@ viewButtonSelectAttachments theme strLabel =
     div
         [ style
         , onClick SelectFiles
-        , preventDefaultOn "drop" decoderDropFiles
-        , preventDefaultOn "dragover" (Decode.succeed ( NoOp, True ))
         ]
         [ div [ Tachyons.classes [ T.h_100, T.flex, T.flex_column, T.justify_center ] ]
             [ div [] [ Html.text strLabel ] ]
         ]
-
-
-decoderDropFiles : Decoder ( Msg, Bool )
-decoderDropFiles =
-    Decode.field "dataTransfer" (Decode.field "files" (Decode.list File.decoder))
-        |> Decode.map
-            (\files ->
-                case files of
-                    first :: other ->
-                        ( FilesSelected first other, True )
-
-                    _ ->
-                        ( NoOp, False )
-            )
 
 
 viewPostComment : Theme -> PostForm -> List (Html Msg)

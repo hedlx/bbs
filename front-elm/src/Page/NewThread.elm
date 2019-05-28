@@ -2,6 +2,8 @@ module Page.NewThread exposing (Msg, State, init, update, view)
 
 import Alert
 import Config exposing (Config)
+import File exposing (File)
+import FilesDrop
 import Html exposing (..)
 import Html.Events exposing (..)
 import Page.Response as Response exposing (Response)
@@ -27,7 +29,9 @@ type alias State =
 
 
 type Msg
-    = PostFormMsg PostForm.Msg
+    = NoOp
+    | PostFormMsg PostForm.Msg
+    | FilesDropped (List File)
 
 
 path : List String
@@ -42,21 +46,32 @@ path =
 update : Config -> Msg -> State -> Response State Msg
 update cfg msg state =
     case msg of
+        NoOp ->
+            Response.None
+
         PostFormMsg subMsg ->
-            case updatePostForm cfg subMsg state of
-                PostForm.Ok newState newCmd ->
-                    Response.Ok newState (Cmd.map PostFormMsg newCmd)
+            handlePostFormResponse (updatePostForm cfg subMsg state)
 
-                PostForm.Err alert newState ->
-                    Response.Failed (Alert.map PostFormMsg alert) newState Cmd.none
-
-                PostForm.Submitted _ ->
-                    Response.Redirect []
+        FilesDropped files ->
+            handlePostFormResponse (PostForm.addFiles cfg.limits files state)
 
 
 updatePostForm : Config -> PostForm.Msg -> PostForm -> PostForm.Response
 updatePostForm =
     PostForm.update path
+
+
+handlePostFormResponse : PostForm.Response -> Response State Msg
+handlePostFormResponse postFormResp =
+    case postFormResp of
+        PostForm.Ok newState newCmd ->
+            Response.Ok newState (Cmd.map PostFormMsg newCmd)
+
+        PostForm.Err alert newState ->
+            Response.Failed (Alert.map PostFormMsg alert) newState Cmd.none
+
+        PostForm.Submitted _ ->
+            Response.Redirect []
 
 
 
@@ -66,7 +81,11 @@ updatePostForm =
 view : Config -> State -> Html Msg
 view cfg form =
     div
-        [ Style.content, Style.contentNoScroll ]
+        [ Style.content
+        , Style.contentNoScroll
+        , FilesDrop.onDrop FilesDropped
+        , FilesDrop.onDragOver NoOp
+        ]
         [ div [ classes [ T.pt4, T.pr2, T.pt0_ns, T.pr0_ns ] ]
             [ Html.map PostFormMsg (PostForm.view cfg form) ]
         ]

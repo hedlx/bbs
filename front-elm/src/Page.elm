@@ -137,15 +137,15 @@ updatePage cfg msg page =
     case ( msg, page ) of
         ( IndexMsg subMsg, Index state ) ->
             Index.update cfg subMsg state
-                |> Response.map Index IndexMsg
+                |> Response.map2 Index IndexMsg
 
         ( NewThreadMsg subMsg, NewThread state ) ->
             NewThread.update cfg subMsg state
-                |> Response.map NewThread NewThreadMsg
+                |> Response.map2 NewThread NewThreadMsg
 
         ( ThreadMsg subMsg, Thread state ) ->
             Thread.update cfg subMsg state
-                |> Response.map Thread ThreadMsg
+                |> Response.map2 Thread ThreadMsg
 
         _ ->
             Response.Ok page Cmd.none
@@ -154,6 +154,9 @@ updatePage cfg msg page =
 handleResponse : Config -> Page -> Response Page Msg -> ResponseToModel
 handleResponse cfg currentPage reponse =
     case reponse of
+        Response.None ->
+            ( currentPage, Cmd.none, Alert.None )
+
         Response.Ok newPage cmdPage ->
             ( newPage, cmdPage, Alert.None )
 
