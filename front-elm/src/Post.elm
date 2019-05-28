@@ -238,7 +238,6 @@ viewBody eventHandlers theme threadID post =
     section
         [ style
         , Html.Attributes.style "white-space" "pre-wrap"
-        , Html.Attributes.style "word-wrap" "break-word"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
         , text post.text
