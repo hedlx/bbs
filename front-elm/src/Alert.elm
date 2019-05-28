@@ -42,7 +42,7 @@ fromHttpError : Http.Error -> Alert msg
 fromHttpError error =
     let
         pleaseCheckConnection =
-            "Please check your Internet connection and try again."
+            "Please check your Internet connection and refresh the page."
 
         pleaseReport =
             "\n Please, report this issue to developers."

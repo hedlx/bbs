@@ -22,7 +22,7 @@ import Browser.Dom as Dom
 import Config exposing (Config)
 import Env
 import File exposing (File)
-import File.Select as Select
+import File.Select
 import Filesize
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -573,7 +573,7 @@ update submitPath cfg msg postForm =
             Ok (setText cfg.limits newVal postForm) Cmd.none
 
         SelectFiles ->
-            Ok postForm (Select.files Env.fileFormats FilesSelected)
+            Ok postForm (File.Select.files Env.fileFormats FilesSelected)
 
         FilesSelected file moreFiles ->
             addFiles cfg.limits (file :: moreFiles) postForm
