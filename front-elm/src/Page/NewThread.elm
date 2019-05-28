@@ -67,6 +67,6 @@ view : Config -> State -> Html Msg
 view cfg form =
     div
         [ Style.content, Style.contentNoScroll ]
-        [ div [ classes [ T.pt4, T.pr3, T.pt0_ns, T.pr0_ns ] ]
+        [ div [ classes [ T.pt4, T.pr2, T.pt0_ns, T.pr0_ns ] ]
             [ Html.map PostFormMsg (PostForm.view cfg form) ]
         ]
