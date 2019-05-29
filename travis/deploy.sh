@@ -58,11 +58,11 @@ rust)
 	rm -rf tmp
 	;;
 elm)
-	[ -f "front-elm/static/index.html" ] || die "No front-elm/static/index.html"
+	[ -f "front-elm/public/index.html" ] || die "No front-elm/public/index.html"
 
 	# TODO move to ~/tmp/elm
 	ssh -C $ssh_opts hedlx.org 'rm -rf front-elm.tmp'
-	scp -C $ssh_opts -r front-elm/static hedlx.org:front-elm.tmp
+	scp -C $ssh_opts -r front-elm/public hedlx.org:front-elm.tmp
 	ssh -C $ssh_opts hedlx.org 'cd front-elm.tmp && rsync -av index.html main.js manifest.json icons /srv/www/bbs/elm/ && echo moved'
 	;;
 clojure)

@@ -1,15 +1,19 @@
-module Page.Response exposing (Response(..), andThen, andThenIf, join, map, map2)
+module Page.Response exposing (Response(..), andThen, andThenIf, join, map, map2, return)
 
 import Alert exposing (Alert)
+import Page.Redirect exposing (Redirect)
 
 
 type Response a msg
     = None
-    | Ok a (Cmd msg)
+    | Ok a (Cmd msg) (Alert msg)
     | Err (Alert msg)
-    | Failed (Alert msg) a (Cmd msg)
-    | Redirect (List String)
-    | ReplyTo Int Int
+    | Redirect Redirect
+
+
+return : a -> Response a msg
+return state =
+    Ok state Cmd.none Alert.None
 
 
 map : (a -> b) -> Response a msg -> Response b msg
@@ -23,20 +27,14 @@ map2 fnA fnMsg response =
         None ->
             None
 
-        Ok a cmd ->
-            Ok (fnA a) (Cmd.map fnMsg cmd)
+        Ok a cmd alert ->
+            Ok (fnA a) (Cmd.map fnMsg cmd) (Alert.map fnMsg alert)
 
         Err alert ->
             Err (Alert.map fnMsg alert)
 
-        Failed alert a cmd ->
-            Failed (Alert.map fnMsg alert) (fnA a) (Cmd.map fnMsg cmd)
-
         Redirect path ->
             Redirect path
-
-        ReplyTo tID postNo ->
-            ReplyTo tID postNo
 
 
 andThen : (a -> Response b msg) -> Response a msg -> Response b msg
@@ -59,33 +57,16 @@ join responseResponse =
         None ->
             None
 
-        Ok response cmdTop ->
+        Ok response cmdTop alertTop ->
             case response of
-                Ok a cmd ->
-                    Ok a (Cmd.batch [ cmd, cmdTop ])
+                Ok a cmd alert ->
+                    Ok a (Cmd.batch [ cmd, cmdTop ]) (Alert.Batch [ alert, alertTop ])
 
-                Failed alert a cmd ->
-                    Failed alert a (Cmd.batch [ cmd, cmdTop ])
-
-                other ->
-                    other
+                _ ->
+                    response
 
         Err alertTop ->
             Err alertTop
 
-        Failed alertTop response cmdTop ->
-            case response of
-                Ok a cmd ->
-                    Failed alertTop a (Cmd.batch [ cmd, cmdTop ])
-
-                Failed alert a cmd ->
-                    Failed (Alert.Batch [ alert, alertTop ]) a (Cmd.batch [ cmd, cmdTop ])
-
-                other ->
-                    other
-
-        Redirect path ->
-            Redirect path
-
-        ReplyTo tID postNo ->
-            ReplyTo tID postNo
+        Redirect redirect ->
+            Redirect redirect

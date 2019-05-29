@@ -67,7 +67,7 @@ mergeFlags : Encode.Value -> Config -> Config
 mergeFlags flags cfg =
     let
         userSettings =
-            Decode.decodeValue decoderUserSettings flags
+            Decode.decodeValue (Decode.field "settings" decoderUserSettings) flags
                 |> Result.withDefault defaultUserSettings
     in
     { cfg

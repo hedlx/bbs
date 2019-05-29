@@ -12,6 +12,7 @@ import List.Extra exposing (updateIf)
 import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
+import Page.Redirect as Redirect
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -94,16 +95,16 @@ update : Config -> Msg -> State -> Response State Msg
 update _ msg state =
     case msg of
         GotThreads (Ok newState) ->
-            Response.Ok newState Cmd.none
+            Response.return newState
 
         GotThreads (Err error) ->
             Response.Err (Alert.fromHttpError error)
 
         MediaClicked tID postNo mediaID ->
-            Response.Ok (toggleMediaPreview tID postNo mediaID state) Cmd.none
+            Response.return (toggleMediaPreview tID postNo mediaID state)
 
         ReplyToClicked tID postNo ->
-            Response.ReplyTo tID postNo
+            Response.Redirect (Redirect.ReplyTo tID postNo)
 
 
 

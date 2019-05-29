@@ -29,6 +29,7 @@ import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import PostForm exposing (PostForm)
+import Page.Redirect as Redirect
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -188,22 +189,22 @@ update cfg msg state =
                 currentPostForm =
                     postForm state
             in
-            Response.Ok (Idle (PostForm.enable currentPostForm) thread) Cmd.none
+            Response.return (Idle (PostForm.enable currentPostForm) thread)
                 |> Response.andThenIf (PostForm.isAutofocus currentPostForm) focusPostForm
 
         GotThread (Err error) ->
             Response.Err (Alert.fromHttpError error)
 
         MediaClicked postNo mediaID ->
-            Response.Ok (toggleMediaPreview postNo mediaID state) Cmd.none
+            Response.return (toggleMediaPreview postNo mediaID state)
 
         ReplyToClicked tID postNo ->
             if tID == threadID state then
-                Response.Ok (replyTo cfg.limits postNo state) Cmd.none
+                Response.return (replyTo cfg.limits postNo state)
                     |> Response.andThen focusPostForm
 
             else
-                Response.ReplyTo tID postNo
+                Response.Redirect (Redirect.ReplyTo tID postNo)
 
         FilesDropped files ->
             case state of
@@ -225,23 +226,23 @@ handlePostFormResponse : Thread -> PostForm.Response -> Response State Msg
 handlePostFormResponse thread postFormResponse =
     case postFormResponse of
         PostForm.Ok newForm newCmd ->
-            Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd)
+            Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd) Alert.None
 
         PostForm.Err alert newForm ->
-            Response.Failed (Alert.map PostFormMsg alert) (Idle newForm thread) Cmd.none
+            Response.Ok (Idle newForm thread) Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id)
+            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id) Alert.None
 
 
 focusPostForm : State -> Response State Msg
 focusPostForm state =
     case state of
         Idle form _ ->
-            Response.Ok state (Cmd.map PostFormMsg (PostForm.focus form))
+            Response.Ok state (Cmd.map PostFormMsg (PostForm.focus form)) Alert.None
 
         _ ->
-            Response.Ok state Cmd.none
+            Response.return state
 
 
 

@@ -20,14 +20,16 @@
   </head>
   <body>
     <script>
-      var storageKey = "elmApp";
+      var storageKey = 'elmApp';
 
       var app = Elm.Main.init({
-        "flags": JSON.parse(localStorage.getItem(storageKey))
+        flags: {
+          settings: JSON.parse(localStorage.getItem(storageKey))
+        }
       });
 
       app.ports.saveUserSettings.subscribe(function(settings) {
-        var data = {"settings": settings};
+        var data = { settings: settings };
         localStorage.setItem(storageKey, JSON.stringify(data));
       });
 
@@ -35,9 +37,9 @@
         localStorage.removeItem(storageKey);
       });
 
-      window.addEventListener("storage", function(event) {
+      window.addEventListener('storage', function(event) {
         if (event.storageArea === localStorage && event.key === storageKey) {
-          app.ports.userSettingsChanged.send(JSON.parse(event.newValue));
+          app.ports.userSettingsChanged.send({ settings: JSON.parse(event.newValue) });
         }
       }, false);
     </script>

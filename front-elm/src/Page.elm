@@ -8,6 +8,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Page.Index as Index
 import Page.NewThread as NewThread
+import Page.Redirect as Redirect exposing (Redirect)
 import Page.Response as Response exposing (Response)
 import Page.Thread as Thread
 import Route
@@ -148,7 +149,7 @@ updatePage cfg msg page =
                 |> Response.map2 Thread ThreadMsg
 
         _ ->
-            Response.Ok page Cmd.none
+            Response.Ok page Cmd.none Alert.None
 
 
 handleResponse : Config -> Page -> Response Page Msg -> ResponseToModel
@@ -157,19 +158,23 @@ handleResponse cfg currentPage reponse =
         Response.None ->
             ( currentPage, Cmd.none, Alert.None )
 
-        Response.Ok newPage cmdPage ->
-            ( newPage, cmdPage, Alert.None )
-
-        Response.Failed alert newPage cmdPage ->
-            ( newPage, cmdPage, alert )
+        Response.Ok newPage cmd alert ->
+            ( newPage, cmd, alert )
 
         Response.Err alert ->
             ( currentPage, Cmd.none, alert )
 
-        Response.Redirect path ->
+        Response.Redirect redirect ->
+            handleRedirect cfg currentPage redirect
+
+
+handleRedirect : Config -> Page -> Redirect -> ResponseToModel
+handleRedirect cfg currentPage redirect =
+    case redirect of
+        Redirect.Path path ->
             ( currentPage, Nav.pushUrl cfg.key (Route.internalLink path), Alert.None )
 
-        Response.ReplyTo tID postNo ->
+        Redirect.ReplyTo tID postNo ->
             let
                 ( pageThread, pageCmd ) =
                     Thread.init tID

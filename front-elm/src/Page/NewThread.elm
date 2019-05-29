@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Page.Response as Response exposing (Response)
 import PostForm exposing (PostForm)
+import Page.Redirect as Redirect
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -65,13 +66,13 @@ handlePostFormResponse : PostForm.Response -> Response State Msg
 handlePostFormResponse postFormResp =
     case postFormResp of
         PostForm.Ok newState newCmd ->
-            Response.Ok newState (Cmd.map PostFormMsg newCmd)
+            Response.Ok newState (Cmd.map PostFormMsg newCmd) Alert.None
 
         PostForm.Err alert newState ->
-            Response.Failed (Alert.map PostFormMsg alert) newState Cmd.none
+            Response.Ok newState Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.Redirect []
+            Response.Redirect (Redirect.Path [])
 
 
 
