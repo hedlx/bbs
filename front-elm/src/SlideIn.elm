@@ -15,7 +15,7 @@ init =
 
 
 
--- Model
+-- MODEL
 
 
 type SlideIn
@@ -60,7 +60,7 @@ update msg (SlideIn state) =
 
 
 
--- View
+-- VIEW
 
 
 view : Theme -> SlideIn -> Html Msg

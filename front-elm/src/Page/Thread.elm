@@ -44,7 +44,7 @@ init tID =
 
 
 
--- Model
+-- MODEL
 
 
 type State
@@ -166,7 +166,7 @@ getThread tID =
 
 
 
--- Update
+-- UPDATE
 
 
 update : Config -> Msg -> State -> Response State Msg
@@ -246,7 +246,7 @@ focusPostForm state =
 
 
 
--- View
+-- VIEW
 
 
 view : Config -> State -> Html Msg

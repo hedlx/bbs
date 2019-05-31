@@ -61,7 +61,7 @@ init flags url key =
 
 
 
--- Model
+-- MODEL
 
 
 type alias Model =
@@ -74,7 +74,7 @@ type alias Model =
 
 
 
--- Update
+-- UPDATE
 
 
 type Msg
@@ -285,17 +285,18 @@ route url model =
                 }
                 model.cfg
 
-        fromPage ( page, cmdPage ) =
-            ( { model | page = page }
-            , Cmd.batch
-                [ cmdFetchConfig
-                , Cmd.map PageMsg cmdPage
-                ]
-            )
+        urlFixed =
+            replacePathWithFragment url
+
+        ( page, cmdPage ) =
+            Page.init urlFixed
     in
-    replacePathWithFragment url
-        |> Page.route model.page
-        >> fromPage
+    ( { model | page = page }
+    , Cmd.batch
+        [ cmdFetchConfig
+        , Cmd.map PageMsg cmdPage
+        ]
+    )
 
 
 replacePathWithFragment : Url -> Url
@@ -307,7 +308,7 @@ replacePathWithFragment url =
 
 
 
--- Subscriptions
+-- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -316,7 +317,7 @@ subscriptions _ =
 
 
 
--- View
+-- VIEW
 
 
 view : Model -> Browser.Document Msg

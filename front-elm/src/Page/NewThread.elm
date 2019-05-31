@@ -22,7 +22,7 @@ init =
 
 
 
--- Model
+-- MODEL
 
 
 type alias State =
@@ -41,7 +41,7 @@ path =
 
 
 
--- Update
+-- UPDATE
 
 
 update : Config -> Msg -> State -> Response State Msg

@@ -1,4 +1,4 @@
-module Page exposing (Msg(..), Page(..), route, title, update, urlParser, view)
+module Page exposing (Msg(..), Page(..), init, title, update, view)
 
 import Alert exposing (Alert)
 import Browser.Navigation as Nav
@@ -11,42 +11,54 @@ import Page.NewThread as NewThread
 import Page.Redirect as Redirect exposing (Redirect)
 import Page.Response as Response exposing (Response)
 import Page.Thread as Thread
-import Route
+import Route exposing (Route)
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, int, oneOf, s, top)
+
+
+init : Url -> ( Page, Cmd Msg )
+init url =
+    Route.parse url
+        |> Maybe.map initFromRoute
+        >> Maybe.withDefault ( NotFound, Cmd.none )
+
+
+initFromRoute : Route -> ( Page, Cmd Msg )
+initFromRoute route =
+    case route of
+        Route.Index ->
+            mapInitPage Index IndexMsg Index.init
+
+        Route.Thread threadID ->
+            mapInitPage Thread ThreadMsg (Thread.init threadID)
+
+        Route.NewThread ->
+            mapInitPage NewThread NewThreadMsg NewThread.init
+
+
+mapInitPage : (page -> Page) -> (msg -> Msg) -> ( page, Cmd msg ) -> ( Page, Cmd Msg )
+mapInitPage toPage toMsg ( page, cmd ) =
+    ( toPage page, Cmd.map toMsg cmd )
 
 
 
--- Model
+-- MODEL
 
 
 type Page
     = NotFound
     | Index Index.State
-    | NewThread NewThread.State
     | Thread Thread.State
-
-
-type alias PageAndCmd =
-    ( Page, Cmd Msg )
-
-
-type alias ParserPage =
-    Parser (PageAndCmd -> PageAndCmd) PageAndCmd
-
-
-type alias ResponseToModel =
-    ( Page, Cmd Msg, Alert Msg )
+    | NewThread NewThread.State
 
 
 title : Page -> String
 title page =
     case page of
         NotFound ->
-            "NotFound"
+            "Not Found"
 
         NewThread _ ->
             "New Thread"
@@ -59,72 +71,18 @@ title page =
             ""
 
 
-equal : Page -> Page -> Bool
-equal pageA pageB =
-    case ( pageA, pageB ) of
-        ( Thread threadA, Thread threadB ) ->
-            Thread.threadID threadA == Thread.threadID threadB
 
-        ( Index _, Index _ ) ->
-            True
-
-        ( NewThread _, NewThread _ ) ->
-            True
-
-        ( NotFound, NotFound ) ->
-            True
-
-        _ ->
-            False
-
-
-route : Page -> Url -> PageAndCmd
-route page url =
-    let
-        ( pageRoute, cmdRoute ) =
-            Parser.parse urlParser url
-                |> Maybe.withDefault ( NotFound, Cmd.none )
-    in
-    if equal page pageRoute then
-        ( page, Cmd.none )
-
-    else
-        ( pageRoute, cmdRoute )
-
-
-urlParser : ParserPage
-urlParser =
-    oneOf
-        [ oneOf [ top, s "threads" ]
-            |> Parser.map (mapPageInit Index IndexMsg <| Index.init)
-        , oneOf [ s "new", s "threads" </> s "new" ]
-            |> Parser.map (mapPageInit NewThread NewThreadMsg <| NewThread.init)
-        , oneOf [ int, s "threads" </> int ]
-            |> Parser.map (mapPageInit Thread ThreadMsg << Thread.init)
-        ]
-
-
-type alias InjPage a =
-    a -> Page
-
-
-type alias InjMsg msg =
-    msg -> Msg
-
-
-mapPageInit : InjPage a -> InjMsg msg -> ( a, Cmd msg ) -> PageAndCmd
-mapPageInit toPage toMsg ( statePage, cmdPage ) =
-    ( toPage statePage, Cmd.map toMsg cmdPage )
-
-
-
--- Update
+-- UPDATE
 
 
 type Msg
     = IndexMsg Index.Msg
     | NewThreadMsg NewThread.Msg
     | ThreadMsg Thread.Msg
+
+
+type alias ResponseToModel =
+    ( Page, Cmd Msg, Alert Msg )
 
 
 update : Config -> Msg -> Page -> ResponseToModel
@@ -190,7 +148,7 @@ handleRedirect cfg currentPage redirect =
 
 
 
--- View
+-- VIEW
 
 
 view : Config -> Page -> Html Msg

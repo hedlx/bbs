@@ -47,7 +47,7 @@ import Url.Builder
 
 
 
--- Model
+-- MODEL
 
 
 type PostForm
@@ -509,7 +509,7 @@ encode cfg postForm =
 
 
 
--- Update
+-- UPDATE
 
 
 type Msg
@@ -631,7 +631,7 @@ update submitPath cfg msg postForm =
 
 
 
--- View
+-- VIEW
 
 
 view : Config -> PostForm -> Html Msg

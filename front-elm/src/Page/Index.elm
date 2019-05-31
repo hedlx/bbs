@@ -26,7 +26,7 @@ init =
 
 
 
--- Model
+-- MODEL
 
 
 type State
@@ -82,7 +82,7 @@ getThreads =
 
 
 
--- Update
+-- UPDATE
 
 
 type Msg
@@ -108,7 +108,7 @@ update _ msg state =
 
 
 
--- View
+-- VIEW
 
 
 postEventHandlers : Post.EventHandlers Msg
