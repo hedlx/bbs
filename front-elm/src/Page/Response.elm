@@ -67,6 +67,9 @@ join responseResponse =
 
         Ok response cmdTop alertTop ->
             case response of
+                None ->
+                    Err cmdTop alertTop
+
                 Ok a cmd alert ->
                     Ok a (Cmd.batch [ cmd, cmdTop ]) (Alert.Batch [ alert, alertTop ])
 

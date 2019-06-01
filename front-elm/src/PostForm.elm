@@ -786,7 +786,9 @@ viewAttachments cfg form =
                 ]
 
         viewAttached =
-            List.map (viewAttachment theme) (Attachments.toList (attachments form))
+            List.map
+                (viewAttachment theme (isEnabled form))
+                (Attachments.toList (attachments form))
     in
     [ viewLabel
     , div [ classes [ T.flex, T.justify_start, T.mb3 ] ]
@@ -794,48 +796,84 @@ viewAttachments cfg form =
     ]
 
 
-viewAttachment : Theme -> Attachment -> Html Msg
-viewAttachment theme { id, preview } =
-    let
-        previewImg base64Img =
-            div
-                [ styleFormMediaPreview
-                , Html.Attributes.style "flex-basis" "100%"
-                , Html.Attributes.style "background-image" <| String.concat [ "url('", base64Img, "')" ]
-                , onClick <| RemoveFile id
-                ]
-                [ overlay ]
-
-        overlay =
-            div
-                [ styleOverlay
-                , Html.Attributes.style "visibility" "none"
-                , title "Click to Remove"
-                ]
-                [ div [] [ Html.text "Click to Remove" ] ]
-
-        styleOverlay =
-            classes
-                [ T.absolute
-                , T.h_100
-                , T.w_100
-                , T.pl3
-                , T.pr3
-                , T.flex
-                , T.justify_center
-                , T.flex_column
-                , T.tc
-                , T.child
-                , T.bg_black_70
-                ]
-    in
-    Maybe.map previewImg preview
+viewAttachment : Theme -> Bool -> Attachment -> Html Msg
+viewAttachment theme isEnabled_ { id, preview } =
+    Maybe.map (viewAttachmentImg isEnabled_ id) preview
         |> Maybe.withDefault (viewPreviewLoadingSpinner theme)
+
+
+viewAttachmentImg : Bool -> Int -> String -> Html Msg
+viewAttachmentImg isEnabled_ id base64Img =
+    let
+        onClickAttrs =
+            if isEnabled_ then
+                [ onClick <| RemoveFile id
+                , class T.pointer
+                ]
+
+            else
+                []
+    in
+    div
+        ([ styleAttachmentPreview
+         , Html.Attributes.style "flex-basis" "100%"
+         , Html.Attributes.style "background-image" <| String.concat [ "url('", base64Img, "')" ]
+         ]
+            ++ onClickAttrs
+        )
+        [ viewAttachmentOverlay isEnabled_ ]
+
+
+viewAttachmentOverlay : Bool -> Html Msg
+viewAttachmentOverlay isVisible =
+    if isVisible then
+        div
+            [ styleAttachmentOverlay
+            , Html.Attributes.style "visibility" "none"
+            , title "Click to Remove"
+            ]
+            [ div [] [ Html.text "Click to Remove" ] ]
+
+    else
+        nothing
+
+
+styleAttachmentOverlay : Attribute Msg
+styleAttachmentOverlay =
+    classes
+        [ T.absolute
+        , T.h_100
+        , T.w_100
+        , T.pl3
+        , T.pr3
+        , T.flex
+        , T.justify_center
+        , T.flex_column
+        , T.tc
+        , T.child
+        , T.bg_black_70
+        ]
+
+
+styleAttachmentPreview : Attribute Msg
+styleAttachmentPreview =
+    classes
+        [ T.h4
+        , T.mw4
+        , T.mr1
+        , T.mb1
+        , T.relative
+        , T.hide_child
+        , T.overflow_hidden
+        , T.br1
+        , T.cover
+        , T.bg_center
+        ]
 
 
 viewPreviewLoadingSpinner : Theme -> Html Msg
 viewPreviewLoadingSpinner theme =
-    div [ styleFormMediaPreview ] [ Spinner.view theme 64 ]
+    div [ styleAttachmentPreview ] [ Spinner.view theme 64 ]
 
 
 viewAddAttachmentsArea : Config -> PostForm -> Html Msg
@@ -861,8 +899,11 @@ viewAddAttachmentsArea { theme, limits } postForm =
         canAddMoreFiles =
             Maybe.map ((<) attachedCount) limits.maxCountMedia
                 |> Maybe.withDefault True
+
+        isAreaVisible =
+            canAddMoreFiles && isEnabled postForm
     in
-    if canAddMoreFiles then
+    if isAreaVisible then
         viewButtonSelectAttachments theme strLabel
 
     else
@@ -946,16 +987,20 @@ viewBtnCleanOrReset cfg form =
             ([ onClick Reset
              , title "Reset all fields"
              ]
-                ++ buttonAttrs theme True
+                ++ buttonAttrs theme (isEnabled form)
             )
             [ Html.text "Reset to Default" ]
 
     else
+        let
+            isBtnEnabled =
+                isEnabled form && (not (isBlank form) || isMetaExists)
+        in
         button
             ([ onClick CleanWithConfirmation
              , title "Clean all fields"
              ]
-                ++ buttonAttrs theme (not (isBlank form) || isMetaExists)
+                ++ buttonAttrs theme isBtnEnabled
             )
             [ Html.text "Clean" ]
 
@@ -1049,23 +1094,6 @@ styleTextInput theme =
 styleFormElement : Attribute Msg
 styleFormElement =
     classes [ T.db, T.mr1, T.mb3, T.w_100_ns ]
-
-
-styleFormMediaPreview : Attribute Msg
-styleFormMediaPreview =
-    classes
-        [ T.h4
-        , T.mw4
-        , T.mr1
-        , T.mb1
-        , T.relative
-        , T.hide_child
-        , T.pointer
-        , T.overflow_hidden
-        , T.br1
-        , T.cover
-        , T.bg_center
-        ]
 
 
 styleFromButton : Attribute Msg
