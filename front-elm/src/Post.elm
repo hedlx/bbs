@@ -416,4 +416,4 @@ viewSubject theme threadID subject =
 
 viewThreadLink : ThreadID -> List (Html msg) -> Html msg
 viewThreadLink threadID =
-    a [ href <| Route.internalLink [ String.fromInt threadID ] ]
+    a [ href <| Route.link (Route.thread threadID) ]

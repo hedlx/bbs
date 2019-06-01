@@ -1,14 +1,25 @@
-module Page.Response exposing (Response(..), andThen, andThenIf, join, map, map2, return)
+module Page.Response exposing (Response(..), andThen, andThenIf, join, map, map2, raise, redirect, return)
 
 import Alert exposing (Alert)
-import Page.Redirect exposing (Redirect)
+import Browser.Navigation as Nav
+import Config exposing (Config)
+import Route exposing (Route)
 
 
 type Response a msg
     = None
     | Ok a (Cmd msg) (Alert msg)
-    | Err (Alert msg)
-    | Redirect Redirect
+    | Err (Cmd msg) (Alert msg)
+
+
+raise : Alert msg -> Response a msg
+raise alert =
+    Err Cmd.none alert
+
+
+redirect : Config -> Route -> Response a msg
+redirect cfg route =
+    Err (Nav.pushUrl cfg.key (Route.link route)) Alert.None
 
 
 return : a -> Response a msg
@@ -30,11 +41,8 @@ map2 fnA fnMsg response =
         Ok a cmd alert ->
             Ok (fnA a) (Cmd.map fnMsg cmd) (Alert.map fnMsg alert)
 
-        Err alert ->
-            Err (Alert.map fnMsg alert)
-
-        Redirect path ->
-            Redirect path
+        Err cmd alert ->
+            Err (Cmd.map fnMsg cmd) (Alert.map fnMsg alert)
 
 
 andThen : (a -> Response b msg) -> Response a msg -> Response b msg
@@ -65,8 +73,5 @@ join responseResponse =
                 _ ->
                     response
 
-        Err alertTop ->
-            Err alertTop
-
-        Redirect redirect ->
-            Redirect redirect
+        Err cmdTop alertTop ->
+            Err cmdTop alertTop

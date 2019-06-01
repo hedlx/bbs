@@ -8,7 +8,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Page.Response as Response exposing (Response)
 import PostForm exposing (PostForm)
-import Page.Redirect as Redirect
+import Route
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -51,10 +51,10 @@ update cfg msg state =
             Response.None
 
         PostFormMsg subMsg ->
-            handlePostFormResponse (updatePostForm cfg subMsg state)
+            handlePostFormResponse cfg (updatePostForm cfg subMsg state)
 
         FilesDropped files ->
-            handlePostFormResponse (PostForm.addFiles cfg.limits files state)
+            handlePostFormResponse cfg (PostForm.addFiles cfg.limits files state)
 
 
 updatePostForm : Config -> PostForm.Msg -> PostForm -> PostForm.Response
@@ -62,8 +62,8 @@ updatePostForm =
     PostForm.update path
 
 
-handlePostFormResponse : PostForm.Response -> Response State Msg
-handlePostFormResponse postFormResp =
+handlePostFormResponse : Config -> PostForm.Response -> Response State Msg
+handlePostFormResponse cfg postFormResp =
     case postFormResp of
         PostForm.Ok newState newCmd ->
             Response.Ok newState (Cmd.map PostFormMsg newCmd) Alert.None
@@ -72,7 +72,7 @@ handlePostFormResponse postFormResp =
             Response.Ok newState Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.Redirect (Redirect.Path [])
+            Response.redirect cfg Route.Index
 
 
 

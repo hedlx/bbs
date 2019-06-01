@@ -29,7 +29,7 @@ import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import PostForm exposing (PostForm)
-import Page.Redirect as Redirect
+import Route exposing (QueryThread)
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -38,9 +38,20 @@ import Theme exposing (Theme)
 import Url.Builder
 
 
-init : ID -> ( State, Cmd Msg )
-init tID =
-    ( Loading PostForm.empty tID, getThread tID )
+init : Config -> ID -> QueryThread -> ( State, Cmd Msg )
+init cfg id query =
+    ( Loading PostForm.empty id, getThread id )
+        |> initReplyTo cfg query.replyTo
+
+
+initReplyTo : Config -> Maybe Int -> ( State, Cmd Msg ) -> ( State, Cmd Msg )
+initReplyTo cfg qReplyTo =
+    case qReplyTo of
+        Nothing ->
+            identity
+
+        Just postNo ->
+            Tuple.mapFirst (replyTo cfg.limits postNo)
 
 
 
@@ -193,7 +204,7 @@ update cfg msg state =
                 |> Response.andThenIf (PostForm.isAutofocus currentPostForm) focusPostForm
 
         GotThread (Err error) ->
-            Response.Err (Alert.fromHttpError error)
+            Response.raise (Alert.fromHttpError error)
 
         MediaClicked postNo mediaID ->
             Response.return (toggleMediaPreview postNo mediaID state)
@@ -204,7 +215,7 @@ update cfg msg state =
                     |> Response.andThen focusPostForm
 
             else
-                Response.Redirect (Redirect.ReplyTo tID postNo)
+                Response.redirect cfg (Route.replyTo tID postNo)
 
         FilesDropped files ->
             case state of

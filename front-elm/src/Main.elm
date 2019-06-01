@@ -51,13 +51,28 @@ main =
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
-    route url
-        { cfg = Config.init flags url key
-        , page = Page.NotFound
-        , isSettingsVisible = False
-        , slideIn = SlideIn.init
-        , dialog = Dialog.closed
-        }
+    let
+        cfg =
+            Config.init flags url key
+
+        cmdFetchConfig =
+            Config.fetch
+                { onGotTimeZone = GotTimeZone
+                , onGotLimits = GotLimits
+                }
+                model.cfg
+
+        ( model, cmd ) =
+            route cfg
+                url
+                { cfg = cfg
+                , page = Page.NotFound
+                , isSettingsVisible = False
+                , slideIn = SlideIn.init
+                , dialog = Dialog.closed
+                }
+    in
+    ( model, Cmd.batch [ cmdFetchConfig, cmd ] )
 
 
 
@@ -119,7 +134,7 @@ update msg model =
                     ( model, Cmd.none )
 
         UrlChanged url ->
-            route url model
+            route model.cfg url model
 
         SlideInMsg subMsg ->
             let
@@ -275,36 +290,33 @@ isShouldHandleUrl cfg url =
     Regex.contains regexUrlApp url.path
 
 
-route : Url -> Model -> ( Model, Cmd Msg )
-route url model =
+route : Config -> Url -> Model -> ( Model, Cmd Msg )
+route cfg url model =
     let
-        cmdFetchConfig =
-            Config.fetch
-                { onGotTimeZone = GotTimeZone
-                , onGotLimits = GotLimits
-                }
-                model.cfg
-
         urlFixed =
-            replacePathWithFragment url
+            toFragmentUrl url
 
         ( page, cmdPage ) =
-            Page.init urlFixed
+            Page.init cfg urlFixed
     in
     ( { model | page = page }
-    , Cmd.batch
-        [ cmdFetchConfig
-        , Cmd.map PageMsg cmdPage
-        ]
+    , Cmd.map PageMsg cmdPage
     )
 
 
-replacePathWithFragment : Url -> Url
-replacePathWithFragment url =
-    { url
-        | path = Maybe.withDefault "" url.fragment
-        , fragment = Just ""
-    }
+toFragmentUrl : Url -> Url
+toFragmentUrl url =
+    url
+        |> Url.toString
+        >> Regex.replace regexFragmentBeginning (\_ -> "")
+        >> Url.fromString
+        >> Maybe.withDefault url
+
+
+regexFragmentBeginning : Regex.Regex
+regexFragmentBeginning =
+    Regex.fromString "/#"
+        |> Maybe.withDefault Regex.never
 
 
 
@@ -391,7 +403,7 @@ viewNavigationMenu cfg =
 
 viewBtnIndex : Theme -> Html Msg
 viewBtnIndex theme =
-    a [ href <| Route.internalLink [] ]
+    a [ href (Route.link Route.Index) ]
         [ div
             [ styleButtonMenu
             , Style.buttonIconic
@@ -404,7 +416,7 @@ viewBtnIndex theme =
 
 viewBtnNewThread : Theme -> Html Msg
 viewBtnNewThread theme =
-    a [ href <| Route.internalLink [ "new" ] ]
+    a [ href (Route.link Route.NewThread) ]
         [ div
             [ styleButtonMenu
             , Style.buttonIconic

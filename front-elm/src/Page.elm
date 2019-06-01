@@ -1,14 +1,12 @@
 module Page exposing (Msg(..), Page(..), init, title, update, view)
 
 import Alert exposing (Alert)
-import Browser.Navigation as Nav
 import Config exposing (Config)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Page.Index as Index
 import Page.NewThread as NewThread
-import Page.Redirect as Redirect exposing (Redirect)
 import Page.Response as Response exposing (Response)
 import Page.Thread as Thread
 import Route exposing (Route)
@@ -18,21 +16,21 @@ import Tachyons.Classes as T
 import Url exposing (Url)
 
 
-init : Url -> ( Page, Cmd Msg )
-init url =
+init : Config -> Url -> ( Page, Cmd Msg )
+init cfg url =
     Route.parse url
-        |> Maybe.map initFromRoute
+        |> Maybe.map (initFromRoute cfg)
         >> Maybe.withDefault ( NotFound, Cmd.none )
 
 
-initFromRoute : Route -> ( Page, Cmd Msg )
-initFromRoute route =
+initFromRoute : Config -> Route -> ( Page, Cmd Msg )
+initFromRoute cfg route =
     case route of
         Route.Index ->
             mapInitPage Index IndexMsg Index.init
 
-        Route.Thread threadID ->
-            mapInitPage Thread ThreadMsg (Thread.init threadID)
+        Route.Thread threadID query ->
+            mapInitPage Thread ThreadMsg (Thread.init cfg threadID query)
 
         Route.NewThread ->
             mapInitPage NewThread NewThreadMsg NewThread.init
@@ -88,7 +86,7 @@ type alias ResponseToModel =
 update : Config -> Msg -> Page -> ResponseToModel
 update cfg msg page =
     updatePage cfg msg page
-        |> handleResponse cfg page
+        |> handleResponse page
 
 
 updatePage : Config -> Msg -> Page -> Response Page Msg
@@ -110,8 +108,8 @@ updatePage cfg msg page =
             Response.Ok page Cmd.none Alert.None
 
 
-handleResponse : Config -> Page -> Response Page Msg -> ResponseToModel
-handleResponse cfg currentPage reponse =
+handleResponse : Page -> Response Page Msg -> ResponseToModel
+handleResponse currentPage reponse =
     case reponse of
         Response.None ->
             ( currentPage, Cmd.none, Alert.None )
@@ -119,32 +117,8 @@ handleResponse cfg currentPage reponse =
         Response.Ok newPage cmd alert ->
             ( newPage, cmd, alert )
 
-        Response.Err alert ->
-            ( currentPage, Cmd.none, alert )
-
-        Response.Redirect redirect ->
-            handleRedirect cfg currentPage redirect
-
-
-handleRedirect : Config -> Page -> Redirect -> ResponseToModel
-handleRedirect cfg currentPage redirect =
-    case redirect of
-        Redirect.Path path ->
-            ( currentPage, Nav.pushUrl cfg.key (Route.internalLink path), Alert.None )
-
-        Redirect.ReplyTo tID postNo ->
-            let
-                ( pageThread, pageCmd ) =
-                    Thread.init tID
-                        |> Tuple.mapFirst (Thread.replyTo cfg.limits postNo)
-
-                cmdReplaceUrl =
-                    Nav.replaceUrl cfg.key (Route.internalLink [ String.fromInt tID ])
-            in
-            ( Thread pageThread
-            , Cmd.batch [ cmdReplaceUrl, Cmd.map ThreadMsg pageCmd ]
-            , Alert.None
-            )
+        Response.Err cmd alert ->
+            ( currentPage, cmd, alert )
 
 
 
