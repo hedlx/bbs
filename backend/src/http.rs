@@ -3,7 +3,7 @@ use super::events::{validate_message, validate_thread};
 use super::http_multipart::extract_file;
 use super::image;
 use super::limits::{Limits, LIMITS};
-use data::{Config, FullThread, NewMessage, NewThread, ThreadPreview};
+use data::{Config, FullThread, NewMessage, NewThread, ThreadPreview, Threads};
 use db::Db;
 use rocket::fairing::AdHoc;
 use rocket::http::ContentType;
@@ -12,22 +12,37 @@ use rocket_contrib::json::{Json, JsonValue};
 use std::path::PathBuf;
 use tripcode::file_sha512;
 
-#[get("/threads?<before>&<after>&<limit>&<tag>")]
+#[get("/threads.1?<before>&<after>&<offset>&<limit>&<tag>")]
+fn threads_list1(
+    db: Db,
+    before: Option<u32>, // timestamp
+    after: Option<u32>,  // timestamp
+    offset: Option<u32>,
+    limit: Option<u32>,
+    tag: Option<String>,
+) -> Result<Json<Threads>, Error> {
+    let limit = limit.unwrap_or(100);
+
+    let resp = match (before, after, offset) {
+        (None, None, None) => db.get_threads_before(0, limit),
+        (Some(ts), None, None) => db.get_threads_before(ts, limit),
+        (None, None, Some(offset)) => db.get_threads_offset(offset, limit),
+        _ => return Err(Error::ParamComb),
+    };
+    Ok(Json(resp))
+}
+
+#[get("/threads?<before>&<after>&<offset>&<limit>&<tag>")]
 fn threads_list(
     db: Db,
     before: Option<u32>, // timestamp
     after: Option<u32>,  // timestamp
+    offset: Option<u32>,
     limit: Option<u32>,
     tag: Option<String>,
-) -> Json<Vec<ThreadPreview>> {
-    let limit = limit.unwrap_or(100);
-    let resp = match (before, after) {
-        (None, None) => db.get_threads_before(0, limit),
-        (Some(ts), None) => db.get_threads_before(ts, limit),
-        (None, Some(_)) => Vec::new(),
-        (Some(_), Some(_)) => Vec::new(),
-    };
-    Json(resp)
+) -> Result<Json<Vec<ThreadPreview>>, Error> {
+    threads_list1(db, before, after, offset, limit, tag)
+        .map(|x| Json(x.0.threads))
 }
 
 #[get("/threads/<id>")]
@@ -137,6 +152,7 @@ pub fn start() {
                 thread_new,
                 thread_reply,
                 threads_list,
+                threads_list1,
             ],
         )
         .launch();

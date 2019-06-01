@@ -66,6 +66,12 @@ pub struct ThreadPreview {
 }
 
 #[derive(Serialize)]
+pub struct Threads {
+    pub count: i64,
+    pub threads: Vec<ThreadPreview>,
+}
+
+#[derive(Serialize)]
 pub struct FullThread {
     pub subject: Option<String>,
     pub messages: Vec<Message>,

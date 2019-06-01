@@ -60,6 +60,8 @@ def_errors! {
     MsgMediaNameLong(400, "message.orig_name_long", "Media filename is too long."),
     MsgMediaNotFound(400, "message.media.id", "Media id not found"),
 
+    ParamComb  (400, "invalid_parameter_combination", "Invalid parameter combination"),
+
     MediaFileSize(400, "media.file_size", "Media file size is too big."),
 
     MsgBadPwd  (401, "message.bad_password", "Invalid password."),

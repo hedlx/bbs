@@ -1,6 +1,6 @@
 use super::data::{
     DbAttachment, DbFile, DbMessage, DbNewThread, DbThread, File, FullThread,
-    Message, NewAttachment, NewMessage, NewThread, ThreadPreview,
+    Message, NewAttachment, NewMessage, NewThread, ThreadPreview, Threads,
 };
 use super::error::Error;
 use super::image;
@@ -79,13 +79,33 @@ impl Db {
         .unwrap()
     }
 
-    pub fn get_threads_before(
-        &self,
-        ts: u32,
-        limit: u32,
-    ) -> Vec<ThreadPreview> {
+    pub fn get_threads_offset(&self, offset: u32, limit: u32) -> Threads {
         self.transaction(|| {
-            sql_query(r"
+            let threads = sql_query(r"
+                SELECT t.*,
+                       (SELECT COUNT(*) FROM messages AS m WHERE m.thread_id = t.id)
+                  FROM threads as t
+                 ORDER BY (bump, id) ASC
+                 LIMIT $2
+                 OFFSET $1
+            ")
+            .bind::<Integer, _>(offset as i32)
+            .bind::<Integer, _>(limit as i32)
+            .load::<(DbThread, Count)>(&self.0)?
+            .into_iter()
+            .map(|(thread, total)| self.get_thread_preview(thread, total))
+            .collect::<Result<_, _>>()?;
+            Ok(Threads{
+                count: self.get_thread_count()?,
+                threads: threads,
+            })
+        })
+        .unwrap()
+    }
+
+    pub fn get_threads_before(&self, ts: u32, limit: u32) -> Threads {
+        self.transaction(|| {
+            let threads = sql_query(r"
                 SELECT t.*,
                        (SELECT COUNT(*) FROM messages AS m WHERE m.thread_id = t.id)
                   FROM threads as t
@@ -97,19 +117,12 @@ impl Db {
             .bind::<Integer, _>(limit as i32)
             .load::<(DbThread, Count)>(&self.0)?
             .into_iter()
-            .map(|(thread, total)| {
-                let last = self.get_last(thread.id).unwrap();
-                let omitted = total.count as i32 - last.len() as i32 - 1;
-                Ok(ThreadPreview {
-                    id: thread.id as u32,
-                    subject: thread.subject,
-                    bump: thread.bump.timestamp(),
-                    op: self.get_op(thread.id)?,
-                    last: last,
-                    omitted: omitted,
-                })
+            .map(|(thread, total)| self.get_thread_preview(thread, total))
+            .collect::<Result<_, _>>()?;
+            Ok(Threads{
+                count: self.get_thread_count()?,
+                threads: threads,
             })
-            .collect::<Result<Vec<ThreadPreview>, diesel::result::Error>>()
         })
         .unwrap()
     }
@@ -206,10 +219,24 @@ impl Db {
 
     /* Private methods. */
 
-    pub fn get_thread_messages(
+    fn get_thread_preview(
         &self,
-        thread_id: i32,
-    ) -> QueryResult<Vec<Message>> {
+        thread: DbThread,
+        total: Count,
+    ) -> QueryResult<ThreadPreview> {
+        let last = self.get_last(thread.id).unwrap();
+        let omitted = total.count as i32 - last.len() as i32 - 1;
+        Ok(ThreadPreview {
+            id: thread.id as u32,
+            subject: thread.subject,
+            bump: thread.bump.timestamp(),
+            op: self.get_op(thread.id)?,
+            last: last,
+            omitted: omitted,
+        })
+    }
+
+    fn get_thread_messages(&self, thread_id: i32) -> QueryResult<Vec<Message>> {
         let messages = sql_query(r"
             SELECT m.*,
                    a.*,
@@ -230,7 +257,7 @@ impl Db {
         Ok(join_messages_files(messages))
     }
 
-    pub fn get_op(&self, thread_id: i32) -> QueryResult<Message> {
+    fn get_op(&self, thread_id: i32) -> QueryResult<Message> {
         let messages = sql_query(r"
             SELECT m.*,
                    a.*,
@@ -278,6 +305,12 @@ impl Db {
         let mut messages = join_messages_files(messages);
         messages.reverse();
         Ok(messages)
+    }
+
+    fn get_thread_count(&self) -> QueryResult<i64> {
+        super::schema::threads::dsl::threads
+            .count()
+            .get_result::<i64>(&self.0)
     }
 
     fn insert_message(
