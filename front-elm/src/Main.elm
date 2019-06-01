@@ -306,7 +306,7 @@ route cfg url model =
 
 toFragmentUrl : Url -> Url
 toFragmentUrl url =
-    url
+    { url | path = "/" }
         |> Url.toString
         >> Regex.replace regexFragmentBeginning (\_ -> "")
         >> Url.fromString
