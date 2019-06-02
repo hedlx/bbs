@@ -189,7 +189,7 @@ viewPageControls { theme, perPage } totalThreads number =
                 ]
 
         numPageLast =
-            totalThreads // perPage
+            (totalThreads - 1) // perPage
     in
     div [ style ] <|
         [ viewPageBack theme number
@@ -238,20 +238,20 @@ radiusNearPages =
 
 
 viewPageLinks : Theme -> Int -> Int -> Html Msg
-viewPageLinks theme numPageLast number =
+viewPageLinks theme numPageLast numPageCurrent =
     let
         viewPageBtn_ numPage =
             viewPageBtn
                 theme
-                True
+                (numPage /= numPageCurrent)
                 (onClick (ChangePage numPage))
                 (String.fromInt numPage)
 
         left =
-            Basics.max 0 (number - radiusNearPages)
+            Basics.max 0 (numPageCurrent - radiusNearPages)
 
         right =
-            Basics.min numPageLast (number + radiusNearPages)
+            Basics.min numPageLast (numPageCurrent + radiusNearPages)
 
         first =
             case left of
