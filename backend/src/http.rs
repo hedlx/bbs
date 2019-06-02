@@ -3,7 +3,7 @@ use super::events::{validate_message, validate_thread};
 use super::http_multipart::extract_file;
 use super::image;
 use super::limits::{Limits, LIMITS};
-use data::{Config, FullThread, NewMessage, NewThread, ThreadPreview, Threads};
+use data::{Config, FullThread, NewMessage, NewThread, Threads};
 use db::Db;
 use rocket::fairing::AdHoc;
 use rocket::http::ContentType;

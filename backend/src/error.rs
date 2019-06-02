@@ -64,6 +64,8 @@ def_errors! {
 
     MediaFileSize(400, "media.file_size", "Media file size is too big."),
 
+    MsgDeleteOp(400, "message.delete_op", "Can not delete original post."),
+
     MsgBadPwd  (401, "message.bad_password", "Invalid password."),
 
     MsgNotFound(404, "message.not_found",    "No such message."),

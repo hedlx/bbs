@@ -32,6 +32,12 @@ struct Count {
     count: i64,
 }
 
+enum MessageCheckPassword {
+    OK,
+    InvalidPassword,
+    NotFound,
+}
+
 impl Db {
     /* NB: public methods must be wrapped in transactions. */
 
@@ -155,24 +161,21 @@ impl Db {
         no: i32,
         password: String,
     ) -> Error {
+        if no == 0 {
+            return Error::MsgDeleteOp;
+        }
         self.transaction(|| {
-            use super::schema::messages::dsl as d;
-            let message = d::messages
-                .filter(d::thread_id.eq(thread_id))
-                .filter(d::no.eq(no))
-                .get_result::<DbMessage>(&self.0)
-                .optional()?;
-
-            let message = match message {
-                Some(message) => message,
-                None => return Ok(Error::MsgNotFound),
+            match self.message_check_password(thread_id, no, password)? {
+                MessageCheckPassword::OK => {}
+                MessageCheckPassword::InvalidPassword => {
+                    return Ok(Error::MsgBadPwd)
+                }
+                MessageCheckPassword::NotFound => {
+                    return Ok(Error::MsgNotFound)
+                }
             };
 
-            if message.password != Some(password) {
-                return Ok(Error::MsgBadPwd);
-            }
-
-            // TODO: simplify to `delete(message)`
+            use super::schema::messages::dsl as d;
             delete(
                 d::messages
                     .filter(d::thread_id.eq(thread_id))
@@ -214,8 +217,24 @@ impl Db {
         .unwrap()
     }
 
-    pub fn delete_thread(&self, _thread_id: i32, _password: String) -> Error {
-        Error::NotImpl
+    pub fn delete_thread(&self, thread_id: i32, password: String) -> Error {
+        self.transaction(|| {
+            match self.message_check_password(thread_id, 0, password)? {
+                MessageCheckPassword::OK => {}
+                MessageCheckPassword::InvalidPassword => {
+                    return Ok(Error::MsgBadPwd)
+                }
+                MessageCheckPassword::NotFound => {
+                    return Ok(Error::ThrNotFound)
+                }
+            };
+
+            use super::schema::threads::dsl as d;
+            delete(d::threads.filter(d::id.eq(thread_id))).execute(&self.0)?;
+
+            Ok(Error::OK)
+        })
+        .unwrap()
     }
 
     /* Private methods. */
@@ -306,6 +325,31 @@ impl Db {
         let mut messages = join_messages_files(messages);
         messages.reverse();
         Ok(messages)
+    }
+
+    fn message_check_password(
+        &self,
+        thread_id: i32,
+        no: i32,
+        password: String,
+    ) -> QueryResult<MessageCheckPassword> {
+        use super::schema::messages::dsl as d;
+        let message = d::messages
+            .filter(d::thread_id.eq(thread_id))
+            .filter(d::no.eq(no))
+            .get_result::<DbMessage>(&self.0)
+            .optional()?;
+
+        let message = match message {
+            Some(message) => message,
+            None => return Ok(MessageCheckPassword::NotFound),
+        };
+
+        if message.password != Some(password) {
+            return Ok(MessageCheckPassword::InvalidPassword);
+        }
+
+        Ok(MessageCheckPassword::OK)
     }
 
     fn get_thread_count(&self) -> QueryResult<i64> {
