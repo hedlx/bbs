@@ -7,7 +7,7 @@ servers:
 info:
   description: Shallow BBS API definition
   version: "0.1"
-  title: Hedλx BBS API
+  title: hedλx BBS API
 
 paths:
   /threads:
@@ -16,49 +16,33 @@ paths:
       operationId: getThreads
       parameters:
         - in: query
-          name: before
-          required: false
-          schema:
-            type: integer
-            format: int32
-          description: NYI
-        - in: query
-          name: after
-          schema:
-            type: integer
-            format: int32
-          description: NYI
-        - in: query
           name: limit
           schema:
             type: integer
             format: int32
             minimum: 0
-          description: NYI
+          description: Default is 100.
         - in: query
-          name: tag
+          name: offset
           schema:
-            type: string
-          description: NYI
+            type: integer
+            format: int32
+            minimum: 0
+          description: ""
       responses:
-        '200':
-          description: Thread object including OP and latest replies.
+        200:
+          description: Object containing latest threads and some meta info.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ThreadPreview'
-        '400':
-          description: bad input parameter
+                $ref: '#/components/schemas/Threads'
+        400: { description: Bad input parameter. }
     post:
       summary: Create new thread.
       operationId: createThread
       responses:
-        '200':
-          description: thread created
-        '400':
-          description: invalid input
+        200: { description: Tthread created }
+        400: { description: Invalid input. }
       requestBody:
         content:
           application/json:
@@ -75,32 +59,30 @@ paths:
       summary: Get thread.
       operationId: getThread
       responses:
-        '200':
+        200:
           description: array of message objects
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThreadFull'
-        '400':
+        400:
           description: bad input parameter
     post:
       summary: Post reply to the thread.
       operationId: answerThread
       responses:
-        '200':
-          description: message created
-        '400':
-          description: invalid input
+        200: { description: Message created. }
+        400: { description: Invalid input. }
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/NewMessage'
     delete:
-      summary: Delete thread. [NYI]
+      summary: Delete thread.
       responses:
         200: { description: Deleted. }
-        403: { description: Invalid password. }
+        401: { description: Invalid password. }
         404: { description: No such thread. }
   /threads/{id}/replies/{no}:
     parameters:
@@ -124,7 +106,7 @@ paths:
           schema: { type: string }
       responses:
         200: { description: Deleted. }
-        403: { description: Invalid password. }
+        401: { description: Invalid password. }
         404: { description: No such thread or post. }
   /upload:
     post:
@@ -144,6 +126,17 @@ paths:
 
 components:
   schemas:
+    Threads:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 90
+          description: Total number of threads.
+        threads:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThreadPreview'
     ThreadPreview:
       type: object
       properties:
