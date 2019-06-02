@@ -13,7 +13,7 @@ services:
       - '../run/nginx.conf:/etc/nginx/nginx.conf:ro'
       - '../run/data/i:/srv/i:ro'
       - '../run/data/t:/srv/t:ro'
-      - '../front-elm/static:/srv/elm:ro'
+      - '../front-elm/public:/srv/elm:ro'
       - '../front/resources/public:/srv/clj:ro'
     ports: [ '127.0.0.1:8000:8000' ]
     network_mode: 'host'
