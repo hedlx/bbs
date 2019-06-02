@@ -5,19 +5,14 @@ import Browser
 import Browser.Navigation as Nav
 import Config exposing (Config)
 import Dialog exposing (Dialog)
-import Dict
 import Env
 import FilesDrop
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.Events.Extra exposing (onChange)
 import Html.Extra
-import Http
 import Icons
 import Json.Encode as Encode
-import Limits exposing (Limits)
-import LocalStorage
 import Page exposing (Page)
 import Regex
 import Route
@@ -28,7 +23,6 @@ import Style.Animations as Animations
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
-import Time exposing (Zone)
 import Update.Extra
 import Url exposing (Url)
 
@@ -52,27 +46,20 @@ main =
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     let
-        cfg =
+        ( cfg, cmdFetchConfig ) =
             Config.init flags url key
-
-        cmdFetchConfig =
-            Config.fetch
-                { onGotTimeZone = GotTimeZone
-                , onGotLimits = GotLimits
-                }
-                model.cfg
 
         ( model, cmd ) =
             route cfg
                 url
                 { cfg = cfg
-                , page = Page.NotFound
+                , page = Page.notFound
                 , isSettingsVisible = False
                 , slideIn = SlideIn.init
                 , dialog = Dialog.closed
                 }
     in
-    ( model, Cmd.batch [ cmdFetchConfig, cmd ] )
+    ( model, Cmd.batch [ Cmd.map ConfigMsg cmdFetchConfig, cmd ] )
 
 
 
@@ -96,18 +83,10 @@ type Msg
     = NoOp
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
+    | ConfigMsg Config.Msg
     | PageMsg Page.Msg
     | SlideInMsg SlideIn.Msg
-    | GotLimits (Result Http.Error Limits)
-    | GotTimeZone Zone
     | ToggleSettings
-    | SettingsStorageChanged Encode.Value
-    | SetTheme Theme.ID
-    | SetName String
-    | SetTrip String
-    | SetPass String
-    | ResetSettingsWithConfirmation
-    | ResetSettings
     | CancelDialog
     | ConfirmDialog
 
@@ -117,6 +96,9 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ConfigMsg subMsg ->
+            updateConfig (Config.update subMsg model.cfg) model
 
         PageMsg subMsg ->
             updatePage (Page.update model.cfg subMsg model.page) model
@@ -143,64 +125,8 @@ update msg model =
             in
             ( { model | slideIn = newSlideIn }, Cmd.map SlideInMsg cmd )
 
-        GotLimits (Err _) ->
-            let
-                alert =
-                    Alert.Warning
-                        "Failed to get metadata from the server"
-                        """ 
-                        App functionality can be restricted. 
-                        Please, check your Internet connection and reload the page.
-                        """
-            in
-            dispatchAlert alert model
-
-        GotLimits (Ok newLimits) ->
-            ( mapConfig (Config.setLimits newLimits) model, Cmd.none )
-
-        GotTimeZone newZone ->
-            ( mapConfig (Config.setTimeZone newZone) model, Cmd.none )
-
         ToggleSettings ->
             ( { model | isSettingsVisible = not model.isSettingsVisible }, Cmd.none )
-
-        SetTheme newThemeID ->
-            let
-                newTheme =
-                    Theme.selectBuiltIn newThemeID
-
-                newCfg =
-                    Config.setTheme newTheme model.cfg
-            in
-            ( { model | cfg = newCfg }, saveUserSettings newCfg )
-
-        SettingsStorageChanged newFlags ->
-            ( mapConfig (Config.mergeFlags newFlags) model, Cmd.none )
-
-        SetName newName ->
-            updateUserSettings (Config.setName newName) model
-
-        SetTrip newTrip ->
-            updateUserSettings (Config.setTrip newTrip) model
-
-        SetPass newPass ->
-            updateUserSettings (Config.setPass newPass) model
-
-        ResetSettingsWithConfirmation ->
-            ( { model
-                | dialog =
-                    Dialog.visible
-                        "Are you sure?"
-                        "Your name, password and tripcode will be lost."
-                        ResetSettings
-              }
-            , Cmd.none
-            )
-
-        ResetSettings ->
-            ( mapConfig Config.resetUserSettings { model | dialog = Dialog.closed }
-            , LocalStorage.cleanUserSettings ()
-            )
 
         CancelDialog ->
             ( { model | dialog = Dialog.cancel model.dialog }, Cmd.none )
@@ -250,7 +176,25 @@ dispatchAlert alert model =
             dispatchBatch model
 
 
-updatePage : ( Page, Cmd Page.Msg, Alert Page.Msg ) -> Model -> ( Model, Cmd Msg )
+updateConfig : Config.Response -> Model -> ( Model, Cmd Msg )
+updateConfig ( newCfg, newCmd, newAlert ) model =
+    let
+        ( modelAlertDispatched, cmdAlert ) =
+            dispatchAlert (Alert.map ConfigMsg newAlert) model
+
+        newModel =
+            { modelAlertDispatched | cfg = newCfg }
+
+        cmd =
+            Cmd.batch
+                [ Cmd.map ConfigMsg newCmd
+                , cmdAlert
+                ]
+    in
+    ( newModel, cmd )
+
+
+updatePage : Page.ResponseToModel -> Model -> ( Model, Cmd Msg )
 updatePage ( newPage, pageCmd, pageAlert ) model =
     let
         ( newModel, cmdAlert ) =
@@ -259,25 +203,6 @@ updatePage ( newPage, pageCmd, pageAlert ) model =
     ( { newModel | page = newPage }
     , Cmd.batch [ Cmd.map PageMsg pageCmd, cmdAlert ]
     )
-
-
-mapConfig : (Config -> Config) -> Model -> Model
-mapConfig f model =
-    { model | cfg = f model.cfg }
-
-
-updateUserSettings : (Config -> Config) -> Model -> ( Model, Cmd Msg )
-updateUserSettings f model =
-    let
-        newCfg =
-            f model.cfg
-    in
-    ( { model | cfg = newCfg }, saveUserSettings newCfg )
-
-
-saveUserSettings : Config -> Cmd Msg
-saveUserSettings cfg =
-    LocalStorage.saveUserSettings (Config.encodeUserSettings cfg)
 
 
 isShouldHandleUrl : Config -> Url -> Bool
@@ -324,8 +249,8 @@ regexFragmentBeginning =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    LocalStorage.userSettingsChanged SettingsStorageChanged
+subscriptions { cfg } =
+    Sub.map ConfigMsg (Config.subscriptions cfg)
 
 
 
@@ -366,8 +291,8 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
             , Dialog.view cfg.theme { onOk = ConfirmDialog, onCancel = CancelDialog } dialog
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map SlideInMsg (SlideIn.view cfg.theme slideIn)
-            , Html.map PageMsg (Page.view cfg page)
             ]
+        , Html.map PageMsg (Page.view cfg page)
         ]
     }
 
@@ -500,8 +425,8 @@ viewSettingsDialog cfg =
     in
     aside [ styleContainer ]
         [ div [ style ]
-            [ viewSettingsHeader theme
-            , viewSettingsOptions theme cfg
+            [ viewSettingsHeader cfg.theme
+            , Html.map ConfigMsg (Config.viewUserSettings cfg)
             ]
         ]
 
@@ -521,106 +446,3 @@ viewButtonCloseSettings _ =
         , title "Close"
         ]
         [ Icons.close 20 ]
-
-
-viewSettingsOptions : Theme -> Config -> Html Msg
-viewSettingsOptions theme cfg =
-    div [ class T.pa3 ]
-        [ viewSettingsOption "Name"
-            [ viewOptionStringInput theme "text" SetName cfg.name Env.defaultName ]
-        , viewSettingsOption "Trip Secret"
-            [ viewOptionStringInput theme "text" SetTrip cfg.trip "" ]
-        , viewSettingsOption "Password"
-            [ viewOptionStringInput theme "password" SetPass cfg.pass "" ]
-        , viewSettingsOption "UI Theme"
-            [ viewSelectTheme theme ]
-        , viewButtonResetSettings theme
-        ]
-
-
-viewOptionStringInput : Theme -> String -> (String -> Msg) -> String -> String -> Html Msg
-viewOptionStringInput theme inputType toMsg currentValue placegolderValue =
-    let
-        style =
-            classes
-                [ T.f7
-                , T.pa1
-                , T.br1
-                , T.b__solid
-                , theme.fontMono
-                , theme.fgInput
-                , theme.bgInput
-                , theme.bInput
-                ]
-    in
-    input
-        [ type_ inputType
-        , value currentValue
-        , style
-        , onInput toMsg
-        , placeholder placegolderValue
-        ]
-        []
-
-
-viewSettingsOption : String -> List (Html Msg) -> Html Msg
-viewSettingsOption settingLabel optionBody =
-    div [ classes [ T.h2, T.mb2 ] ]
-        [ div [ classes [ T.fl, T.mr3, T.pt1 ] ] [ text settingLabel ]
-        , div [ classes [ T.fr ] ] optionBody
-        ]
-
-
-viewSelectTheme : Theme -> Html Msg
-viewSelectTheme currentTheme =
-    let
-        style =
-            classes
-                [ T.br1
-                , T.pa1
-                , T.f6
-                , T.outline_0
-                , currentTheme.bInput
-                , currentTheme.fgInput
-                , currentTheme.bgInput
-                ]
-    in
-    select [ style, onChange SetTheme ] <|
-        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
-
-
-addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
-addSelectThemeOption currentTheme themeID theme options =
-    option
-        [ Html.Attributes.style "background-color" "#eee"
-        , Html.Attributes.style "color" "#000"
-        , value themeID
-        , selected (currentTheme.id == themeID)
-        ]
-        [ text theme.name ]
-        :: options
-
-
-viewButtonResetSettings : Theme -> Html Msg
-viewButtonResetSettings theme =
-    let
-        style =
-            classes
-                [ T.w_100
-                , T.tc
-                , T.f6
-                , T.br2
-                , T.pa1
-                , T.outline_0
-                , theme.bInput
-                , theme.fgButton
-                , theme.bgButton
-                ]
-    in
-    button
-        [ style
-        , Style.buttonEnabled theme
-        , onClick ResetSettingsWithConfirmation
-        , title "Resets settings and cleans all BBS data from the browser storage"
-        ]
-        [ text "Reset Settings" ]

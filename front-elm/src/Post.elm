@@ -233,14 +233,14 @@ viewBody : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
 viewBody eventHandlers theme threadID post =
     let
         style =
-            classes [ T.pa1, T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
+            classes [ T.pt1, T.pa1, T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
     in
     section
         [ style
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
-        , text post.text
+        , div [ classes [ T.mt2 ] ] [ text post.text ]
         ]
 
 
@@ -272,18 +272,20 @@ viewListMedia eventHandlers threadID postNo listMedia =
 viewMedia : EventHandlers msg -> ThreadID -> No -> Media -> Html msg
 viewMedia eventHandlers threadID postNo media =
     let
-        image =
-            if media.isPreview then
-                viewMediaPreview media
-
-            else
-                viewMediaFull media
+        attrs =
+            [ href <| Media.url media
+            , onClick <| eventHandlers.onMediaClicked threadID postNo media.id
+            ]
     in
-    a
-        [ href <| Media.url media
-        , onClick <| eventHandlers.onMediaClicked threadID postNo media.id
-        ]
-        [ image ]
+    if media.isPreview then
+        div [ classes [ T.mr2, T.mt2, T.mr3 ] ]
+            [ a attrs [ viewMediaPreview media ]
+            ]
+
+    else
+        div [ classes [ T.mt2 ] ]
+            [ a attrs [ viewMediaFull media ]
+            ]
 
 
 viewMediaPreview : Media -> Html msg
@@ -333,7 +335,7 @@ viewMediaFull media =
 
 stylePostMedia : Attribute msg
 stylePostMedia =
-    classes [ T.br1, T.mr3, T.mt1, T.pointer, T.mw_100 ]
+    classes [ T.br1, T.pointer, T.mw_100 ]
 
 
 

@@ -2,6 +2,9 @@ module Env exposing
     ( bbsName
     , defaultName
     , fileFormats
+    , maxPerPage
+    , minPerPage
+    , threadsPerPage
     , urlAPI
     , urlImage
     , urlServer
@@ -43,4 +46,19 @@ defaultName =
 
 bbsName : String
 bbsName =
-    "Hedlx BBS"
+    "hedλx BBS"
+
+
+minPerPage : Int
+minPerPage =
+    1
+
+
+maxPerPage : Int
+maxPerPage =
+    100
+
+
+threadsPerPage : Int
+threadsPerPage =
+    8

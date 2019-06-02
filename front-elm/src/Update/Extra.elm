@@ -29,9 +29,9 @@ andThen updateA ( a, cmdA ) =
             ( b, Cmd.batch [ cmdA, cmdB ] )
 
 
-andThenIf : (a -> Bool) -> (a -> ( a, Cmd msg )) -> ( a, Cmd msg ) -> ( a, Cmd msg )
+andThenIf : Bool -> (a -> ( a, Cmd msg )) -> ( a, Cmd msg ) -> ( a, Cmd msg )
 andThenIf pred updateA ( a, cmdA ) =
-    if pred a then
+    if pred then
         andThen updateA ( a, cmdA )
 
     else

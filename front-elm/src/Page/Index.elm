@@ -23,10 +23,14 @@ import Url.Builder
 
 
 init : Config -> QueryIndex -> ( State, Cmd Msg )
-init { perPage } query =
+init { perPageThreads } query =
     let
         numPage =
             Maybe.withDefault 0 query.page
+
+        perPage =
+            Config.perPageToInt perPageThreads
+                |> Maybe.withDefault Env.threadsPerPage
     in
     ( Loading, getThreads perPage numPage )
 
@@ -102,11 +106,11 @@ decoderThreadPreview =
 
 
 getThreads : Int -> Int -> Cmd Msg
-getThreads perPage numPage =
+getThreads perPageThreads numPage =
     let
         params =
-            [ Url.Builder.int "offset" (perPage * numPage)
-            , Url.Builder.int "limit" perPage
+            [ Url.Builder.int "offset" (perPageThreads * numPage)
+            , Url.Builder.int "limit" perPageThreads
             ]
     in
     Http.get
@@ -176,7 +180,7 @@ viewThreads cfg threads =
 
 
 viewPageControls : Config -> Int -> Int -> Html Msg
-viewPageControls { theme, perPage } totalThreads number =
+viewPageControls { theme, perPageThreads } totalThreads number =
     let
         style =
             classes
@@ -187,6 +191,10 @@ viewPageControls { theme, perPage } totalThreads number =
                 , T.mb3_ns
                 , T.mt0_ns
                 ]
+
+        perPage =
+            Config.perPageToInt perPageThreads
+                |> Maybe.withDefault Env.threadsPerPage
 
         numPageLast =
             (totalThreads - 1) // perPage
@@ -282,12 +290,6 @@ viewPageLinks theme numPageLast numPageCurrent =
         first
             ++ List.map viewPageBtn_ pages
             ++ last
-
-
-
--- viewPrevPagesLinks theme number
--- ++ [ text (String.fromInt number) ]
--- ++ viewNextPagesLinks theme numPageLast number
 
 
 toggleMediaPreview : ThreadID -> Post.No -> Media.ID -> State -> State

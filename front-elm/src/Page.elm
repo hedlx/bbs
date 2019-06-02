@@ -1,4 +1,13 @@
-module Page exposing (Msg(..), Page(..), init, title, update, view)
+module Page exposing
+    ( Msg
+    , Page
+    , ResponseToModel
+    , init
+    , notFound
+    , title
+    , update
+    , view
+    )
 
 import Alert exposing (Alert)
 import Config exposing (Config)
@@ -50,6 +59,11 @@ type Page
     | Index Index.State
     | Thread Thread.State
     | NewThread NewThread.State
+
+
+notFound : Page
+notFound =
+    NotFound
 
 
 title : Page -> String

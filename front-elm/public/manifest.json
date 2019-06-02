@@ -13,5 +13,5 @@
     "start_url": "/elm/index.html",
     "display": "standalone",
     "background_color": "#111111",
-    "theme_color": "#a463f2"
+    "theme_color": "#000000"
   }
