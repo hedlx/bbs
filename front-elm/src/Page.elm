@@ -26,8 +26,8 @@ init cfg url =
 initFromRoute : Config -> Route -> ( Page, Cmd Msg )
 initFromRoute cfg route =
     case route of
-        Route.Index ->
-            mapInitPage Index IndexMsg Index.init
+        Route.Index query ->
+            mapInitPage Index IndexMsg (Index.init cfg query)
 
         Route.Thread threadID query ->
             mapInitPage Thread ThreadMsg (Thread.init cfg threadID query)

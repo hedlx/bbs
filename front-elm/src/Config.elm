@@ -8,6 +8,7 @@ module Config exposing
     , setLimits
     , setName
     , setPass
+    , setPerPage
     , setTheme
     , setTimeZone
     , setTrip
@@ -42,9 +43,10 @@ init flags url key =
     { key = key
     , urlApp = normalizedUrl
     , theme = Theme.default
-    , name = ""
-    , trip = ""
-    , pass = ""
+    , name = defaultUserSettings.name
+    , trip = defaultUserSettings.trip
+    , pass = defaultUserSettings.pass
+    , perPage = defaultUserSettings.perPage
     , limits = Limits.empty
     , timeZone = Nothing
     }
@@ -58,6 +60,7 @@ type alias Config =
     , name : String
     , trip : String
     , pass : String
+    , perPage : Int
     , limits : Limits
     , timeZone : Maybe Zone
     }
@@ -75,6 +78,7 @@ mergeFlags flags cfg =
         , trip = userSettings.trip
         , pass = userSettings.pass
         , theme = userSettings.theme
+        , perPage = userSettings.perPage
     }
 
 
@@ -98,6 +102,11 @@ setPass newPass cfg =
     { cfg | pass = newPass }
 
 
+setPerPage : Int -> Config -> Config
+setPerPage newPerPage cfg =
+    { cfg | perPage = newPerPage }
+
+
 setLimits : Limits -> Config -> Config
 setLimits newLimits cfg =
     { cfg | limits = newLimits }
@@ -112,6 +121,7 @@ type alias UserSettings =
     { name : String
     , trip : String
     , pass : String
+    , perPage : Int
     , theme : Theme
     }
 
@@ -121,13 +131,14 @@ defaultUserSettings =
     { name = ""
     , trip = ""
     , pass = ""
+    , perPage = 8
     , theme = Theme.default
     }
 
 
 decoderUserSettings : Decoder UserSettings
 decoderUserSettings =
-    Decode.map4 UserSettings
+    Decode.map5 UserSettings
         (DecodeExt.withDefault defaultUserSettings.name <|
             Decode.at [ "settings", "name" ] Decode.string
         )
@@ -136,6 +147,9 @@ decoderUserSettings =
         )
         (DecodeExt.withDefault defaultUserSettings.pass <|
             Decode.at [ "settings", "pass" ] Decode.string
+        )
+        (DecodeExt.withDefault defaultUserSettings.perPage <|
+            Decode.at [ "settings", "perPage" ] Decode.int
         )
         (DecodeExt.withDefault defaultUserSettings.theme <|
             Decode.at [ "settings", "theme" ] Theme.decoder

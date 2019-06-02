@@ -403,7 +403,7 @@ viewNavigationMenu cfg =
 
 viewBtnIndex : Theme -> Html Msg
 viewBtnIndex theme =
-    a [ href (Route.link Route.Index) ]
+    a [ href (Route.link Route.index) ]
         [ div
             [ styleButtonMenu
             , Style.buttonIconic

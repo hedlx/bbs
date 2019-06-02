@@ -7,6 +7,7 @@ import Json.Decode as Decode exposing (Decoder)
 
 
 {-| If dragover is not handled the browser will replace the page with the dropped image.
+    Always handle both onDrop and onDragOver events!
 -}
 onDragOver : msg -> Attribute msg
 onDragOver msg =

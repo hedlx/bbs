@@ -72,7 +72,7 @@ handlePostFormResponse cfg postFormResp =
             Response.Ok newState Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.redirect cfg Route.Index
+            Response.redirect cfg Route.index
 
 
 

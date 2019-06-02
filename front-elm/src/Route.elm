@@ -1,25 +1,50 @@
-module Route exposing (QueryThread, Route(..), link, parse, replyTo, thread)
+module Route exposing (QueryIndex, QueryThread, Route(..), index, indexPage, link, parse, replyTo, thread)
 
 import Url exposing (Url)
-import Url.Builder as Builder
+import Url.Builder as Builder exposing (QueryParameter)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, int, oneOf, s, top)
 import Url.Parser.Query as Query
 
 
 type Route
-    = Index
+    = Index QueryIndex
     | Thread Int QueryThread
     | NewThread
+
+
+type alias QueryIndex =
+    { page : Maybe Int }
+
+
+encodeQueryIndex : QueryIndex -> List QueryParameter
+encodeQueryIndex query =
+    List.filterMap identity
+        [ Maybe.map (Builder.int "page") query.page ]
 
 
 type alias QueryThread =
     { replyTo : Maybe Int }
 
 
-encodeQueryThread : QueryThread -> List Builder.QueryParameter
+encodeQueryThread : QueryThread -> List QueryParameter
 encodeQueryThread query =
     List.filterMap identity
         [ Maybe.map (Builder.int "replyTo") query.replyTo ]
+
+
+index : Route
+index =
+    indexWithQuery Nothing
+
+
+indexPage : Int -> Route
+indexPage numPage =
+    indexWithQuery (Just numPage)
+
+
+indexWithQuery : Maybe Int -> Route
+indexWithQuery =
+    Index << QueryIndex
 
 
 thread : Int -> Route
@@ -34,14 +59,14 @@ replyTo threadID postID =
 
 threadWithQuery : Int -> Maybe Int -> Route
 threadWithQuery threadID qReplyTo =
-    Thread threadID { replyTo = qReplyTo }
+    Thread threadID (QueryThread qReplyTo)
 
 
 parser : Parser (Route -> Route) Route
 parser =
     oneOf
-        [ oneOf [ top, s "threads" ]
-            |> Parser.map Index
+        [ oneOf [ top <?> Query.int "page", s "threads" <?> Query.int "page" ]
+            |> Parser.map indexWithQuery
         , oneOf [ int <?> Query.int "replyTo", s "threads" </> int <?> Query.int "replyTo" ]
             |> Parser.map threadWithQuery
         , oneOf [ s "new", s "threads" </> s "new" ]
@@ -62,7 +87,7 @@ link route =
 path : Route -> List String
 path route =
     case route of
-        Index ->
+        Index _ ->
             []
 
         Thread threadID _ ->
@@ -75,8 +100,8 @@ path route =
 queryParameters : Route -> List Builder.QueryParameter
 queryParameters route =
     case route of
-        Index ->
-            []
+        Index query ->
+            encodeQueryIndex query
 
         Thread _ query ->
             encodeQueryThread query
