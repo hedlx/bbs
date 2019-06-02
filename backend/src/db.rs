@@ -85,7 +85,7 @@ impl Db {
                 SELECT t.*,
                        (SELECT COUNT(*) FROM messages AS m WHERE m.thread_id = t.id)
                   FROM threads as t
-                 ORDER BY (bump, id) ASC
+                 ORDER BY (bump, id) DESC
                  LIMIT $2
                  OFFSET $1
             ")
@@ -94,6 +94,7 @@ impl Db {
             .load::<(DbThread, Count)>(&self.0)?
             .into_iter()
             .map(|(thread, total)| self.get_thread_preview(thread, total))
+            .rev()
             .collect::<Result<_, _>>()?;
             Ok(Threads{
                 count: self.get_thread_count()?,
