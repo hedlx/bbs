@@ -12,8 +12,8 @@ use rocket_contrib::json::{Json, JsonValue};
 use std::path::PathBuf;
 use tripcode::file_sha512;
 
-#[get("/threads.1?<before>&<after>&<offset>&<limit>&<tag>")]
-fn threads_list1(
+#[get("/threads?<before>&<after>&<offset>&<limit>&<tag>")]
+fn threads_list(
     db: Db,
     before: Option<u32>, // timestamp
     after: Option<u32>,  // timestamp
@@ -30,19 +30,6 @@ fn threads_list1(
         _ => return Err(Error::ParamComb),
     };
     Ok(Json(resp))
-}
-
-#[get("/threads?<before>&<after>&<offset>&<limit>&<tag>")]
-fn threads_list(
-    db: Db,
-    before: Option<u32>, // timestamp
-    after: Option<u32>,  // timestamp
-    offset: Option<u32>,
-    limit: Option<u32>,
-    tag: Option<String>,
-) -> Result<Json<Vec<ThreadPreview>>, Error> {
-    threads_list1(db, before, after, offset, limit, tag)
-        .map(|x| Json(x.0.threads))
 }
 
 #[get("/threads/<id>")]
@@ -152,7 +139,6 @@ pub fn start() {
                 thread_new,
                 thread_reply,
                 threads_list,
-                threads_list1,
             ],
         )
         .launch();
