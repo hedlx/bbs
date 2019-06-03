@@ -314,4 +314,4 @@ viewPosts cfg { id, messages } =
 viewPostForm : Config -> PostForm -> Html Msg
 viewPostForm cfg form =
     Html.map PostFormMsg <|
-        div [ classes [ T.mt4 ] ] [ PostForm.view cfg form ]
+        div [ classes [ T.mt4, T.pr1 ] ] [ PostForm.view cfg form ]

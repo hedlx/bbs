@@ -21,6 +21,7 @@ import Json.Decode.Extra as DecodeExt
 import List.Extra
 import Media exposing (Media)
 import Route
+import String.Extra
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
@@ -85,14 +86,16 @@ view eventHandlers cfg threadID post =
     let
         theme =
             cfg.theme
-
-        style =
-            classes [ T.mb1, T.mb2_ns, T.pa2, T.br1, theme.bgPost ]
     in
-    article [ style ]
+    article [ stylePost theme ]
         [ viewPostHead eventHandlers cfg threadID post
         , viewBody eventHandlers theme threadID post
         ]
+
+
+stylePost : Theme -> Attribute msg
+stylePost theme =
+    classes [ T.mb1, T.mb2_ns, T.br1, theme.bgPost ]
 
 
 viewPostHead : EventHandlers msg -> Config -> ThreadID -> Post -> Html msg
@@ -119,7 +122,7 @@ viewPostNo : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
 viewPostNo eventHandlers theme threadID post =
     viewHeadElement
         [ classes [ T.link, T.pointer, theme.fgPostNo ]
-        , onClick <| eventHandlers.onReplyToClicked threadID post.no
+        , onClick (eventHandlers.onReplyToClicked threadID post.no)
         ]
         [ text ("#" ++ String.fromInt post.no) ]
 
@@ -132,10 +135,12 @@ viewName theme post =
                 nothing
 
             else
-                span [ class theme.fgPostTrip ] [ text ("!" ++ post.trip) ]
+                span [ class theme.fgPostTrip ]
+                    [ text ("!" ++ post.trip) ]
 
         htmlName =
-            span [ class theme.fgPostName, class T.dib ] [ text <| String.left 32 post.name ]
+            span [ class theme.fgPostName, class T.dib ]
+                [ text (String.left 32 post.name) ]
     in
     viewHeadElement [] [ htmlName, htmlTrip ]
 
@@ -233,20 +238,29 @@ viewBody : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
 viewBody eventHandlers theme threadID post =
     let
         style =
-            classes [ T.pt1, T.pa1, T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
+            classes [ T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
     in
     section
         [ style
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
-        , div [ classes [ T.mt2 ] ] [ text post.text ]
+        , viewPostText post.text
         ]
+
+
+viewPostText : String -> Html msg
+viewPostText str =
+    if String.Extra.isBlank str then
+        nothing
+
+    else
+        div [ classes [ T.ma2, T.ma3_ns ] ] [ text str ]
 
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
 viewHeadElement attrs =
-    div <| [ classes [ T.dib, T.mr2 ] ] ++ attrs
+    div (classes [ T.dib, T.mr2 ] :: attrs)
 
 
 viewButtonHead : Theme -> String -> Html msg
@@ -263,7 +277,7 @@ viewListMedia : EventHandlers msg -> ThreadID -> No -> List Media -> Html msg
 viewListMedia eventHandlers threadID postNo listMedia =
     let
         style =
-            classes [ T.fl, T.flex, T.flex_wrap ]
+            classes [ T.fl, T.mr2, T.mb2, T.mr3_ns, T.mb3_ns, T.flex, T.flex_wrap ]
     in
     div [ style ] <|
         List.map (viewMedia eventHandlers threadID postNo) listMedia
@@ -272,18 +286,21 @@ viewListMedia eventHandlers threadID postNo listMedia =
 viewMedia : EventHandlers msg -> ThreadID -> No -> Media -> Html msg
 viewMedia eventHandlers threadID postNo media =
     let
+        styleMediaContainer =
+            classes [ T.ml2, T.mt2, T.ml3_ns, T.mt3_ns ]
+
         attrs =
-            [ href <| Media.url media
-            , onClick <| eventHandlers.onMediaClicked threadID postNo media.id
+            [ href (Media.url media)
+            , onClick (eventHandlers.onMediaClicked threadID postNo media.id)
             ]
     in
     if media.isPreview then
-        div [ classes [ T.mr2, T.mt2, T.mr3 ] ]
+        div [ class T.db, styleMediaContainer ]
             [ a attrs [ viewMediaPreview media ]
             ]
 
     else
-        div [ classes [ T.mt2 ] ]
+        div [ styleMediaContainer ]
             [ a attrs [ viewMediaFull media ]
             ]
 
@@ -294,48 +311,49 @@ viewMediaPreview media =
         urlPreview =
             Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
 
-        computeSizes big small attrBig attrSmall =
-            let
-                pBig =
-                    Basics.min 200 big
-
-                pSmall =
-                    round <| toFloat pBig * (toFloat small / toFloat big)
-            in
-            [ attrBig pBig, attrSmall pSmall ]
-
         attrsSizes =
             if media.width >= media.height then
-                computeSizes media.width media.height width height
+                mediaSizes media.width media.height width height
 
             else
-                computeSizes media.height media.width height width
+                mediaSizes media.height media.width height width
     in
     img
         (attrsSizes
             ++ [ stylePostMedia
-               , src <| Media.urlPreview media
+               , src (Media.urlPreview media)
                , alt "[Attached media]"
                ]
         )
         []
 
 
+mediaSizes : Int -> Int -> (Int -> Attribute msg) -> (Int -> Attribute msg) -> List (Attribute msg)
+mediaSizes big small attrBig attrSmall =
+    let
+        pBig =
+            Basics.min 200 big
+
+        pSmall =
+            round <| toFloat pBig * (toFloat small / toFloat big)
+    in
+    [ attrBig pBig, attrSmall pSmall ]
+
+
 viewMediaFull : Media -> Html msg
 viewMediaFull media =
-    div []
-        [ img
-            [ stylePostMedia
-            , src <| Media.url media
-            , alt "[Attached media]"
-            ]
-            []
+    img
+        [ stylePostMedia
+        , width media.width
+        , src (Media.url media)
+        , alt "[Attached media]"
         ]
+        []
 
 
 stylePostMedia : Attribute msg
 stylePostMedia =
-    classes [ T.br1, T.pointer, T.mw_100 ]
+    classes [ T.db, T.br1, T.pointer, T.mw_100 ]
 
 
 
@@ -347,11 +365,8 @@ viewOp eventHandlers cfg op =
     let
         theme =
             cfg.theme
-
-        style =
-            classes [ T.mb1, T.mb2_ns, T.pa2, T.br1, theme.bgPost ]
     in
-    article [ style ]
+    article [ stylePost theme ]
         [ viewOpHead eventHandlers cfg op
         , viewBody eventHandlers theme op.threadID op.post
         ]
@@ -393,7 +408,7 @@ viewReply : EventHandlers msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
     span
         [ classes [ T.link, T.pointer ]
-        , onClick <| eventHandlers.onReplyToClicked threadID 0
+        , onClick (eventHandlers.onReplyToClicked threadID 0)
         ]
         [ viewButtonHead theme "Reply" ]
 
@@ -409,7 +424,7 @@ viewSubject theme threadID subject =
         style =
             classes [ T.f4, T.link, T.pointer, theme.fgThreadSubject ]
     in
-    viewThreadLink threadID <|
+    viewThreadLink threadID
         [ viewHeadElement
             [ style ]
             [ text subject ]
