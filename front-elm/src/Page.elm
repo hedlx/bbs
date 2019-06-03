@@ -4,6 +4,7 @@ module Page exposing
     , ResponseToModel
     , init
     , notFound
+    , route
     , title
     , update
     , view
@@ -22,19 +23,22 @@ import Route exposing (Route)
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
+import Theme exposing (Theme)
 import Url exposing (Url)
 
 
 init : Config -> Url -> ( Page, Cmd Msg )
 init cfg url =
     Route.parse url
-        |> Maybe.map (initFromRoute cfg)
-        >> Maybe.withDefault ( NotFound, Cmd.none )
+        |> initFromRoute cfg
 
 
 initFromRoute : Config -> Route -> ( Page, Cmd Msg )
-initFromRoute cfg route =
-    case route of
+initFromRoute cfg route_ =
+    case route_ of
+        Route.NotFound ->
+            ( NotFound, Cmd.none )
+
         Route.Index query ->
             mapInitPage Index IndexMsg (Index.init cfg query)
 
@@ -83,6 +87,22 @@ title page =
             ""
 
 
+route : Page -> Maybe Route
+route page =
+    case page of
+        NewThread state ->
+            Just (NewThread.route state)
+
+        Index state ->
+            Just (Index.route state)
+
+        Thread state ->
+            Just (Thread.route state)
+
+        NotFound ->
+            Nothing
+
+
 
 -- UPDATE
 
@@ -91,6 +111,7 @@ type Msg
     = IndexMsg Index.Msg
     | NewThreadMsg NewThread.Msg
     | ThreadMsg Thread.Msg
+    | ReturnToIndex
 
 
 type alias ResponseToModel =
@@ -99,8 +120,14 @@ type alias ResponseToModel =
 
 update : Config -> Msg -> Page -> ResponseToModel
 update cfg msg page =
-    updatePage cfg msg page
-        |> handleResponse page
+    case msg of
+        ReturnToIndex ->
+            Response.redirect cfg Route.index
+                |> handleResponse page
+
+        _ ->
+            updatePage cfg msg page
+                |> handleResponse page
 
 
 updatePage : Config -> Msg -> Page -> Response Page Msg
@@ -130,6 +157,9 @@ handleResponse currentPage reponse =
 
         Response.Ok newPage cmd alert ->
             ( newPage, cmd, alert )
+
+        Response.Command cmd alert ->
+            ( currentPage, cmd, alert )
 
         Response.Err cmd alert ->
             ( currentPage, cmd, alert )
@@ -164,19 +194,31 @@ viewContent cfg page =
             Html.map NewThreadMsg (NewThread.view cfg state)
 
         NotFound ->
-            viewNotFound
+            viewNotFound cfg.theme
 
 
-viewNotFound : Html Msg
-viewNotFound =
+viewNotFound : Theme -> Html Msg
+viewNotFound theme =
     let
         stylePage =
             classes [ T.flex, T.flex_column, T.justify_center ]
 
         styleNotFound =
-            classes [ T.f1, T.tc ]
+            classes [ T.f2, T.tc ]
     in
-    h1 [ Style.content, stylePage ]
-        [ div [ styleNotFound ]
+    div [ Style.content, stylePage ]
+        [ h1 [ styleNotFound ]
             [ text "Page Not Found" ]
+        , button
+            [ onClick ReturnToIndex
+            , Style.buttonEnabled theme
+            , Style.textButton theme
+            , classes
+                [ theme.fgButton
+                , theme.bgButton
+                , T.w4
+                , T.center
+                ]
+            ]
+            [ text "Return to Index" ]
         ]

@@ -5,6 +5,7 @@ module Page.Thread exposing
     , decoder
     , init
     , replyTo
+    , route
     , subject
     , threadID
     , update
@@ -29,7 +30,7 @@ import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import PostForm exposing (PostForm)
-import Route exposing (QueryThread)
+import Route exposing (QueryThread, Route)
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -83,8 +84,18 @@ type Msg
     | FilesDropped (List File)
 
 
-path : ID -> List String
-path tID =
+route : State -> Route
+route state =
+    case state of
+        Loading _ id ->
+            Route.thread id
+
+        Idle _ { id } ->
+            Route.thread id
+
+
+pathPost : ID -> List String
+pathPost tID =
     [ "threads", String.fromInt tID ]
 
 
@@ -230,7 +241,7 @@ update cfg msg state =
 
 updatePostForm : ID -> Config -> PostForm.Msg -> PostForm -> PostForm.Response
 updatePostForm tID =
-    PostForm.update (path tID)
+    PostForm.update (pathPost tID)
 
 
 handlePostFormResponse : Thread -> PostForm.Response -> Response State Msg
@@ -289,7 +300,7 @@ viewSubject : Theme -> Thread -> Html Msg
 viewSubject theme thread =
     let
         style =
-            classes [ T.f2, T.mt2, T.mb3, T.fw5, theme.fgThreadSubject ]
+            classes [ T.f3, T.f2_ns, T.mt2, T.mb3, T.fw5, theme.fgThreadSubject ]
 
         strSubject =
             Maybe.withDefault
@@ -299,7 +310,7 @@ viewSubject theme thread =
     header [] [ h1 [ style ] [ text strSubject ] ]
 
 
-postEventHandlers : Post.EventHandlers Msg
+postEventHandlers : Post.EventHandlers Msg {}
 postEventHandlers =
     { onMediaClicked = \_ -> MediaClicked
     , onReplyToClicked = ReplyToClicked

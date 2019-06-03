@@ -1,4 +1,15 @@
-module Route exposing (QueryIndex, QueryThread, Route(..), index, indexPage, link, parse, replyTo, thread)
+module Route exposing
+    ( QueryIndex
+    , QueryThread
+    , Route(..)
+    , index
+    , indexPage
+    , isIndex
+    , link
+    , parse
+    , replyTo
+    , thread
+    )
 
 import Url exposing (Url)
 import Url.Builder as Builder exposing (QueryParameter)
@@ -7,7 +18,8 @@ import Url.Parser.Query as Query
 
 
 type Route
-    = Index QueryIndex
+    = NotFound
+    | Index QueryIndex
     | Thread Int QueryThread
     | NewThread
 
@@ -42,6 +54,16 @@ indexPage numPage =
     indexWithQuery (Just numPage)
 
 
+isIndex : Route -> Bool
+isIndex route =
+    case route of
+        Index _ ->
+            True
+
+        _ ->
+            False
+
+
 indexWithQuery : Maybe Int -> Route
 indexWithQuery =
     Index << QueryIndex
@@ -65,7 +87,9 @@ threadWithQuery threadID qReplyTo =
 parser : Parser (Route -> Route) Route
 parser =
     oneOf
-        [ oneOf [ top <?> Query.int "page", s "threads" <?> Query.int "page" ]
+        [ oneOf [ top </> s "404", s "threads" </> s "404" ]
+            |> Parser.map NotFound
+        , oneOf [ top <?> Query.int "page", s "threads" <?> Query.int "page" ]
             |> Parser.map indexWithQuery
         , oneOf [ int <?> Query.int "replyTo", s "threads" </> int <?> Query.int "replyTo" ]
             |> Parser.map threadWithQuery
@@ -74,9 +98,25 @@ parser =
         ]
 
 
-parse : Url -> Maybe Route
+parse : Url -> Route
 parse url =
     Parser.parse parser url
+        |> Maybe.map assertRoute
+        >> Maybe.withDefault NotFound
+
+
+assertRoute : Route -> Route
+assertRoute route =
+    case route of
+        Index { page } ->
+            if Maybe.map ((>) 0) page == Just True then
+                NotFound
+
+            else
+                route
+
+        _ ->
+            route
 
 
 link : Route -> String
@@ -87,6 +127,9 @@ link route =
 path : Route -> List String
 path route =
     case route of
+        NotFound ->
+            [ "404" ]
+
         Index _ ->
             []
 
@@ -106,5 +149,5 @@ queryParameters route =
         Thread _ query ->
             encodeQueryThread query
 
-        NewThread ->
+        _ ->
             []

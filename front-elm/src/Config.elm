@@ -29,7 +29,7 @@ import Keyboard.Events as KeyboardEv
 import Limits exposing (Limits)
 import LocalStorage
 import Regex exposing (Regex)
-import Route
+import Route exposing (Route)
 import String.Extra
 import Style
 import Tachyons exposing (classes)
@@ -344,8 +344,8 @@ type alias Response =
     ( Config, Cmd Msg, Alert Msg )
 
 
-update : Msg -> Config -> Response
-update msg cfg =
+update : Maybe Route -> Msg -> Config -> Response
+update maybeRoute msg cfg =
     case msg of
         NoOp ->
             return cfg
@@ -407,8 +407,12 @@ update msg cfg =
                 ( newCfg, cmdSave, _ ) =
                     save { cfg | perPageThreads = newPerPageThreads }
 
+                isIndexPage =
+                    Maybe.map Route.isIndex maybeRoute
+                        |> Maybe.withDefault False
+
                 cmdReloadIndex =
-                    if isPerPageChanged cfg.perPageThreads then
+                    if isIndexPage && isPerPageChanged cfg.perPageThreads then
                         Nav.pushUrl cfg.key (Route.link Route.index)
 
                     else

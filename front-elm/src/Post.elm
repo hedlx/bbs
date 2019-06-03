@@ -1,10 +1,12 @@
 module Post exposing
     ( EventHandlers
+    , EventHandlersOP
     , No
     , Op
     , Post
     , decoder
     , mapMedia
+    , opDomID
     , toggleMediaPreview
     , view
     , viewOp
@@ -50,10 +52,18 @@ type alias No =
     Int
 
 
-type alias EventHandlers msg =
-    { onMediaClicked : ThreadID -> No -> Media.ID -> msg
-    , onReplyToClicked : ThreadID -> No -> msg
+type alias EventHandlers msg a =
+    { a
+        | onMediaClicked : ThreadID -> No -> Media.ID -> msg
+        , onReplyToClicked : ThreadID -> No -> msg
     }
+
+
+type alias EventHandlersOP msg =
+    EventHandlers msg
+        { onNextThreadClicked : Maybe (ThreadID -> msg)
+        , onPrevThreadClicked : Maybe (ThreadID -> msg)
+        }
 
 
 type alias ThreadID =
@@ -81,7 +91,7 @@ decoder =
         (Decode.field "media" (Decode.list Media.decoder))
 
 
-view : EventHandlers msg -> Config -> ThreadID -> Post -> Html msg
+view : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
 view eventHandlers cfg threadID post =
     let
         theme =
@@ -98,27 +108,36 @@ stylePost theme =
     classes [ T.mb1, T.mb2_ns, T.br1, theme.bgPost ]
 
 
-viewPostHead : EventHandlers msg -> Config -> ThreadID -> Post -> Html msg
-viewPostHead eventHandlers { theme, timeZone } threadID post =
-    let
-        style =
-            classes
-                [ T.f6
-                , T.overflow_hidden
-                , T.pa1
-                , theme.fgPostHead
-                , theme.fontMono
-                , theme.bgPost
-                ]
-    in
-    header [ style ]
-        [ viewPostNo eventHandlers theme threadID post
-        , viewName theme post
-        , viewPostTime timeZone post
+viewPostHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
+viewPostHead eventHandlers cfg threadID post =
+    header [ stylePostHead cfg.theme ]
+        (viewPostHeadElements eventHandlers cfg threadID post)
+
+
+viewPostHeadElements : EventHandlers msg a -> Config -> ThreadID -> Post -> List (Html msg)
+viewPostHeadElements eventHandlers { theme, timeZone } threadID post =
+    [ viewPostNo eventHandlers theme threadID post
+    , viewName theme post
+    , viewPostTime timeZone post
+    ]
+
+
+stylePostHead : Theme -> Attribute msg
+stylePostHead theme =
+    classes
+        [ T.f7
+        , T.f6_ns
+        , T.overflow_hidden
+        , T.pb1
+        , T.pl2
+        , T.pl3_ns
+        , theme.fgPostHead
+        , theme.fontMono
+        , theme.bgPost
         ]
 
 
-viewPostNo : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
+viewPostNo : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
 viewPostNo eventHandlers theme threadID post =
     viewHeadElement
         [ classes [ T.link, T.pointer, theme.fgPostNo ]
@@ -135,7 +154,7 @@ viewName theme post =
                 nothing
 
             else
-                span [ class theme.fgPostTrip ]
+                span [ classes [ theme.fgPostTrip ] ]
                     [ text ("!" ++ post.trip) ]
 
         htmlName =
@@ -191,7 +210,7 @@ viewTime ts zone =
                 |> String.fromInt
                 >> String.pad 2 '0'
     in
-    text (String.concat [ year, "-", month, "-", day, " ", hours, ":", minutes, ":", seconds ])
+    text <| String.concat [ year, "-", month, "-", day, " ", hours, ":", minutes, ":", seconds ]
 
 
 toMonthName : Month -> String
@@ -234,7 +253,7 @@ toMonthName month =
             "12"
 
 
-viewBody : EventHandlers msg -> Theme -> ThreadID -> Post -> Html msg
+viewBody : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
 viewBody eventHandlers theme threadID post =
     let
         style =
@@ -260,7 +279,7 @@ viewPostText str =
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
 viewHeadElement attrs =
-    div (classes [ T.dib, T.mr2 ] :: attrs)
+    div (classes [ T.dib, T.mr2, T.pt2 ] :: attrs)
 
 
 viewButtonHead : Theme -> String -> Html msg
@@ -273,7 +292,7 @@ viewButtonHead theme btnText =
         ]
 
 
-viewListMedia : EventHandlers msg -> ThreadID -> No -> List Media -> Html msg
+viewListMedia : EventHandlers msg a -> ThreadID -> No -> List Media -> Html msg
 viewListMedia eventHandlers threadID postNo listMedia =
     let
         style =
@@ -283,7 +302,7 @@ viewListMedia eventHandlers threadID postNo listMedia =
         List.map (viewMedia eventHandlers threadID postNo) listMedia
 
 
-viewMedia : EventHandlers msg -> ThreadID -> No -> Media -> Html msg
+viewMedia : EventHandlers msg a -> ThreadID -> No -> Media -> Html msg
 viewMedia eventHandlers threadID postNo media =
     let
         styleMediaContainer =
@@ -360,7 +379,7 @@ stylePostMedia =
 -- OP-post functions
 
 
-viewOp : EventHandlers msg -> Config -> Op -> Html msg
+viewOp : EventHandlersOP msg -> Config -> Op -> Html msg
 viewOp eventHandlers cfg op =
     let
         theme =
@@ -372,30 +391,27 @@ viewOp eventHandlers cfg op =
         ]
 
 
-viewOpHead : EventHandlers msg -> Config -> Op -> Html msg
-viewOpHead eventHandlers { theme, timeZone } { threadID, subject, post } =
-    let
-        style =
-            classes
-                [ T.f6
-                , T.overflow_hidden
-                , T.pa1
-                , theme.fgPostHead
-                , theme.fontMono
-                , theme.bgPost
-                ]
+opDomID : Int -> String
+opDomID threadID =
+    "thread-" ++ String.fromInt threadID
 
-        subjectOrNothing =
-            Maybe.map (viewSubject theme threadID) subject
-                |> Maybe.withDefault nothing
+
+viewOpHead : EventHandlersOP msg -> Config -> Op -> Html msg
+viewOpHead eventHandlers cfg { threadID, subject, post } =
+    let
+        theme =
+            cfg.theme
     in
-    header [ style ]
-        [ viewOpNo theme threadID
-        , subjectOrNothing
-        , viewName { theme | fgPostName = theme.fgOpName } post
-        , viewPostTime timeZone post
-        , viewReply eventHandlers theme threadID
-        , viewShowAll theme threadID
+    header [ stylePostHead theme ]
+        [ div [ classes [ T.pt2 ] ]
+            [ viewPrevNextControls eventHandlers theme threadID
+            , viewOpNo theme threadID
+            , viewSubject theme threadID subject
+            , viewReply eventHandlers theme threadID
+            , viewShowAll theme threadID
+            ]
+        , div []
+            (viewPostHeadElements eventHandlers cfg threadID post)
         ]
 
 
@@ -404,7 +420,50 @@ viewOpNo theme threadID =
     viewThreadLink threadID [ viewButtonHead theme (String.fromInt threadID) ]
 
 
-viewReply : EventHandlers msg -> Theme -> ThreadID -> Html msg
+viewPrevNextControls : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
+viewPrevNextControls eventHandlers theme threadID =
+    span [ id (opDomID threadID), class T.mr2 ]
+        [ viewNextThread eventHandlers theme threadID
+        , text "|"
+        , viewPrevThread eventHandlers theme threadID
+        ]
+
+
+viewNextThread : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
+viewNextThread eventHandlers theme threadID =
+    let
+        attrs =
+            eventHandlers.onNextThreadClicked
+                |> Maybe.map (attrsPrevNext theme threadID)
+                >> Maybe.withDefault []
+    in
+    span (title "Go To Next Thread" :: attrs) [ text "[▼" ]
+
+
+viewPrevThread : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
+viewPrevThread eventHandlers theme threadID =
+    let
+        attrs =
+            eventHandlers.onPrevThreadClicked
+                |> Maybe.map (attrsPrevNext theme threadID)
+                >> Maybe.withDefault [ class theme.fgButtonDisabled ]
+    in
+    span (title "Go To Previous Thread" :: attrs) [ text "▲]" ]
+
+
+attrsPrevNext : Theme -> Int -> (Int -> msg) -> List (Attribute msg)
+attrsPrevNext theme threadID toMsg =
+    [ onClick (toMsg threadID)
+    , classes
+        [ T.link
+        , T.pointer
+        , theme.fgTextButton
+        , T.dim
+        ]
+    ]
+
+
+viewReply : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
     span
         [ classes [ T.link, T.pointer ]
@@ -418,16 +477,19 @@ viewShowAll theme threadID =
     viewThreadLink threadID [ viewButtonHead theme "Show All" ]
 
 
-viewSubject : Theme -> ThreadID -> String -> Html msg
+viewSubject : Theme -> ThreadID -> Maybe String -> Html msg
 viewSubject theme threadID subject =
     let
         style =
-            classes [ T.f4, T.link, T.pointer, theme.fgThreadSubject ]
+            classes [ T.f5, T.f4_ns, T.link, T.pointer, theme.fgThreadSubject ]
+
+        strSubject =
+            Maybe.withDefault ("Thread #" ++ String.fromInt threadID) subject
     in
     viewThreadLink threadID
         [ viewHeadElement
             [ style ]
-            [ text subject ]
+            [ text strSubject ]
         ]
 
 

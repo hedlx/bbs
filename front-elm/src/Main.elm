@@ -50,7 +50,7 @@ init flags url key =
             Config.init flags url key
 
         ( model, cmd ) =
-            route cfg
+            changeRoute cfg
                 url
                 { cfg = cfg
                 , page = Page.notFound
@@ -98,7 +98,11 @@ update msg model =
             ( model, Cmd.none )
 
         ConfigMsg subMsg ->
-            updateConfig (Config.update subMsg model.cfg) model
+            let
+                currentRoute =
+                    Page.route model.page
+            in
+            updateConfig (Config.update currentRoute subMsg model.cfg) model
 
         PageMsg subMsg ->
             updatePage (Page.update model.cfg subMsg model.page) model
@@ -116,7 +120,7 @@ update msg model =
                     ( model, Cmd.none )
 
         UrlChanged url ->
-            route model.cfg url model
+            changeRoute model.cfg url model
 
         SlideInMsg subMsg ->
             let
@@ -215,8 +219,8 @@ isShouldHandleUrl cfg url =
     Regex.contains regexUrlApp url.path
 
 
-route : Config -> Url -> Model -> ( Model, Cmd Msg )
-route cfg url model =
+changeRoute : Config -> Url -> Model -> ( Model, Cmd Msg )
+changeRoute cfg url model =
     let
         urlFixed =
             toFragmentUrl url
@@ -318,7 +322,7 @@ viewNavigationMenu cfg =
                 , theme.bgMenu
                 ]
     in
-    nav [ style ]
+    nav [ style, id "nav-menu" ]
         [ viewBtnIndex theme
         , viewBtnNewThread theme
         , viewBtnDelete theme
@@ -389,7 +393,7 @@ viewBtnSettings theme =
 
 styleButtonMenu : Attribute Msg
 styleButtonMenu =
-    class T.pa3
+    classes [ T.pa2, T.pa3_ns ]
 
 
 viewSettingsDialog : Config -> Html Msg

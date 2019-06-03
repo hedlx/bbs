@@ -1,4 +1,4 @@
-module Page.NewThread exposing (Msg, State, init, update, view)
+module Page.NewThread exposing (Msg, State, init, route, update, view)
 
 import Alert
 import Config exposing (Config)
@@ -8,7 +8,7 @@ import Html exposing (..)
 import Html.Events exposing (..)
 import Page.Response as Response exposing (Response)
 import PostForm exposing (PostForm)
-import Route
+import Route exposing (Route)
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -35,8 +35,13 @@ type Msg
     | FilesDropped (List File)
 
 
-path : List String
-path =
+route : State -> Route
+route _ =
+    Route.NewThread
+
+
+pathPost : List String
+pathPost =
     [ "threads" ]
 
 
@@ -59,7 +64,7 @@ update cfg msg state =
 
 updatePostForm : Config -> PostForm.Msg -> PostForm -> PostForm.Response
 updatePostForm =
-    PostForm.update path
+    PostForm.update pathPost
 
 
 handlePostFormResponse : Config -> PostForm.Response -> Response State Msg
@@ -87,6 +92,6 @@ view cfg form =
         , FilesDrop.onDrop FilesDropped
         , FilesDrop.onDragOver NoOp
         ]
-        [ div [ classes [ T.pt4, T.pr2, T.pt0_ns, T.pr0_ns ] ]
+        [ div [ classes [ T.pt2, T.pr2, T.pt0_ns, T.pr0_ns ] ]
             [ Html.map PostFormMsg (PostForm.view cfg form) ]
         ]
