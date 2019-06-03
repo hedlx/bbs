@@ -2,6 +2,7 @@ module Route exposing
     ( QueryIndex
     , QueryThread
     , Route(..)
+    , go
     , index
     , indexPage
     , isIndex
@@ -11,6 +12,7 @@ module Route exposing
     , thread
     )
 
+import Browser.Navigation as Nav
 import Url exposing (Url)
 import Url.Builder as Builder exposing (QueryParameter)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, int, oneOf, s, top)
@@ -35,7 +37,8 @@ encodeQueryIndex query =
 
 
 type alias QueryThread =
-    { replyTo : Maybe Int }
+    { replyTo : Maybe Int
+    }
 
 
 encodeQueryThread : QueryThread -> List QueryParameter
@@ -151,3 +154,8 @@ queryParameters route =
 
         _ ->
             []
+
+
+go : Nav.Key -> Route -> Cmd msg
+go key route =
+    Nav.pushUrl key (link route)

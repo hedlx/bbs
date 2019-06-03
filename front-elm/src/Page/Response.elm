@@ -1,7 +1,18 @@
-module Page.Response exposing (Response(..), andThen, andThenIf, do, join, map, map2, raise, redirect, return)
+module Page.Response exposing
+    ( Response(..)
+    , andThen
+    , andThenIf
+    , do
+    , join
+    , map
+    , map2
+    , raise
+    , redirect
+    , return
+    , softRedirect
+    )
 
 import Alert exposing (Alert)
-import Browser.Navigation as Nav
 import Config exposing (Config)
 import Route exposing (Route)
 
@@ -19,8 +30,13 @@ raise alert =
 
 
 redirect : Config -> Route -> Response a msg
-redirect cfg route =
-    Err (Nav.pushUrl cfg.key (Route.link route)) Alert.None
+redirect { key } route =
+    Err (Route.go key route) Alert.None
+
+
+softRedirect : Config -> Route -> a -> Response a msg
+softRedirect { key } route state =
+    Ok state (Route.go key route) Alert.None
 
 
 return : a -> Response a msg

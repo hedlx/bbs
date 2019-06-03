@@ -4,6 +4,7 @@ module Page exposing
     , ResponseToModel
     , init
     , notFound
+    , reInit
     , route
     , title
     , update
@@ -27,20 +28,27 @@ import Theme exposing (Theme)
 import Url exposing (Url)
 
 
-init : Config -> Url -> ( Page, Cmd Msg )
-init cfg url =
-    Route.parse url
-        |> initFromRoute cfg
+init : Config -> Url -> Page -> ( Page, Cmd Msg )
+init cfg url page =
+    let
+        route_ =
+            Route.parse url
+    in
+    if isShouldReInit page then
+        reInitFromRoute cfg page route_ 
+
+    else
+        initFromRoute cfg route_
 
 
 initFromRoute : Config -> Route -> ( Page, Cmd Msg )
 initFromRoute cfg route_ =
     case route_ of
-        Route.NotFound ->
-            ( NotFound, Cmd.none )
-
         Route.Index query ->
             mapInitPage Index IndexMsg (Index.init cfg query)
+
+        Route.NotFound ->
+            ( NotFound, Cmd.none )
 
         Route.Thread threadID query ->
             mapInitPage Thread ThreadMsg (Thread.init cfg threadID query)
@@ -49,9 +57,35 @@ initFromRoute cfg route_ =
             mapInitPage NewThread NewThreadMsg NewThread.init
 
 
+reInit : Config -> Url -> Page -> ( Page, Cmd Msg )
+reInit cfg url page =
+    Route.parse url
+        |> reInitFromRoute cfg page
+
+
+reInitFromRoute : Config -> Page -> Route -> ( Page, Cmd Msg )
+reInitFromRoute cfg currentPage route_ =
+    case ( currentPage, route_ ) of
+        ( Index state, Route.Index query ) ->
+            mapInitPage Index IndexMsg (Index.reInit cfg query state)
+
+        _ ->
+            initFromRoute cfg route_
+
+
 mapInitPage : (page -> Page) -> (msg -> Msg) -> ( page, Cmd msg ) -> ( Page, Cmd Msg )
 mapInitPage toPage toMsg ( page, cmd ) =
     ( toPage page, Cmd.map toMsg cmd )
+
+
+isShouldReInit : Page -> Bool
+isShouldReInit page =
+    case page of
+        Index state ->
+            Index.isShouldReInit state
+
+        _ ->
+            False
 
 
 

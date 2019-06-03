@@ -1,8 +1,18 @@
-module Page.Index exposing (Msg, State, init, route, update, view)
+module Page.Index exposing
+    ( Msg
+    , State
+    , init
+    , isShouldReInit
+    , reInit
+    , route
+    , update
+    , view
+    )
 
 import Alert
 import Browser.Dom as Dom
 import Config exposing (Config)
+import Ease
 import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -26,7 +36,17 @@ import Url.Builder
 
 
 init : Config -> QueryIndex -> ( State, Cmd Msg )
-init { perPageThreads } query =
+init cfg query =
+    ( Loading, cmdInit cfg query )
+
+
+reInit : Config -> QueryIndex -> State -> ( State, Cmd Msg )
+reInit cfg query state =
+    ( state, cmdInit cfg query )
+
+
+cmdInit : Config -> QueryIndex -> Cmd Msg
+cmdInit { perPageThreads } query =
     let
         numPage =
             Maybe.withDefault 0 query.page
@@ -35,7 +55,17 @@ init { perPageThreads } query =
             Config.perPageToInt perPageThreads
                 |> Maybe.withDefault Env.threadsPerPage
     in
-    ( Loading, getThreads perPage numPage )
+    getThreads perPage numPage
+
+
+isShouldReInit : State -> Bool
+isShouldReInit state =
+    case state of
+        Reloading _ ->
+            True
+
+        _ ->
+            False
 
 
 
@@ -44,6 +74,7 @@ init { perPageThreads } query =
 
 type State
     = Loading
+    | Reloading Bool
     | Idle Page
 
 
@@ -69,11 +100,11 @@ type alias ThreadID =
 route : State -> Route
 route state =
     case state of
-        Loading ->
-            Route.index
-
         Idle { number } ->
             Route.indexPage number
+
+        _ ->
+            Route.index
 
 
 toOp : ThreadPreview -> Post.Op
@@ -146,7 +177,11 @@ scrollTo offset domID =
             SmoothScroll.defaultConfig
 
         cfgScroll =
-            { cfgDefault | offset = offset, speed = 30 }
+            { cfgDefault
+                | offset = offset
+                , speed = 60
+                , easing = Ease.outQuint
+            }
     in
     SmoothScroll.scrollToWithOptions cfgScroll domID
         |> Task.attempt (always NoOp)
@@ -194,11 +229,7 @@ update cfg msg state =
             Response.None
 
         GotThreads (Ok newPage) ->
-            if newPage.number > 0 && List.isEmpty newPage.threads then
-                Response.redirect cfg Route.NotFound
-
-            else
-                Response.return (Idle newPage)
+            handleGotThreads cfg newPage state
 
         GotThreads (Err error) ->
             Response.raise (Alert.fromHttpError error)
@@ -211,19 +242,19 @@ update cfg msg state =
 
         GoToNextThread tID ->
             case state of
-                Loading ->
-                    Response.None
-
                 Idle page ->
-                    goToNearbyThread (getNextThreadID tID) ((+) 1) cfg page
+                    goToNearbyThread tID False cfg page
+
+                _ ->
+                    Response.None
 
         GoToPrevThread tID ->
             case state of
-                Loading ->
-                    Response.None
-
                 Idle page ->
-                    goToNearbyThread (getPrevThreadID tID) ((-) 1) cfg page
+                    goToNearbyThread tID True cfg page
+
+                _ ->
+                    Response.None
 
         ScrollTo domID offset ->
             Response.do <| scrollTo (floor offset) domID
@@ -232,20 +263,58 @@ update cfg msg state =
             Response.redirect cfg (Route.indexPage numPage)
 
 
-goToNearbyThread : (Page -> Maybe Int) -> (Int -> Int) -> Config -> Page -> Response State Msg
-goToNearbyThread threadIDGetter pageAdder cfg page =
+handleGotThreads : Config -> Page -> State -> Response State Msg
+handleGotThreads cfg newPage state =
+    if newPage.number > 0 && List.isEmpty newPage.threads then
+        Response.redirect cfg Route.NotFound
+
+    else
+        let
+            newState =
+                Idle newPage
+        in
+        case state of
+            Reloading isGoToLastPost ->
+                if isGoToLastPost then
+                    Response.Ok newState (cmdGoToLastPost newPage) Alert.None
+
+                else
+                    Response.return newState
+
+            _ ->
+                Response.return newState
+
+
+goToNearbyThread : Int -> Bool -> Config -> Page -> Response State Msg
+goToNearbyThread threadID isGoToPrev cfg page =
     let
         maybeNearID =
-            threadIDGetter page
+            if isGoToPrev then
+                getPrevThreadID threadID page
+
+            else
+                getNextThreadID threadID page
     in
     case maybeNearID of
         Nothing ->
-            Response.redirect cfg (Route.indexPage (pageAdder page.number))
+            if isGoToPrev then
+                Response.softRedirect cfg (Route.indexPage (page.number - 1)) (Reloading True)
+
+            else
+                Response.redirect cfg (Route.indexPage (page.number + 1))
 
         Just nearID ->
             Response.do <|
                 getFirstOpPostPosition page.threads
                     (ScrollTo (Post.opDomID nearID))
+
+
+cmdGoToLastPost : Page -> Cmd Msg
+cmdGoToLastPost page =
+    List.Extra.last page.threads
+        |> Maybe.map .id
+        >> Maybe.map (\tID -> getFirstOpPostPosition page.threads (ScrollTo (Post.opDomID tID)))
+        >> Maybe.withDefault Cmd.none
 
 
 
@@ -261,7 +330,7 @@ view cfg state =
                 , viewPageControls cfg page
                 ]
 
-        Loading ->
+        _ ->
             Spinner.view cfg.theme 256
 
 
@@ -436,9 +505,6 @@ viewPageLinks theme numPageLast numPageCurrent =
 toggleMediaPreview : ThreadID -> Post.No -> Media.ID -> State -> State
 toggleMediaPreview tID postNo mediaID state =
     case state of
-        Loading ->
-            Loading
-
         Idle page ->
             let
                 newThreads =
@@ -448,6 +514,9 @@ toggleMediaPreview tID postNo mediaID state =
                         page.threads
             in
             Idle { page | threads = newThreads }
+
+        _ ->
+            state
 
 
 toggleMediaPreviewThread : Post.No -> Media.ID -> ThreadPreview -> ThreadPreview

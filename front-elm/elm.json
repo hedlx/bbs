@@ -19,6 +19,7 @@
             "elm/svg": "1.0.1",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
+            "elm-community/easing-functions": "2.0.0",
             "elm-community/html-extra": "3.1.0",
             "elm-community/json-extra": "4.0.0",
             "elm-community/list-extra": "8.1.0",
@@ -34,7 +35,6 @@
             "elm/parser": "1.1.0",
             "elm/random": "1.0.0",
             "elm/virtual-dom": "1.0.2",
-            "elm-community/easing-functions": "2.0.0",
             "myrho/elm-round": "1.0.4",
             "rtfeldman/elm-iso8601-date-strings": "1.1.2"
         }

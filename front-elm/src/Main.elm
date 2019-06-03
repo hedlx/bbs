@@ -226,7 +226,7 @@ changeRoute cfg url model =
             toFragmentUrl url
 
         ( page, cmdPage ) =
-            Page.init cfg urlFixed
+            Page.init cfg urlFixed model.page
     in
     ( { model | page = page }
     , Cmd.map PageMsg cmdPage
