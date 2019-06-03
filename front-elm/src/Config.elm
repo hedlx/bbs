@@ -218,6 +218,9 @@ perPageToInt perPage =
         PerPage n ->
             Just n
 
+        PerPageEdit n _ ->
+            Just n
+
         _ ->
             Nothing
 
