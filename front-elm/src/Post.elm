@@ -24,6 +24,7 @@ import List.Extra
 import Media exposing (Media)
 import Route
 import String.Extra
+import Style.Extra as TE
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
@@ -105,7 +106,7 @@ view eventHandlers cfg threadID post =
 
 stylePost : Theme -> Attribute msg
 stylePost theme =
-    classes [ T.mb1, T.mb2_ns, T.br1, theme.bgPost ]
+    classes [ T.mb1, T.mb2_ns, T.br3, T.br4_ns, T.overflow_hidden, theme.bgPost ]
 
 
 viewPostHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
@@ -140,7 +141,7 @@ stylePostHead theme =
 viewPostNo : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
 viewPostNo eventHandlers theme threadID post =
     viewHeadElement
-        [ classes [ T.link, T.pointer, theme.fgPostNo ]
+        [ classes [ T.link, T.pointer, TE.sel_none, theme.fgPostNo ]
         , onClick (eventHandlers.onReplyToClicked threadID post.no)
         ]
         [ text ("#" ++ String.fromInt post.no) ]
@@ -417,12 +418,17 @@ viewOpHead eventHandlers cfg { threadID, subject, post } =
 
 viewOpNo : Theme -> ThreadID -> Html msg
 viewOpNo theme threadID =
-    viewThreadLink threadID [ viewButtonHead theme (String.fromInt threadID) ]
+    viewThreadLink threadID
+        [ class TE.sel_none ]
+        [ viewButtonHead theme (String.fromInt threadID) ]
 
 
 viewPrevNextControls : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
 viewPrevNextControls eventHandlers theme threadID =
-    span [ id (opDomID threadID), class T.mr2 ]
+    span
+        [ id (opDomID threadID)
+        , classes [ T.mr2, TE.sel_none ]
+        ]
         [ viewNextThread eventHandlers theme threadID
         , text "|"
         , viewPrevThread eventHandlers theme threadID
@@ -466,7 +472,7 @@ attrsPrevNext theme threadID toMsg =
 viewReply : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
     span
-        [ classes [ T.link, T.pointer ]
+        [ classes [ T.link, T.pointer, TE.sel_none ]
         , onClick (eventHandlers.onReplyToClicked threadID 0)
         ]
         [ viewButtonHead theme "Reply" ]
@@ -474,7 +480,9 @@ viewReply eventHandlers theme threadID =
 
 viewShowAll : Theme -> ThreadID -> Html msg
 viewShowAll theme threadID =
-    viewThreadLink threadID [ viewButtonHead theme "Show All" ]
+    viewThreadLink threadID
+        [ class TE.sel_none ]
+        [ viewButtonHead theme "Show All" ]
 
 
 viewSubject : Theme -> ThreadID -> Maybe String -> Html msg
@@ -487,12 +495,13 @@ viewSubject theme threadID subject =
             Maybe.withDefault ("Thread #" ++ String.fromInt threadID) subject
     in
     viewThreadLink threadID
+        []
         [ viewHeadElement
             [ style ]
             [ text strSubject ]
         ]
 
 
-viewThreadLink : ThreadID -> List (Html msg) -> Html msg
-viewThreadLink threadID =
-    a [ href <| Route.link (Route.thread threadID) ]
+viewThreadLink : ThreadID -> List (Attribute msg) -> List (Html msg) -> Html msg
+viewThreadLink threadID attrs =
+    a (href (Route.link (Route.thread threadID)) :: attrs)
