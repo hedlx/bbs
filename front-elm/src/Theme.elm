@@ -19,6 +19,7 @@ type alias Theme =
     , fgOpName : String
     , fgThreadNo : String
     , fgThreadSubject : String
+    , bSeparator : String
     , fgPostNo : String
     , fgPost : String
     , fgPostHead : String
@@ -96,6 +97,7 @@ themeDark =
     , fgOpName = light_blue
     , fgThreadNo = green
     , fgThreadSubject = pink
+    , bSeparator = b__white_20
     , fgPostNo = darkMainFG
     , fgPost = darkMainFG
     , fgPostHead = darkMainFG
@@ -144,6 +146,7 @@ themeLight =
     , fgOpName = dark_blue
     , fgThreadNo = purple
     , fgThreadSubject = purple
+    , bSeparator = b__light_purple
     , fgPostNo = lightMainFG
     , fgPost = lightMainFG
     , fgPostHead = lightMainFG

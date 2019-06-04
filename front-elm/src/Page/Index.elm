@@ -30,6 +30,7 @@ import Spinner
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
+import Tachyons.Classes.Extra as TE
 import Task
 import Theme exposing (Theme)
 import Url.Builder
@@ -344,8 +345,15 @@ viewThreads cfg { number, totalThreads, threads } =
         totalOffset =
             perPage * number
     in
-    div [] <|
-        List.indexedMap (viewThreadPreview cfg totalThreads totalOffset) threads
+    div []
+        (List.intersperse (viewSeparator cfg.theme) <|
+            List.indexedMap (viewThreadPreview cfg totalThreads totalOffset) threads
+        )
+
+
+viewSeparator : Theme -> Html Msg
+viewSeparator theme =
+    hr [ classes [ T.mt3, T.mb3, theme.bSeparator, T.bt_l, T.bb_0 ] ] []
 
 
 postEventHandlers : Post.EventHandlersOP Msg
@@ -360,9 +368,6 @@ postEventHandlers =
 viewThreadPreview : Config -> Int -> Int -> Int -> ThreadPreview -> Html Msg
 viewThreadPreview cfg totalThreads totalOffset idx threadPw =
     let
-        style =
-            classes [ T.mb4, T.mb4_ns ]
-
         evHandlers =
             if totalOffset == 0 && idx == 0 then
                 { postEventHandlers | onPrevThreadClicked = Nothing }
@@ -373,7 +378,7 @@ viewThreadPreview cfg totalThreads totalOffset idx threadPw =
             else
                 postEventHandlers
     in
-    section [ style ]
+    section []
         [ Post.viewOp evHandlers cfg (toOp threadPw)
         , viewLast cfg threadPw
         ]
@@ -399,7 +404,7 @@ viewPageControls { theme, perPageThreads } { totalThreads, number } =
                 , T.mt3
                 , T.mb1
                 , T.mb3_ns
-                , T.mt0_ns
+                , T.mt4_ns
                 ]
 
         perPage =

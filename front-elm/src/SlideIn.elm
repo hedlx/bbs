@@ -2,8 +2,8 @@ module SlideIn exposing (Msg, SlideIn, Toast(..), add, init, update, view)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Style.Animations as Animations
 import Tachyons exposing (classes)
+import Tachyons.Classes.Animations as TA
 import Tachyons.Classes as T
 import Theme exposing (Theme)
 import Toasty
@@ -120,7 +120,7 @@ styleSlideIn =
         , T.br1
         , T.dim
         , T.pointer
-        , Animations.fadein_right
+        , TA.fadein_right
         ]
 
 

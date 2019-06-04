@@ -19,10 +19,10 @@ import Route
 import SlideIn exposing (SlideIn)
 import String.Extra
 import Style
-import Style.Animations
-import Style.Extra
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
+import Tachyons.Classes.Animations as TA
+import Tachyons.Classes.Extra as TE
 import Theme exposing (Theme)
 import Update.Extra
 import Url exposing (Url)
@@ -284,8 +284,8 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
     { title = title
     , body =
         [ Tachyons.tachyons.css
-        , Style.Animations.css
-        , Style.Extra.css
+        , TA.css
+        , TE.css
         , main_
             [ styleBody
 
@@ -416,8 +416,8 @@ viewSettingsDialog cfg =
                 , T.bottom_0_ns
                 , T.mt5
                 , T.z_999
-                , Style.Animations.fadein_left_ns
-                , Style.Animations.fadein_top_s
+                , TA.fadein_left_ns
+                , TA.fadein_top_s
                 ]
 
         style =

@@ -1,4 +1,4 @@
-module Style.Extra exposing (css, sel_none)
+module Tachyons.Classes.Extra exposing (css, sel_none)
 
 import Css exposing (..)
 import Css.Global exposing (class, global)

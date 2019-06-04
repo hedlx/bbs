@@ -1,4 +1,4 @@
-module Style.Animations exposing (css, fadein_left_ns, fadein_right, fadein_top_s)
+module Tachyons.Classes.Animations exposing (css, fadein_left_ns, fadein_right, fadein_top_s)
 
 import Css exposing (..)
 import Css.Animations as Ani exposing (keyframes)

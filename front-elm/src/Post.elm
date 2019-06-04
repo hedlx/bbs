@@ -24,9 +24,9 @@ import List.Extra
 import Media exposing (Media)
 import Route
 import String.Extra
-import Style.Extra as TE
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
+import Tachyons.Classes.Extra as TE
 import Theme exposing (Theme)
 import Time exposing (Month(..), Zone)
 import Url.Builder
