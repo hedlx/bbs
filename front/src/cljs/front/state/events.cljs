@@ -46,7 +46,7 @@
   :threads-fetch-success
   (fn [db [_ threads]]
     (-> db
-        (assoc-in [:threads :list] threads)
+        (assoc-in [:threads :list] (:threads threads))
         (assoc-in [:threads :loading?] false)
         (assoc-in [:threads :error] nil))))
 
