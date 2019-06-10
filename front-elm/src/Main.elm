@@ -227,7 +227,7 @@ changeRoute cfg url model =
             toFragmentUrl url
 
         ( page, cmdPage ) =
-            Page.init cfg urlFixed model.page
+            Page.changeRoute cfg urlFixed model.page
     in
     ( { model | page = page }
     , Cmd.map PageMsg cmdPage
@@ -289,7 +289,8 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
         , main_
             [ styleBody
 
-            -- Ignoring dropped files on top level to prevent
+            -- Ignore dropped files on top level to prevent
+            -- the browser from openning them.
             , FilesDrop.onDragOver NoOp
             , FilesDrop.onDrop (\_ -> NoOp)
             ]

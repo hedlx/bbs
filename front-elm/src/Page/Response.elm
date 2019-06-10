@@ -9,12 +9,12 @@ module Page.Response exposing
     , raise
     , redirect
     , return
-    , softRedirect
     )
 
 import Alert exposing (Alert)
 import Config exposing (Config)
 import Route exposing (Route)
+import Route.CrossPage exposing (CrossPage)
 
 
 type Response a msg
@@ -22,6 +22,7 @@ type Response a msg
     | Ok a (Cmd msg) (Alert msg)
     | Command (Cmd msg) (Alert msg)
     | Err (Cmd msg) (Alert msg)
+    | CrossPage CrossPage
 
 
 raise : Alert msg -> Response a msg
@@ -32,11 +33,6 @@ raise alert =
 redirect : Config -> Route -> Response a msg
 redirect { key } route =
     Err (Route.go key route) Alert.None
-
-
-softRedirect : Config -> Route -> a -> Response a msg
-softRedirect { key } route state =
-    Ok state (Route.go key route) Alert.None
 
 
 return : a -> Response a msg
@@ -68,6 +64,9 @@ map2 fnA fnMsg response =
 
         Err cmd alert ->
             Err (Cmd.map fnMsg cmd) (Alert.map fnMsg alert)
+
+        CrossPage crossPage ->
+            CrossPage crossPage
 
 
 andThen : (a -> Response b msg) -> Response a msg -> Response b msg
@@ -109,3 +108,6 @@ join responseResponse =
 
         Err cmdTop alertTop ->
             Err cmdTop alertTop
+
+        CrossPage crossPage ->
+            CrossPage crossPage

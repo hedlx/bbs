@@ -1,6 +1,5 @@
 module Route exposing
     ( QueryIndex
-    , QueryThread
     , Route(..)
     , go
     , index
@@ -8,8 +7,6 @@ module Route exposing
     , isIndex
     , link
     , parse
-    , replyTo
-    , thread
     )
 
 import Browser.Navigation as Nav
@@ -22,7 +19,7 @@ import Url.Parser.Query as Query
 type Route
     = NotFound
     | Index QueryIndex
-    | Thread Int QueryThread
+    | Thread Int
     | NewThread
 
 
@@ -34,17 +31,6 @@ encodeQueryIndex : QueryIndex -> List QueryParameter
 encodeQueryIndex query =
     List.filterMap identity
         [ Maybe.map (Builder.int "page") query.page ]
-
-
-type alias QueryThread =
-    { replyTo : Maybe Int
-    }
-
-
-encodeQueryThread : QueryThread -> List QueryParameter
-encodeQueryThread query =
-    List.filterMap identity
-        [ Maybe.map (Builder.int "replyTo") query.replyTo ]
 
 
 index : Route
@@ -72,21 +58,6 @@ indexWithQuery =
     Index << QueryIndex
 
 
-thread : Int -> Route
-thread threadID =
-    threadWithQuery threadID Nothing
-
-
-replyTo : Int -> Int -> Route
-replyTo threadID postID =
-    threadWithQuery threadID (Just postID)
-
-
-threadWithQuery : Int -> Maybe Int -> Route
-threadWithQuery threadID qReplyTo =
-    Thread threadID (QueryThread qReplyTo)
-
-
 parser : Parser (Route -> Route) Route
 parser =
     oneOf
@@ -94,8 +65,8 @@ parser =
             |> Parser.map NotFound
         , oneOf [ top <?> Query.int "page", s "threads" <?> Query.int "page" ]
             |> Parser.map indexWithQuery
-        , oneOf [ int <?> Query.int "replyTo", s "threads" </> int <?> Query.int "replyTo" ]
-            |> Parser.map threadWithQuery
+        , oneOf [ int, s "threads" </> int ]
+            |> Parser.map Thread
         , oneOf [ s "new", s "threads" </> s "new" ]
             |> Parser.map NewThread
         ]
@@ -136,7 +107,7 @@ path route =
         Index _ ->
             []
 
-        Thread threadID _ ->
+        Thread threadID ->
             [ String.fromInt threadID ]
 
         NewThread ->
@@ -148,9 +119,6 @@ queryParameters route =
     case route of
         Index query ->
             encodeQueryIndex query
-
-        Thread _ query ->
-            encodeQueryThread query
 
         _ ->
             []

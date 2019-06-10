@@ -4,6 +4,8 @@ module Page.Thread exposing
     , Thread
     , decoder
     , init
+    , initReplyTo
+    , reInit
     , replyTo
     , route
     , subject
@@ -30,7 +32,8 @@ import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import PostForm exposing (PostForm)
-import Route exposing (QueryThread, Route)
+import Route exposing (Route)
+import Route.CrossPage
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -39,20 +42,29 @@ import Theme exposing (Theme)
 import Url.Builder
 
 
-init : Config -> ID -> QueryThread -> ( State, Cmd Msg )
-init cfg id query =
+init : Config -> ID -> ( State, Cmd Msg )
+init _ id =
     ( Loading PostForm.empty id, getThread id )
-        |> initReplyTo cfg query.replyTo
 
 
-initReplyTo : Config -> Maybe Int -> ( State, Cmd Msg ) -> ( State, Cmd Msg )
-initReplyTo cfg qReplyTo =
-    case qReplyTo of
-        Nothing ->
-            identity
+reInit : Config -> State -> ( State, Cmd Msg )
+reInit cfg state =
+    case state of
+        Loading _ id ->
+            ( state, getThread id )
 
-        Just postNo ->
-            Tuple.mapFirst (replyTo cfg.limits postNo)
+        Idle _ thread ->
+            init cfg thread.id
+
+
+initReplyTo : Config -> Int -> Int -> ( State, Cmd Msg )
+initReplyTo cfg id postNo =
+    let
+        state =
+            Loading PostForm.empty id
+                |> replyTo cfg.limits postNo
+    in
+    ( state, Cmd.none )
 
 
 
@@ -75,23 +87,9 @@ type alias ID =
     Int
 
 
-type Msg
-    = NoOp
-    | GotThread (Result Http.Error Thread)
-    | PostFormMsg PostForm.Msg
-    | MediaClicked Int String
-    | ReplyToClicked Int Int
-    | FilesDropped (List File)
-
-
 route : State -> Route
 route state =
-    case state of
-        Loading _ id ->
-            Route.thread id
-
-        Idle _ { id } ->
-            Route.thread id
+    Route.Thread (threadID state)
 
 
 pathPost : ID -> List String
@@ -102,11 +100,11 @@ pathPost tID =
 subject : State -> Maybe String
 subject state =
     case state of
-        Loading _ _ ->
-            Nothing
-
         Idle _ thread ->
             thread.subject
+
+        _ ->
+            Nothing
 
 
 threadID : State -> ID
@@ -161,15 +159,15 @@ replyTo limits postNo =
 toggleMediaPreview : Post.No -> Media.ID -> State -> State
 toggleMediaPreview postNo mediaID state =
     case state of
-        Loading _ _ ->
-            state
-
         Idle form thread ->
             let
                 newMessages =
                     updateIf (.no >> (==) postNo) (Post.toggleMediaPreview mediaID) thread.messages
             in
             Idle form { thread | messages = newMessages }
+
+        _ ->
+            state
 
 
 decoder : ID -> Decoder Thread
@@ -191,6 +189,15 @@ getThread tID =
 -- UPDATE
 
 
+type Msg
+    = NoOp
+    | GotThread (Result Http.Error Thread)
+    | PostFormMsg PostForm.Msg
+    | MediaClicked Int String
+    | ReplyToClicked Int Int
+    | FilesDropped (List File)
+
+
 update : Config -> Msg -> State -> Response State Msg
 update cfg msg state =
     case msg of
@@ -203,7 +210,7 @@ update cfg msg state =
                     updatePostForm (threadID state) cfg subMsg form
                         |> handlePostFormResponse thread
 
-                Loading _ _ ->
+                _ ->
                     Response.None
 
         GotThread (Ok thread) ->
@@ -226,7 +233,7 @@ update cfg msg state =
                     |> Response.andThen focusPostForm
 
             else
-                Response.redirect cfg (Route.replyTo tID postNo)
+                Response.CrossPage (Route.CrossPage.ReplyTo tID postNo)
 
         FilesDropped files ->
             case state of
@@ -235,7 +242,7 @@ update cfg msg state =
                         |> handlePostFormResponse thread
                         >> Response.andThen focusPostForm
 
-                Loading _ _ ->
+                _ ->
                     Response.None
 
 
@@ -274,11 +281,11 @@ focusPostForm state =
 view : Config -> State -> Html Msg
 view cfg state =
     case state of
-        Loading _ _ ->
-            Spinner.view cfg.theme 256
-
         Idle form thread ->
             viewThread cfg form thread
+
+        _ ->
+            Spinner.view cfg.theme 256
 
 
 viewThread : Config -> PostForm -> Thread -> Html Msg

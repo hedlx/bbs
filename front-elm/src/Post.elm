@@ -100,7 +100,7 @@ view eventHandlers cfg threadID post =
     in
     article [ stylePost theme ]
         [ viewPostHead eventHandlers cfg threadID post
-        , viewBody eventHandlers theme threadID post
+        , viewBody eventHandlers threadID post
         ]
 
 
@@ -134,7 +134,6 @@ stylePostHead theme =
         , T.pl3_ns
         , theme.fgPostHead
         , theme.fontMono
-        , theme.bgPost
         ]
 
 
@@ -254,11 +253,11 @@ toMonthName month =
             "12"
 
 
-viewBody : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
-viewBody eventHandlers theme threadID post =
+viewBody : EventHandlers msg a -> ThreadID -> Post -> Html msg
+viewBody eventHandlers threadID post =
     let
         style =
-            classes [ T.overflow_hidden, T.pre, theme.fgPost, theme.bgPost ]
+            classes [ T.overflow_hidden, T.pre ]
     in
     section
         [ style
@@ -388,7 +387,7 @@ viewOp eventHandlers cfg op =
     in
     article [ stylePost theme ]
         [ viewOpHead eventHandlers cfg op
-        , viewBody eventHandlers theme op.threadID op.post
+        , viewBody eventHandlers op.threadID op.post
         ]
 
 
@@ -504,4 +503,4 @@ viewSubject theme threadID subject =
 
 viewThreadLink : ThreadID -> List (Attribute msg) -> List (Html msg) -> Html msg
 viewThreadLink threadID attrs =
-    a (href (Route.link (Route.thread threadID)) :: attrs)
+    a (href (Route.link (Route.Thread threadID)) :: attrs)

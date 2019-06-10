@@ -2,9 +2,8 @@ module Page exposing
     ( Msg
     , Page
     , ResponseToModel
-    , init
+    , changeRoute
     , notFound
-    , reInit
     , route
     , title
     , update
@@ -21,6 +20,7 @@ import Page.NewThread as NewThread
 import Page.Response as Response exposing (Response)
 import Page.Thread as Thread
 import Route exposing (Route)
+import Route.CrossPage exposing (CrossPage)
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -28,64 +28,45 @@ import Theme exposing (Theme)
 import Url exposing (Url)
 
 
-init : Config -> Url -> Page -> ( Page, Cmd Msg )
-init cfg url page =
+changeRoute : Config -> Url -> Page -> ( Page, Cmd Msg )
+changeRoute cfg url (Page page) =
     let
         route_ =
             Route.parse url
     in
-    if isShouldReInit page then
-        reInitFromRoute cfg page route_ 
+    if page.isCrossPageRedirect then
+        case ( route_, page.state ) of
+            ( Route.Index query, Index state ) ->
+                mapInitPage Index IndexMsg (Index.reInit cfg query state)
+
+            ( Route.Thread tID, Thread state ) ->
+                if tID == Thread.threadID state then
+                    mapInitPage Thread ThreadMsg (Thread.reInit cfg state)
+
+                else
+                    changeRoute cfg url (return page.state)
+
+            _ ->
+                changeRoute cfg url (return page.state)
 
     else
-        initFromRoute cfg route_
+        case route_ of
+            Route.NotFound ->
+                ( notFound, Cmd.none )
+
+            Route.Index query ->
+                mapInitPage Index IndexMsg (Index.init cfg query)
+
+            Route.Thread threadID ->
+                mapInitPage Thread ThreadMsg (Thread.init cfg threadID)
+
+            Route.NewThread ->
+                mapInitPage NewThread NewThreadMsg NewThread.init
 
 
-initFromRoute : Config -> Route -> ( Page, Cmd Msg )
-initFromRoute cfg route_ =
-    case route_ of
-        Route.Index query ->
-            mapInitPage Index IndexMsg (Index.init cfg query)
-
-        Route.NotFound ->
-            ( NotFound, Cmd.none )
-
-        Route.Thread threadID query ->
-            mapInitPage Thread ThreadMsg (Thread.init cfg threadID query)
-
-        Route.NewThread ->
-            mapInitPage NewThread NewThreadMsg NewThread.init
-
-
-reInit : Config -> Url -> Page -> ( Page, Cmd Msg )
-reInit cfg url page =
-    Route.parse url
-        |> reInitFromRoute cfg page
-
-
-reInitFromRoute : Config -> Page -> Route -> ( Page, Cmd Msg )
-reInitFromRoute cfg currentPage route_ =
-    case ( currentPage, route_ ) of
-        ( Index state, Route.Index query ) ->
-            mapInitPage Index IndexMsg (Index.reInit cfg query state)
-
-        _ ->
-            initFromRoute cfg route_
-
-
-mapInitPage : (page -> Page) -> (msg -> Msg) -> ( page, Cmd msg ) -> ( Page, Cmd Msg )
-mapInitPage toPage toMsg ( page, cmd ) =
-    ( toPage page, Cmd.map toMsg cmd )
-
-
-isShouldReInit : Page -> Bool
-isShouldReInit page =
-    case page of
-        Index state ->
-            Index.isShouldReInit state
-
-        _ ->
-            False
+mapInitPage : (subState -> State) -> (msg -> Msg) -> ( subState, Cmd msg ) -> ( Page, Cmd Msg )
+mapInitPage toState toMsg ( subState, cmd ) =
+    ( return (toState subState), Cmd.map toMsg cmd )
 
 
 
@@ -93,6 +74,29 @@ isShouldReInit page =
 
 
 type Page
+    = Page
+        { isCrossPageRedirect : Bool
+        , state : State
+        }
+
+
+return : State -> Page
+return state =
+    Page
+        { isCrossPageRedirect = False
+        , state = state
+        }
+
+
+returnCrossPage : State -> Page
+returnCrossPage state =
+    Page
+        { isCrossPageRedirect = True
+        , state = state
+        }
+
+
+type State
     = NotFound
     | Index Index.State
     | Thread Thread.State
@@ -101,12 +105,12 @@ type Page
 
 notFound : Page
 notFound =
-    NotFound
+    return NotFound
 
 
 title : Page -> String
-title page =
-    case page of
+title (Page page) =
+    case page.state of
         NotFound ->
             "Not Found"
 
@@ -122,8 +126,8 @@ title page =
 
 
 route : Page -> Maybe Route
-route page =
-    case page of
+route (Page page) =
+    case page.state of
         NewThread state ->
             Just (NewThread.route state)
 
@@ -157,46 +161,79 @@ update cfg msg page =
     case msg of
         ReturnToIndex ->
             Response.redirect cfg Route.index
-                |> handleResponse page
+                |> handleResponse cfg page
 
         _ ->
             updatePage cfg msg page
-                |> handleResponse page
+                |> handleResponse cfg page
 
 
 updatePage : Config -> Msg -> Page -> Response Page Msg
-updatePage cfg msg page =
-    case ( msg, page ) of
+updatePage cfg msg (Page page) =
+    case ( msg, page.state ) of
         ( IndexMsg subMsg, Index state ) ->
             Index.update cfg subMsg state
-                |> Response.map2 Index IndexMsg
+                |> Response.map2 (return << Index) IndexMsg
 
         ( NewThreadMsg subMsg, NewThread state ) ->
             NewThread.update cfg subMsg state
-                |> Response.map2 NewThread NewThreadMsg
+                |> Response.map2 (return << NewThread) NewThreadMsg
 
         ( ThreadMsg subMsg, Thread state ) ->
             Thread.update cfg subMsg state
-                |> Response.map2 Thread ThreadMsg
+                |> Response.map2 (return << Thread) ThreadMsg
 
         _ ->
-            Response.Ok page Cmd.none Alert.None
+            Response.return (Page page)
 
 
-handleResponse : Page -> Response Page Msg -> ResponseToModel
-handleResponse currentPage reponse =
+handleResponse : Config -> Page -> Response Page Msg -> ResponseToModel
+handleResponse cfg page reponse =
     case reponse of
         Response.None ->
-            ( currentPage, Cmd.none, Alert.None )
+            ( page, Cmd.none, Alert.None )
 
         Response.Ok newPage cmd alert ->
             ( newPage, cmd, alert )
 
         Response.Command cmd alert ->
-            ( currentPage, cmd, alert )
+            ( page, cmd, alert )
 
         Response.Err cmd alert ->
-            ( currentPage, cmd, alert )
+            ( page, cmd, alert )
+
+        Response.CrossPage crossPage ->
+            handleCrossPage cfg crossPage
+
+
+handleCrossPage : Config -> CrossPage -> ResponseToModel
+handleCrossPage cfg crossPage =
+    case crossPage of
+        Route.CrossPage.IndexLastThread numPage ->
+            let
+                ( newState, cmd ) =
+                    Index.initLoadAndScrollToLastThread
+            in
+            ( returnCrossPage (Index newState)
+            , Cmd.batch
+                [ Route.go cfg.key (Route.indexPage numPage)
+                , Cmd.map IndexMsg cmd
+                ]
+            , Alert.None
+            )
+
+        Route.CrossPage.ReplyTo tID postNo ->
+            let
+                ( newState, cmd ) =
+                    Thread.initReplyTo cfg tID postNo
+            in
+            ( returnCrossPage (Thread newState)
+            , Cmd.batch
+                [ Route.go cfg.key (Route.Thread tID)
+                , Cmd.map ThreadMsg cmd
+                ]
+            , Alert.None
+            )
 
 
 
@@ -216,8 +253,8 @@ view cfg page =
 
 
 viewContent : Config -> Page -> Html Msg
-viewContent cfg page =
-    case page of
+viewContent cfg (Page page) =
+    case page.state of
         Index state ->
             Html.map IndexMsg (Index.view cfg state)
 

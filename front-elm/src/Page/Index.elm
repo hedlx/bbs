@@ -2,7 +2,7 @@ module Page.Index exposing
     ( Msg
     , State
     , init
-    , isShouldReInit
+    , initLoadAndScrollToLastThread
     , reInit
     , route
     , update
@@ -25,12 +25,12 @@ import Media
 import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import Route exposing (QueryIndex, Route)
+import Route.CrossPage
 import SmoothScroll
 import Spinner
 import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
-import Tachyons.Classes.Extra as TE
 import Task
 import Theme exposing (Theme)
 import Url.Builder
@@ -39,6 +39,11 @@ import Url.Builder
 init : Config -> QueryIndex -> ( State, Cmd Msg )
 init cfg query =
     ( Loading, cmdInit cfg query )
+
+
+initLoadAndScrollToLastThread : ( State, Cmd Msg )
+initLoadAndScrollToLastThread =
+    ( LoadingScrollToLastThread, Cmd.none )
 
 
 reInit : Config -> QueryIndex -> State -> ( State, Cmd Msg )
@@ -59,23 +64,13 @@ cmdInit { perPageThreads } query =
     getThreads perPage numPage
 
 
-isShouldReInit : State -> Bool
-isShouldReInit state =
-    case state of
-        Reloading _ ->
-            True
-
-        _ ->
-            False
-
-
 
 -- MODEL
 
 
 type State
     = Loading
-    | Reloading Bool
+    | LoadingScrollToLastThread
     | Idle Page
 
 
@@ -208,6 +203,14 @@ getFirstOpPostPosition threads toMsg =
         >> Maybe.withDefault Cmd.none
 
 
+cmdScrollToLastThread : Page -> Cmd Msg
+cmdScrollToLastThread page =
+    List.Extra.last page.threads
+        |> Maybe.map .id
+        >> Maybe.map (\tID -> getFirstOpPostPosition page.threads (ScrollTo (Post.opDomID tID)))
+        >> Maybe.withDefault Cmd.none
+
+
 
 -- UPDATE
 
@@ -239,7 +242,7 @@ update cfg msg state =
             Response.return (toggleMediaPreview tID postNo mediaID state)
 
         ReplyTo tID postNo ->
-            Response.redirect cfg (Route.replyTo tID postNo)
+            Response.CrossPage (Route.CrossPage.ReplyTo tID postNo)
 
         GoToNextThread tID ->
             case state of
@@ -275,12 +278,8 @@ handleGotThreads cfg newPage state =
                 Idle newPage
         in
         case state of
-            Reloading isGoToLastPost ->
-                if isGoToLastPost then
-                    Response.Ok newState (cmdGoToLastPost newPage) Alert.None
-
-                else
-                    Response.return newState
+            LoadingScrollToLastThread ->
+                Response.Ok newState (cmdScrollToLastThread newPage) Alert.None
 
             _ ->
                 Response.return newState
@@ -299,7 +298,7 @@ goToNearbyThread threadID isGoToPrev cfg page =
     case maybeNearID of
         Nothing ->
             if isGoToPrev then
-                Response.softRedirect cfg (Route.indexPage (page.number - 1)) (Reloading True)
+                Response.CrossPage (Route.CrossPage.IndexLastThread (page.number - 1))
 
             else
                 Response.redirect cfg (Route.indexPage (page.number + 1))
@@ -308,14 +307,6 @@ goToNearbyThread threadID isGoToPrev cfg page =
             Response.do <|
                 getFirstOpPostPosition page.threads
                     (ScrollTo (Post.opDomID nearID))
-
-
-cmdGoToLastPost : Page -> Cmd Msg
-cmdGoToLastPost page =
-    List.Extra.last page.threads
-        |> Maybe.map .id
-        >> Maybe.map (\tID -> getFirstOpPostPosition page.threads (ScrollTo (Post.opDomID tID)))
-        >> Maybe.withDefault Cmd.none
 
 
 
