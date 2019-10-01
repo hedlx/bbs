@@ -1,7 +1,7 @@
 matrix:
   include:
     - language: clojure
-      jdk: oraclejdk8
+      jdk: oraclejdk12
       before_install: cd front
       script: lein cljsbuild once min
       deploy:
