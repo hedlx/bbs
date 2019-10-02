@@ -4,8 +4,7 @@ matrix:
       jdk: oraclejdk12
       before_install: cd front
       script:
-        - nvm install v12.11.1
-        - nvm use
+        - nvm i && nvm use
         - npm i -g npm
         - npm ci
         - npx shadow-cljs release app

@@ -14,7 +14,7 @@ This is the BBS frontend.
 
 1. Install as usual `java` and `node` (if you are Rambo) or `nvm`.
 2. Go to the `front`
-2. For nvm additionally perform `nvm use` to switch on the target version from `.nvmrc`. If you have installed node just chill out, you are cool :sunglasses:
+2. For nvm additionally perform `nvm i && nvm use` to switch on the target version from `.nvmrc`. If you have installed node just chill out, you are cool :sunglasses:
 3. Run `npm ci`
 
 
