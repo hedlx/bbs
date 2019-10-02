@@ -10,7 +10,6 @@
 
 
 (defn mount-root []
-  (println "che kogo sucharaaaaasss")
   (css/remove-styles!)
   (reagent/render [current/page] (.getElementById js/document "app")))
 
