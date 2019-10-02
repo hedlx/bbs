@@ -2,24 +2,31 @@
 
 This is the BBS frontend.
 
+
+## Dependencies
+
+* Java 12
+* Node v12.11.1
+* NVM (optional, helps to not mess around node versions)
+
+
+## Deps installation
+
+1. Install as usual `java` and `node` (if you are Rambo) or `nvm`.
+2. Go to the `front`
+2. For nvm additionally perform `nvm i && nvm use` to switch on the target version from `.nvmrc`. If you have installed node just chill out, you are cool :sunglasses:
+3. Run `npm ci`
+
+
 ## Development mode
 
-To start the Figwheel compiler, navigate to the project folder and run the following command in the terminal:
+To start dev server:
 
 ```
-lein figwheel
+npx shadow-cljs watch app
 ```
 
-Figwheel will automatically push cljs changes to the browser. The server will be available at [http://localhost:3449](http://localhost:3449) once Figwheel starts up. 
-
-The figwheel server can have unexpected behaviors in some situations such as when using
-websockets. In this case it's recommended to run a standalone instance of a web server as follows:
-
-```
-lein do clean, run
-```
-
-The application will now be available at [http://localhost:3000](http://localhost:3000).
+If this doc is up to date you can go to [http://localhost:8080](http://localhost:8080) otherwise take a look at `shadow-cljs.edn`
 
 
 ### Building for release
@@ -27,7 +34,7 @@ The application will now be available at [http://localhost:3000](http://localhos
 To make optimized build just run:
 
 ```
-lein cljsbuild once min
+npx shadow-cljs release app
 ```
 
 After that you will have all necessary file in `resources/public/`

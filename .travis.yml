@@ -1,9 +1,13 @@
 matrix:
   include:
-    - language: clojure
+    - language: minimal
       jdk: oraclejdk12
       before_install: cd front
-      script: lein cljsbuild once min
+      script:
+        - nvm i && nvm use
+        - npm i -g npm
+        - npm ci
+        - npx shadow-cljs release app
       deploy:
         provider: script
         skip_cleanup: true

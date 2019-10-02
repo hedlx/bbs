@@ -14,3 +14,5 @@ pom.xml.asc
 /.env
 /.sass-cache
 resources/public/js
+node_modules
+.shadow-cljs

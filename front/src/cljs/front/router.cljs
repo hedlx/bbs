@@ -31,9 +31,7 @@
     (rf/dispatch [:change-location
                   {:current-page :thread
                    :params {:id id}}]))
-  (defroute test "/test" [] (rf/dispatch [:change-location {:current-page :test}]))
   (swap! routes assoc
          :threads threads
-         :thread thread
-         :test test)
+         :thread thread)
   (hook-browser-navigation!))
