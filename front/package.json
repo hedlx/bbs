@@ -1,0 +1,26 @@
+{
+  "name": "bbs-frontend",
+  "version": "1.0.0",
+  "description": "BBS cljs frontend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hedlx/bbs.git"
+  },
+  "author": "Ilya Sumbatyants",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/hedlx/bbs/issues"
+  },
+  "homepage": "https://github.com/hedlx/bbs/tree/master/front#readme",
+  "dependencies": {
+    "react": "16.9.0",
+    "react-dom": "16.9.0"
+  },
+  "devDependencies": {
+    "shadow-cljs": "^2.8.59"
+  }
+}
