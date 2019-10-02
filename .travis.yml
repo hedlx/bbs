@@ -1,6 +1,6 @@
 matrix:
   include:
-    - language: clojure
+    - language: minimal
       jdk: oraclejdk12
       before_install: cd front
       script:
