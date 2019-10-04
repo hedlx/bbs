@@ -5,4 +5,4 @@
 
 (devtools/install!)
 (enable-console-print!)
-(core/init! "https://bbs.hedlx.org/api")
+(core/init! "https://bbs.hedlx.org")

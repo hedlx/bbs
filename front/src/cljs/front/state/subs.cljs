@@ -2,6 +2,8 @@
   (:require [re-frame.core :refer [subscribe reg-sub]]))
 
 
+(reg-sub :base-url #(:base-url %))
+
 (reg-sub :threads-root #(:threads %))
 (reg-sub
   :threads

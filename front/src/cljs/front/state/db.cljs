@@ -16,7 +16,8 @@
 (def default-new-thread
   (assoc-in default-answer [:data :subject] ""))
 
-(def default-db {:threads {:list []
+(def default-db {:base-url ""
+                 :threads {:list []
                            :loading? false
                            :error nil}
 
