@@ -18,7 +18,8 @@
   {:width "50px"
    :height "50px"})
 
-(defn c [{:keys [color]}]
+(defn c [{:keys [color delay] :or {delay 0}}]
   [:div {:class (root-class)}
    [:div {:class (spinner-container-class)}
-    [spinner/c {:color color}]]])
+    [spinner/c {:color color
+                :delay delay}]]])

@@ -73,7 +73,7 @@
             src (gen-url @(subscribe [:base-url]) "i" (:id item))]
         [portal/c
          ^{:key "¯|_(ツ)_|¯"} [:div {:class (fs-container-class)}
-                              (if @loading? [spinner-overlay/c {:color colors/purple-1}] nil)
+                              (if @loading? [spinner-overlay/c {:color colors/purple-1 :delay 200}] nil)
                               [:div {:class (fs-image-container-class)}
                                [:img {:class (fs-image-class @loading?)
                                       :src src
