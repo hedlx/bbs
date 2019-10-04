@@ -1,7 +1,7 @@
 (ns front.components.create-new
   (:require
     [front.components.styles :as s]
-    [cljss.core :refer-macros [defstyles]]
+    [cljss.core :refer-macros [defstyles] :as css]
     [re-frame.core :refer [subscribe dispatch]]))
 
 
@@ -17,10 +17,23 @@
    :grid-row-gap "5px"
    :font-size font-size})
 
+(defstyles title-container-class []
+  {:display "flex"
+   :justify-content "space-between"
+   :align-items "center"
+   :padding-bottom "10px"})
+
 (defstyles title-class []
   {:font-size "18px"
-   :font-weight "400"
-   :padding-bottom "10px"})
+   :font-weight "400"})
+
+(defstyles close-class []
+  {:font-size "14px"
+   :font-weight "500"
+   :cursor "pointer"
+   :&:hover {:opacity 0.7}
+   ::css/media {[[:min-width "900px"]]
+                {:display "none"}}})
 
 (defstyles inputs-class []
   {:display "grid"
@@ -36,7 +49,7 @@
 (defstyles message-label-class []
   {:padding-bottom "5px"})
 
-(defn c [{:keys [on-success]}]
+(defn c [{:keys [on-success on-close]}]
   (fn []
     (let [page @(subscribe [:current-page])
           threads-page? (= :threads page)
@@ -51,7 +64,11 @@
           {:keys [data status]} target-form
           {:keys [in-progress?]} status]
       [:div {:class (root-class)}
-       [:div {:class (title-class)} title]
+       [:div {:class (title-container-class)}
+        [:div {:class (title-class)} title]
+        [:div {:class (close-class)
+               :on-click on-close}
+         "Close"]]
        [:div {:class (inputs-class)}
         [:div "Name"]
         [:input {:class (s/input-class font-size)
@@ -87,8 +104,8 @@
        [:button {:class (s/primary-button-class font-size)
                  :disabled (or in-progress? (empty? (:text data)))
                  :on-click #(dispatch
-                              [:post-msg
-                               (merge {:on-success on-success}
-                                      (when (-> thread-id nil? not)
-                                        {:thread thread-id}))])}
+                             [:post-msg
+                              (merge {:on-success on-success}
+                                     (when (-> thread-id nil? not)
+                                       {:thread thread-id}))])}
         (if in-progress? "Creating..." "Post")]])))
