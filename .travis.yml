@@ -7,7 +7,7 @@ matrix:
         - nvm i && nvm use
         - npm i -g npm
         - npm ci
-        - npx shadow-cljs release app
+        - npm run build
       deploy:
         provider: script
         skip_cleanup: true
