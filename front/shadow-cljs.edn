@@ -9,10 +9,12 @@
                 [day8.re-frame/http-fx "0.1.6"]
                 [binaryage/devtools "0.9.10"]
                 [cider/cider-nrepl "0.21.0"]]
- :dev-http {8080 "resources/public/"}
  :builds {:app {:target :browser
                 :output-dir "resources/public/js/"
                 :asset-path "/js"
-                :devtools {:after-load front.core/mount-root}
+                :closure-defines {goog.DEBUG true}
+                :devtools {:after-load front.core/mount-root
+                           :http-root "resources/public/"
+                           :http-port 8080}
                 :dev {:modules {:app {:entries [front.dev]}}}
                 :release {:modules {:app {:entries [front.prod]}}}}}}
