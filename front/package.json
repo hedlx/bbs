@@ -19,8 +19,12 @@
   },
   "homepage": "https://github.com/hedlx/bbs/tree/master/front#readme",
   "dependencies": {
+    "create-react-class": "15.6.3",
+    "highlight.js": "9.15.8",
     "react": "16.9.0",
-    "react-dom": "16.9.0"
+    "react-dom": "16.9.0",
+    "react-flip-move": "3.0.3",
+    "react-highlight.js": "1.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
