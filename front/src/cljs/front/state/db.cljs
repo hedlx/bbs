@@ -1,6 +1,9 @@
 (ns front.state.db)
 
 
+(def default-window {:width 0
+                     :height 0})
+
 (def default-thread {:posts []
                      :subject nil
                      :loading? false
@@ -17,6 +20,8 @@
   (assoc-in default-answer [:data :subject] ""))
 
 (def default-db {:base-url ""
+                 :base-api-url ""
+                 :window default-window
                  :threads {:list []
                            :loading? false
                            :error nil}

@@ -13,9 +13,10 @@
 
 (reg-event-db
   :initialize
-  (fn [_ [_ {:keys [base-url]}]]
+  (fn [_ [_ {:keys [base-url window]}]]
     (-> default-db
         (assoc :base-url base-url)
+        (assoc :window {:width (:width window) :height (:height window)})
         (assoc :base-api-url (str base-url "/api")))))
 
 (reg-event-fx
@@ -32,6 +33,13 @@
         :thread {:db router-fx
                  :dispatch [:load-thread params]}
         {:db router-fx}))))
+
+(reg-event-db
+ :window-resized
+ (fn [db [_ [width height]]]
+   (-> db
+       (assoc-in [:window :width] width)
+       (assoc-in [:window :height] height))))
 
 (reg-event-fx
   :load-threads
