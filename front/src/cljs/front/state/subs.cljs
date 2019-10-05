@@ -4,6 +4,9 @@
 
 (reg-sub :base-url #(:base-url %))
 
+(reg-sub :w-height #(-> % (:window) (:height)))
+(reg-sub :w-width #(-> % (:window) (:width)))
+
 (reg-sub :threads-root #(:threads %))
 (reg-sub
   :threads

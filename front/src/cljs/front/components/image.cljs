@@ -16,45 +16,39 @@
    :height "100%"
    :background-color "rgba(0, 0, 0, 0.5)"})
 
-(defstyles fs-image-container-class []
-  {:position "relative"
-   :display "flex"
-   :max-height "95%"
-   :max-width "95%"})
-
-(defstyles fs-image-class [loading?]
+(defstyles fs-image-class [loading? width height]
   {:display (if loading? "none" "block")
-   :max-height "100%"
-   :max-width "100%"})
+   :max-height (str (* height 0.95) "px")
+   :max-width (str (* width 0.95) "px")})
 
-(defstyles fs-nav-class [left?]
-  {:position "absolute"
-   :top (if left? 0 "10%")
-   :bottom "0"
-   :left (if left? "0" "unset")
-   :right (if left? "unset" "0")
-   :display "flex"
-   :justify-content "center"
-   :align-items "center"
-   :width "10%"
-   :height "100%"
-   :background-color "rgba(255, 255, 255, 0.4)"
-   :font-size "42px"
-   :font-weight "500"
-   :opacity "0"
-   :cursor "pointer"
-   
-   :&:hover {:opacity "1"}})
+(defstyles fs-nav-class [size left?]
+    {:position "absolute"
+     :top "0"
+     :bottom "0"
+     :left (if left? "0" "unset")
+     :right (if left? "unset" "0")
+     :display "flex"
+     :justify-content "center"
+     :align-items "center"
+     :width (str size "px")
+     :height "100%"
+     :background-color "rgba(255, 255, 255, 0.4)"
+     :font-size "42px"
+     :font-weight "500"
+     :opacity "0"
+     :cursor "pointer"
 
-(defstyles close-class []
+     :&:hover {:opacity "1"}})
+
+(defstyles close-class [size]
   {:position "absolute"
    :top "0"
    :right "0"
    :display "flex"
    :justify-content "center"
    :align-items "center"
-   :width "10%"
-   :height "10%"
+   :width (str size "px")
+   :height (str size "px")
    :background-color "rgba(255, 255, 255, 0.4)"
    :font-size "42px"
    :font-weight "500"
@@ -69,25 +63,27 @@
             idx (mod @idx-atom media-count)
             inc-idx #(do (swap! idx-atom inc) (reset! loading? true))
             dec-idx #(do (swap! idx-atom dec) (reset! loading? true))
+            w-width @(subscribe [:w-width])
+            w-height @(subscribe [:w-height])
+            floating-size (* (max w-height w-width) 0.1)
             item (nth media idx)
             src (gen-url @(subscribe [:base-url]) "i" (:id item))]
         [portal/c
          ^{:key "¯|_(ツ)_|¯"} [:div {:class (fs-container-class)}
                               (if @loading? [spinner-overlay/c {:color colors/purple-1 :delay 200}] nil)
-                              [:div {:class (fs-image-container-class)}
-                               [:img {:class (fs-image-class @loading?)
-                                      :src src
-                                      :on-click (if nav? inc-idx #())
-                                      :on-load #(reset! loading? false)}]]
+                              [:img {:class (fs-image-class @loading? w-width w-height)
+                                     :src src
+                                     :on-click (if nav? inc-idx #())
+                                     :on-load #(reset! loading? false)}]
                               (if nav?
-                                [:div {:class (fs-nav-class true)
+                                [:div {:class (fs-nav-class floating-size true)
                                        :on-click inc-idx}
                                  "<"])
                               (if nav?
-                                [:div {:class (fs-nav-class false)
+                                [:div {:class (fs-nav-class floating-size false)
                                        :on-click dec-idx}
                                  ">"])
-                              [:div {:class (close-class)
+                              [:div {:class (close-class floating-size)
                                      :on-click on-close}
                                "X"]]]))))
 
