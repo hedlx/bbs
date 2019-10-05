@@ -23,7 +23,7 @@ This is the BBS frontend.
 To start dev server:
 
 ```
-npx shadow-cljs watch app
+npm run dev
 ```
 
 If this doc is up to date you can go to [http://localhost:8080](http://localhost:8080) otherwise take a look at `shadow-cljs.edn`
@@ -34,7 +34,7 @@ If this doc is up to date you can go to [http://localhost:8080](http://localhost
 To make optimized build just run:
 
 ```
-npx shadow-cljs release app
+npm run build
 ```
 
 After that you will have all necessary file in `resources/public/`
