@@ -22,23 +22,23 @@
    :max-width (str (* width 0.95) "px")})
 
 (defstyles fs-nav-class [size left?]
-    {:position "absolute"
-     :top "0"
-     :bottom "0"
-     :left (if left? "0" "unset")
-     :right (if left? "unset" "0")
-     :display "flex"
-     :justify-content "center"
-     :align-items "center"
-     :width (str size "px")
-     :height "100%"
-     :background-color "rgba(255, 255, 255, 0.4)"
-     :font-size "42px"
-     :font-weight "500"
-     :opacity "0"
-     :cursor "pointer"
+  {:position "absolute"
+   :top "0"
+   :bottom "0"
+   :left (if left? "0" "unset")
+   :right (if left? "unset" "0")
+   :display "flex"
+   :justify-content "center"
+   :align-items "center"
+   :width (str size "px")
+   :height "100%"
+   :background-color "rgba(255, 255, 255, 0.4)"
+   :font-size "42px"
+   :font-weight "500"
+   :opacity "0"
+   :cursor "pointer"
 
-     :&:hover {:opacity "1"}})
+   :&:hover {:opacity "1"}})
 
 (defstyles close-class [size]
   {:position "absolute"
