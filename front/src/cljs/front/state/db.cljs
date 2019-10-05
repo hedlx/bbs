@@ -4,6 +4,11 @@
 (def default-window {:width 0
                      :height 0})
 
+(def default-limits {:values {}
+                     :loading? false
+                     :loaded? false
+                     :error nil})
+
 (def default-thread {:posts []
                      :subject nil
                      :loading? false
@@ -22,6 +27,8 @@
 (def default-db {:base-url ""
                  :base-api-url ""
                  :window default-window
+                 :default-limits {}
+                 
                  :threads {:list []
                            :loading? false
                            :error nil}

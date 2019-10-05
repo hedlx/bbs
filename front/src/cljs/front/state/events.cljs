@@ -4,6 +4,8 @@
             [day8.re-frame.http-fx]
             [ajax.core :refer [json-request-format
                                json-response-format]]
+            [camel-snake-kebab.core :as csk]
+            [camel-snake-kebab.extras :as cske]
             [front.state.db :refer [default-db
                                     default-thread
                                     default-answer
@@ -11,13 +13,14 @@
             [front.util.url :refer [gen-url]]))
 
 
-(reg-event-db
+(reg-event-fx
   :initialize
   (fn [_ [_ {:keys [base-url window]}]]
-    (-> default-db
-        (assoc :base-url base-url)
-        (assoc :window {:width (:width window) :height (:height window)})
-        (assoc :base-api-url (str base-url "/api")))))
+    {:db (-> default-db
+             (assoc :base-url base-url)
+             (assoc :window {:width (:width window) :height (:height window)})
+             (assoc :base-api-url (str base-url "/api")))
+     :dispatch [:load-limits]}))
 
 (reg-event-fx
   :change-location
@@ -40,6 +43,34 @@
    (-> db
        (assoc-in [:window :width] width)
        (assoc-in [:window :height] height))))
+
+(reg-event-fx
+ :load-limits
+ (fn [{:keys [db]}, _]
+   {:http-xhrio {:method "get"
+                 :uri (gen-url (:base-api-url db) "limits")
+                 :format (json-request-format)
+                 :response-format (json-response-format {:keywords? true})
+                 :on-success [:limits-fetch-success]
+                 :on-failure [:limits-fetch-error]}
+    :db (assoc-in db [:limits :loading?] true)}))
+
+(reg-event-db
+ :limits-fetch-success
+ (fn [db [_ values]]
+   (-> db
+       (assoc-in [:limits :values] (cske/transform-keys csk/->kebab-case-keyword values))
+       (assoc-in [:limits :loading?] false)
+       (assoc-in [:limits :loaded?] true)
+       (assoc-in [:limits :error] nil))))
+
+(reg-event-db
+ :limits-fetch-error
+ (fn [db [_ error]]
+   (-> db
+       (assoc-in [:limits :list] [])
+       (assoc-in [:limits :loading?] false)
+       (assoc-in [:limits :error] error))))
 
 (reg-event-fx
   :load-threads

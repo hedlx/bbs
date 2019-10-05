@@ -7,6 +7,8 @@
 (reg-sub :w-height #(-> % (:window) (:height)))
 (reg-sub :w-width #(-> % (:window) (:width)))
 
+(reg-sub :limits #(:limits %))
+
 (reg-sub :threads-root #(:threads %))
 (reg-sub
   :threads
