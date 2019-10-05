@@ -1,4 +1,4 @@
-(ns front.state.util
+(ns front.util.url
   (:require [clojure.string :as str]))
 
 

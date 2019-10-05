@@ -1,6 +1,7 @@
 (ns front.util.js
   (:require [goog.events :as gevents]
-            [clojure.string :as str]))
+            [clojure.string :as str])
+  (:import [goog.async Throttle]))
 
 
 (defn ts->iso [ts]
@@ -16,3 +17,11 @@
                             type
                             cb)]
     (fn [] (gevents/unlistenByKey key))))
+
+(defn- disposable->function [disposable listener interval]
+  (let [disposable-instance (disposable. listener interval)]
+    (fn [& args]
+      (.apply (.-fire disposable-instance) disposable-instance (to-array args)))))
+
+(defn throttle [listener interval]
+  (disposable->function Throttle listener interval))

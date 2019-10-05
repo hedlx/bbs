@@ -1,5 +1,6 @@
 (ns front.components.post
   (:require
+   [front.components.image :as image]
    [front.components.link :as link]
    [front.router :refer [routes]]
    [front.util.js :refer [ts->iso]]
@@ -41,6 +42,15 @@
   {:display "inline-flex"
    :color colors/green-1})
 
+(defstyles content-class []
+  {:overflow "hidden"})
+
+(defstyles image-class []
+  {:display "inline-block"
+   :float "left"
+   :max-width "200px"
+   :padding-right "10px"})
+
 (defstyles text-class []
   {:word-wrap "break-word"
    :word-break "break-all"
@@ -72,8 +82,13 @@
                text
                trip
                ts
+               media
                show-link?
                op?]}]
     [:div {:class (root-class (if op? "100%" "250px"))}
      (render-header id name trip ts show-link?)
-     [:div {:class (text-class)} text]]))
+     [:div {:class (content-class)}
+      (if (empty? media)
+        nil
+        [:div {:class (image-class)} [image/c {:media media}]])
+      [:div {:class (text-class)} text]]]))

@@ -8,13 +8,16 @@
                                     default-thread
                                     default-answer
                                     default-new-thread]]
-            [front.state.util :refer [gen-url]]))
+            [front.util.url :refer [gen-url]]))
 
 
 (reg-event-db
   :initialize
-  (fn [_ [_ {:keys [base-url]}]]
-    (assoc default-db :base-url base-url)))
+  (fn [_ [_ {:keys [base-url window]}]]
+    (-> default-db
+        (assoc :base-url base-url)
+        (assoc :window {:width (:width window) :height (:height window)})
+        (assoc :base-api-url (str base-url "/api")))))
 
 (reg-event-fx
   :change-location
@@ -31,11 +34,18 @@
                  :dispatch [:load-thread params]}
         {:db router-fx}))))
 
+(reg-event-db
+ :window-resized
+ (fn [db [_ [width height]]]
+   (-> db
+       (assoc-in [:window :width] width)
+       (assoc-in [:window :height] height))))
+
 (reg-event-fx
   :load-threads
   (fn [{:keys [db]}, _]
     {:http-xhrio {:method "get"
-                  :uri (gen-url (:base-url db) "threads")
+                  :uri (gen-url (:base-api-url db) "threads")
                   :format (json-request-format)
                   :response-format (json-response-format {:keywords? true})
                   :on-success [:threads-fetch-success]
@@ -62,7 +72,7 @@
   :load-thread
   (fn [{:keys [db]}, [_ {:keys [id]}]]
     {:http-xhrio {:method "get"
-                  :uri (gen-url (:base-url db) "threads" id)
+                  :uri (gen-url (:base-api-url db) "threads" id)
                   :format (json-request-format)
                   :response-format (json-response-format {:keywords? true})
                   :on-success [:thread-fetch-success]
@@ -123,7 +133,7 @@
           target (if new-thread? :new-thread :answer)]
       (when (-> db target :in-progress? not)
         {:http-xhrio {:method "post"
-                      :uri (gen-url (:base-url db)
+                      :uri (gen-url (:base-api-url db)
                                     "threads"
                                     (when (not new-thread?) thread))
                       :params (-> db target :data)
