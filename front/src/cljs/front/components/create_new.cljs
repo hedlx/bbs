@@ -1,6 +1,8 @@
 (ns front.components.create-new
   (:require
-    [re-frame.core :refer [subscribe dispatch]]))
+   [re-frame.core :refer [subscribe dispatch]]
+   [clojure.spec.alpha :as s]
+   [front.state.specs :as specs]))
 
 (defn c [{:keys [on-success on-close]}]
   (fn []
@@ -12,8 +14,12 @@
                   :threads "Create thread"
                   :thread "Add message"
                   "Dunno what you want")
-          target-form (if threads-page? @(subscribe [:new-thread])
-                                        @(subscribe [:answer]))
+          target-form (if threads-page?
+                        @(subscribe [:new-thread])
+                        @(subscribe [:answer]))
+          target-spec (if threads-page?
+                        ::specs/new-thread
+                        ::specs/new-answer)
           {:keys [data status]} target-form
           {:keys [in-progress?]} status]
       [:div {:class "create-new"}
@@ -24,33 +30,38 @@
          "Close"]]
        [:div {:class "create-new-inputs"}
         [:div "Name"]
-        [:input {:placeholder "Anonymous"
+        [:input {:class (when-not (s/valid? ::specs/name (:name data)) "error")
+                 :placeholder "Anonymous"
                  :value (:name data)
                  :disabled in-progress?
                  :on-change #(dispatch [:change-name (-> % .-target .-value)])}]
         (when threads-page?
           [:<>
            [:div "Subject"]
-           [:input {:value (:subject data)
+           [:input {:class (when-not (s/valid? ::specs/subject (:subject data)) "error")
+                    :value (:subject data)
                     :disabled in-progress?
                     :on-change #(dispatch [:change-subject (-> % .-target .-value)])}]])
         [:div "Trip secret"]
-        [:input {:value (:secret data)
+        [:input {:class (when-not (s/valid? ::specs/secret (:secret data)) "error")
+                 :value (:secret data)
                  :disabled in-progress?
                  :on-change #(dispatch [:change-secret (-> % .-target .-value)])}]
         [:div "Password"]
-        [:input {:type "password"
+        [:input {:class (when-not (s/valid? ::specs/password (:password data)) "error")
+                 :type "password"
                  :value (:password data)
                  :disabled in-progress?
                  :on-change #(dispatch [:change-password (-> % .-target .-value)])}]]
        [:div {:class "create-new-separator"}]
        [:div {:class "create-new-message-label"} "Message"]
-       [:textarea {:placeholder "Your message"
+       [:textarea {:class (when-not (s/valid? ::specs/text (:text data)) "error")
+                   :placeholder "Your message"
                    :value (:text data)
                    :disabled in-progress?
                    :on-change #(dispatch [:change-msg (-> % .-target .-value)])}]
        [:button {:class "primary"
-                 :disabled (or in-progress? (empty? (:text data)))
+                 :disabled (or in-progress? (not (s/valid? target-spec data)))
                  :on-click #(dispatch
                              [:post-msg
                               (merge {:on-success on-success}

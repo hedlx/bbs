@@ -1,6 +1,7 @@
 (ns front.state.events
   (:require [re-frame.core :refer [reg-event-db
-                                   reg-event-fx]]
+                                   reg-event-fx
+                                   reg-fx]]
             [day8.re-frame.http-fx]
             [ajax.core :refer [json-request-format
                                json-response-format]]
@@ -10,8 +11,11 @@
                                     default-thread
                                     default-answer
                                     default-new-thread]]
+            [front.state.specs :as s]
             [front.util.url :refer [gen-url]]))
 
+
+(reg-fx :call (fn [f] (f)))
 
 (reg-event-fx
   :initialize
@@ -55,14 +59,16 @@
                  :on-failure [:limits-fetch-error]}
     :db (assoc-in db [:limits :loading?] true)}))
 
-(reg-event-db
+(reg-event-fx
  :limits-fetch-success
- (fn [db [_ values]]
-   (-> db
-       (assoc-in [:limits :values] (cske/transform-keys csk/->kebab-case-keyword values))
-       (assoc-in [:limits :loading?] false)
-       (assoc-in [:limits :loaded?] true)
-       (assoc-in [:limits :error] nil))))
+ (fn [{:keys [db]} [_ values]]
+   (let [limits (cske/transform-keys csk/->kebab-case-keyword values)]
+     {:db (-> db
+              (assoc-in [:limits :values] limits)
+              (assoc-in [:limits :loading?] false)
+              (assoc-in [:limits :loaded?] true)
+              (assoc-in [:limits :error] nil))
+      :call #(s/reg-create-msg-specs limits)})))
 
 (reg-event-db
  :limits-fetch-error
