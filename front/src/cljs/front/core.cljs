@@ -5,13 +5,11 @@
    [front.state.events]
    [front.state.subs]
    [reagent.core :as reagent]
-   [cljss.core :as css]
    [re-frame.core :as rf]
    [front.util.js :as utils]))
 
 
 (defn mount-root []
-  (css/remove-styles!)
   (reagent/render [current/page] (.getElementById js/document "app")))
 
 (defn init! [base-url]

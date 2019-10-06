@@ -70,6 +70,7 @@ clojure)
 
 	# TODO move to ~/tmp/clojure
 	ssh -C $ssh_opts hedlx.org 'rm -rf front-clj.tmp'
+        mv front/resources/public/index.prod.html front/resources/public/index.html
 	scp -C $ssh_opts -r front/resources/public hedlx.org:front-clj.tmp
 	# TODO: atomic swap
 	ssh -C $ssh_opts hedlx.org 'cd front-clj.tmp && rm -rf /srv/www/bbs/clj/* && mv * /srv/www/bbs/clj/ && echo moved'

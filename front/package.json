@@ -4,7 +4,7 @@
   "description": "BBS cljs frontend",
   "main": "index.js",
   "scripts": {
-    "styles:watch": "npx gulp sass:watch",
+    "styles:watch": "npx gulp sass && npx gulp sass:watch",
     "build": "npx gulp sass && npx shadow-cljs release app",
     "dev": "npx shadow-cljs watch app"
   },
