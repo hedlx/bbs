@@ -1,34 +1,13 @@
 (ns front.pages.thread
   (:require
-    [front.components.post :as post]
-    [front.styles.colors :as colors]
-    [cljss.core :refer-macros [defstyles]]
-    [re-frame.core :refer [subscribe]]))
-
-
-(defstyles post-class [full-width?]
-  {:padding "2px"
-   :width (if full-width? "100%" "auto")})
-
-(defstyles subject-class []
-           {:font-size "18px"
-            :font-weight 300
-            :color colors/yellow
-            :padding-bottom "15px"})
-
-(defstyles root-class []
-  {:position "relative"
-   :display "flex"
-   :flex-direction "column"
-   :align-items "flex-start"
-   :width "100%"
-   :height "100%"})
+   [front.components.post :as post]
+   [re-frame.core :refer [subscribe]]))
 
 (defn- render-post [post]
   (let [id (:no post)
         op? (zero? id)]
     ^{:key id}
-    [:div {:class (post-class op?)}
+    [:div {:class (if op? "thread-post thread-post--full" "thread-post")}
      [post/c (assoc post :id id :op? op?)]]))
 
 (defn- render-posts [posts]
@@ -46,6 +25,6 @@
           error @(subscribe [:thread-error])]
       [:<>
        (when (-> subject nil? not)
-         [:div {:class (subject-class)} subject])
-       [:div {:class (root-class)}
+         [:div {:class "thread-subject"} subject])
+       [:div {:class "thread"}
         (render-content posts error)]])))

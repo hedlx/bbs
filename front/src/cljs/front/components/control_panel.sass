@@ -1,0 +1,45 @@
+@import styles/const
+@import styles/colors
+
+.control-panel
+  display: grid
+  grid-template-columns: auto
+  grid-template-rows: repeat(2, 38px)
+  grid-row-gap: 15px
+  align-items: start
+
+.control-panel-spinner-container
+  width: 38px
+  height: 38px
+
+.control-panel-control
+  color: $light-purple
+  cursor: pointer
+
+  &:hover
+    opacity: 0.5
+
+.control-panel-add-container
+  position: relative
+
+.control-panel-popup-container
+  padding: 15px
+  z-index: 9999
+  background-color: $dark-purple
+
+  @media screen and (max-width: $media-break)
+    position: fixed
+    left: 0
+    right: 0
+    top: 0
+    bottom: 0
+
+  @media screen and (min-width: $media-break)
+    position: absolute
+    left: 100%
+    top: 0
+    width: 500px
+    height: 600px
+    margin-left: 10px
+    border-radius: 4px
+    box-shadow: 0px 0px 40px 2px rgba(255,255,255,0.2)

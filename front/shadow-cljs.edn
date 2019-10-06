@@ -3,7 +3,6 @@
                 "env/prod/cljs"
                 "env/dev/cljs"]
  :dependencies [[reagent "0.9.0-rc1"]
-                [clj-commons/cljss "1.6.4"]
                 [clj-commons/secretary "1.2.4"]
                 [re-frame "0.10.7"]
                 [day8.re-frame/http-fx "0.1.6"]
@@ -12,9 +11,10 @@
  :builds {:app {:target :browser
                 :output-dir "resources/public/js/"
                 :asset-path "/js"
-                :closure-defines {goog.DEBUG true}
                 :devtools {:after-load front.core/mount-root
-                           :http-root "resources/public/"
+                           :repl-init-ns front.dev
+                           :repl-pprint true
+                           :http-root "resources/public"
                            :http-port 8080}
                 :dev {:modules {:app {:entries [front.dev]}}}
                 :release {:modules {:app {:entries [front.prod]}}}}}}

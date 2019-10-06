@@ -1,0 +1,50 @@
+@import styles/colors
+
+.post
+  padding: 10px
+  border-radius: 4px
+  background-color: $dark-yellow
+  min-width: 250px
+
+  &.post--full
+    width: 100%
+
+.post-header
+  display: flex
+  flex-wrap: wrap
+  padding-bottom: 10px
+  font-size: 11px
+  font-family: monospace
+
+.post-header-item
+  padding-right: 8px
+  &:last-child
+    padding-right: 0
+
+.post-header-item-number
+  font-weight: 500
+
+.post-header-item-name-container
+  display: flex
+  flex-wrap: wrap
+
+.post-header-item-name
+  max-width: 150px
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.post-header-item-trip
+  display: inline-flex
+  color: $green-1
+
+.post-content
+  overflow: hidden
+  word-wrap: break-word
+  word-break: break-all
+  white-space: pre-wrap
+
+.post-image
+  float: left
+  max-width: 400px
+  padding-right: 10px

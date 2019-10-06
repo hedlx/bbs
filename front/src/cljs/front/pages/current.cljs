@@ -5,40 +5,8 @@
     [front.pages.threads :as threads]
     [front.components.create-new :as create-new]
     [front.components.spinner-overlay :as spinner-overlay]
-    [front.styles.colors :as colors]
-    [re-frame.core :refer [subscribe]]
-    [cljss.core :refer-macros [defstyles]]))
+    [re-frame.core :refer [subscribe]]))
 
-
-(defstyles root-class []
-  {:position "fixed"
-   :top 0
-   :bottom 0
-   :left 0
-   :right 0})
-
-(defstyles container-class []
-  {:display "flex"
-   :align-items "stretch"
-   :width "100%"
-   :height "100%"
-   :background-color colors/dark-purple
-   :color colors/light-purple})
-
-(defstyles left-panel-class []
-  {:display "flex"
-   :flex-shrink 0
-   :justify-content "center"
-   :padding "15px 10px 15px 10px"
-   :width "60px"})
-
-(defstyles content-class []
-  {:position "relative"
-   :width "100%"
-   :height "100%"
-   :padding-top "15px"
-   :padding-right "15px"
-   :overflow-y "auto"})
 
 (defn page-for [route]
   (case route
@@ -49,11 +17,11 @@
 
 (defn page []
   (fn []
-    [:div {:class (root-class)}
-     [:div {:class (container-class)}
-      [:div {:class (left-panel-class)}
+    [:div {:class "current-page"}
+     [:div {:class "current-page-container"}
+      [:div {:class "current-page-left-panel"}
        [control-panel/c]]
-      [:div {:class (content-class)}
+      [:div {:class "current-page-content"}
        (if @(subscribe [:major-loading?])
-         [spinner-overlay/c {:color colors/purple-1}]
+         [spinner-overlay/c]
          [(page-for @(subscribe [:current-page]))])]]]))

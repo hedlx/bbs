@@ -1,0 +1,83 @@
+.image
+  position: relative
+  cursor: pointer
+
+.image-overlay
+  position: absolute
+  right: 0
+  top: 0
+
+  display: flex
+  justify-content: center
+  align-items: center
+
+  margin: 2px
+  padding: 5px 10px
+  border-radius: 5px
+
+  font-size: 18px
+  font-weight: 500
+
+  color: #fff
+  background-color: rgba(0, 0, 0, 0.6)
+
+  pointer-events: none
+
+.fullscreen
+  display: flex
+  justify-content: center
+  align-items: center
+  width: 100%
+  height: 100%
+  background-color: rgba(0, 0, 0, 0.5)
+
+.fullscreen-nav-container
+  position: absolute
+  top: 0
+  bottom: 0
+
+  display: flex
+  justify-content: center
+  align-items: center
+
+  &.fullscreen-nav-container--left
+    left: 0
+
+  &.fullscreen-nav-container--right
+    right: 0
+
+.fullscreen-nav
+  display: flex
+  justify-content: center
+  align-items: center
+
+  font-size: 42px
+  font-weight: 500
+  cursor: pointer
+
+  border-radius: 5px
+  padding: 30px 15px
+  margin: 30px
+  color: #fff
+  background-color: rgba(0, 0, 0, 0.4)
+
+  &:hover
+    background-color: rgba(0, 0, 0, 0.7)
+
+.fullscreen-close
+  position: absolute
+  top: 0
+  right: 0
+  display: flex
+  justify-content: center
+  align-items: center
+  padding: 20px
+  margin: 30px
+  color: #fff
+  background-color: rgba(0, 0, 0, 0.7)
+  font-size: 32px
+  font-weight: 500
+  cursor: pointer
+
+  &:hover
+    background-color: rgba(0, 0, 0, 0.7)

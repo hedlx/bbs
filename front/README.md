@@ -26,6 +26,12 @@ To start dev server:
 npm run dev
 ```
 
+In different terminal run:
+
+```
+npm run styles:watch
+```
+
 If this doc is up to date you can go to [http://localhost:8080](http://localhost:8080) otherwise take a look at `shadow-cljs.edn`
 
 

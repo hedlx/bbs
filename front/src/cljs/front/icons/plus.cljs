@@ -1,10 +1,8 @@
-(ns front.icons.plus
-  (:require
-    [front.icons.styles :as css]))
+(ns front.icons.plus)
 
 
 (defn icon []
-  [:svg {:class (css/full)
+  [:svg {:class "full"
          :view-box "0 0 23 23"
          :fill "currentColor"
          :fill-rule "evenodd"}
