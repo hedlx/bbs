@@ -69,7 +69,7 @@ clojure)
 	[ -f "./front/resources/public/index.html" ] || die "No front/resources/public/index.html"
 
 	# TODO move to ~/tmp/clojure
-	ssh -C $ssh_opts hedlx.org 'rm -rf front-clj.tmp'
+        ssh -C $ssh_opts hedlx.org 'rm -rf front-clj.tmp'
         mv front/resources/public/index.prod.html front/resources/public/index.html
 	scp -C $ssh_opts -r front/resources/public hedlx.org:front-clj.tmp
 	# TODO: atomic swap
