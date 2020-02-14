@@ -12,7 +12,7 @@ module Page.Index exposing
 import Alert
 import Browser.Dom as Dom
 import Config exposing (Config)
-import Ease
+import DomCmd
 import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -26,7 +26,6 @@ import Page.Response as Response exposing (Response)
 import Post exposing (Post)
 import Route exposing (QueryIndex, Route)
 import Route.CrossPage
-import SmoothScroll
 import Spinner
 import Style
 import Tachyons exposing (classes)
@@ -166,23 +165,6 @@ getPrevThreadID tID page =
         >> List.Extra.last
 
 
-scrollTo : Int -> String -> Cmd Msg
-scrollTo offset domID =
-    let
-        cfgDefault =
-            SmoothScroll.defaultConfig
-
-        cfgScroll =
-            { cfgDefault
-                | offset = offset
-                , speed = 60
-                , easing = Ease.outQuint
-            }
-    in
-    SmoothScroll.scrollToWithOptions cfgScroll domID
-        |> Task.attempt (always NoOp)
-
-
 getFirstOpPostPosition : List ThreadPreview -> (Float -> Msg) -> Cmd Msg
 getFirstOpPostPosition threads toMsg =
     let
@@ -260,11 +242,11 @@ update cfg msg state =
                 _ ->
                     Response.None
 
-        ScrollTo domID offset ->
-            Response.do <| scrollTo (floor offset) domID
-
         ChangePage numPage ->
             Response.redirect cfg (Route.indexPage numPage)
+
+        ScrollTo domID offset ->
+            Response.do <| DomCmd.scrollTo (always NoOp) (floor offset) 60 domID
 
 
 handleGotThreads : Config -> Page -> State -> Response State Msg
@@ -382,7 +364,7 @@ viewLast cfg { id, last } =
 
     else
         section [ classes [ T.pl4_ns, T.pl5_l ] ] <|
-            List.map (Post.view postEventHandlers cfg id) last
+            List.map (Post.view postEventHandlers cfg id False) last
 
 
 viewPageControls : Config -> Page -> Html Msg

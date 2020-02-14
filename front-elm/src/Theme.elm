@@ -17,7 +17,6 @@ type alias Theme =
     , fgAlert : String
     , fgSpinner : String
     , fgOpName : String
-    , fgThreadNo : String
     , fgThreadSubject : String
     , bSeparator : String
     , fgPostNo : String
@@ -26,6 +25,7 @@ type alias Theme =
     , fgPostName : String
     , fgPostTrip : String
     , bgPost : String
+    , bFocusedPost : String
     , fgMenu : String
     , bgMenu : String
     , fgMenuButton : String
@@ -45,6 +45,7 @@ type alias Theme =
     , bgSlideInErr : String
     , fgDialog : String
     , bgDialog : String
+    , bDialog : String
     , shadowSettings : String
     }
 
@@ -57,14 +58,15 @@ builtIn : Dict ID Theme
 builtIn =
     Dict.fromList <|
         List.map (\theme -> ( theme.id, theme ))
-            [ themeDark
-            , themeLight
+            [ themeVoid
+            , themeSkylight
+            , themeLunatic
             ]
 
 
 default : Theme
 default =
-    themeDark
+    themeVoid
 
 
 selectBuiltIn : ID -> Theme
@@ -83,10 +85,10 @@ encode theme =
     Encode.string theme.id
 
 
-themeDark : Theme
-themeDark =
-    { id = "builtInDark"
-    , name = "Dark"
+themeVoid : Theme
+themeVoid =
+    { id = "builtInVoid"
+    , name = "Void"
     , font = system_sans_serif
     , fontMono = code
     , fg = darkMainFG
@@ -95,7 +97,6 @@ themeDark =
     , fgAlert = red
     , fgSpinner = darkMainFG
     , fgOpName = light_blue
-    , fgThreadNo = green
     , fgThreadSubject = pink
     , bSeparator = b__white_20
     , fgPostNo = darkMainFG
@@ -104,6 +105,7 @@ themeDark =
     , fgPostName = light_blue
     , fgPostTrip = white
     , bgPost = bg_dark_gray
+    , bFocusedPost = b__blue
     , fgMenu = darkMainFG
     , bgMenu = bg_dark_gray
     , fgMenuButton = white_80
@@ -115,15 +117,16 @@ themeDark =
     , fgButtonDisabled = white_20
     , bgButtonDisabled = bg_near_black
     , fgInput = darkMainFG
-    , bgInput = bg_black_30
+    , bgInput = bg_near_black
     , bInput = b__white_10
     , fgSlideInWarn = white
     , bgSlideInWarn = bg_orange
     , fgSlideInErr = white
     , bgSlideInErr = bg_red
-    , fgDialog = white
-    , bgDialog = bg_mid_gray
-    , shadowSettings = shadow_1
+    , fgDialog = light_silver
+    , bgDialog = bg_dark_gray
+    , bDialog = b__light_blue
+    , shadowSettings = shadow_5_ns
     }
 
 
@@ -132,32 +135,82 @@ darkMainFG =
     light_silver
 
 
-themeLight : Theme
-themeLight =
-    { id = "builtInLight"
-    , name = "Light"
+themeSkylight : Theme
+themeSkylight =
+    { id = "builtInSkylight"
+    , name = "Skylight"
     , font = system_sans_serif
     , fontMono = code
     , fg = lightMainFG
-    , bg = bg_lightest_blue
+    , bg = bg_washed_blue
     , fgRemark = black_50
     , fgAlert = red
-    , fgSpinner = dark_red
+    , fgSpinner = blue
     , fgOpName = dark_blue
-    , fgThreadNo = purple
-    , fgThreadSubject = red
+    , fgThreadSubject = dark_pink
     , bSeparator = b__blue
     , fgPostNo = lightMainFG
     , fgPost = lightMainFG
     , fgPostHead = lightMainFG
     , fgPostName = dark_blue
-    , fgPostTrip = purple
-    , bgPost = bg_white_50
+    , fgPostTrip = navy
+    , bgPost = bg_lightest_blue
+    , bFocusedPost = b__pink
     , fgMenu = lightMainFG
-    , bgMenu = bg_lightest_blue
-    , fgMenuButton = blue
-    , fgMenuButtonDisabled = light_blue
-    , fgTextButton = dark_green
+    , bgMenu = bg_blue
+    , fgMenuButton = white
+    , fgMenuButtonDisabled = white_50
+    , fgTextButton = dark_blue
+    , fgButton = white
+    , bgButton = bg_light_red
+    , bgButtonHover = hover_bg_red
+    , fgButtonDisabled = b__black_20
+    , bgButtonDisabled = bg_black_10
+    , fgInput = lightMainFG
+    , bgInput = bg_white
+    , bInput = b__black_40
+    , fgSlideInWarn = white
+    , bgSlideInWarn = bg_orange
+    , fgSlideInErr = white
+    , bgSlideInErr = bg_red
+    , fgDialog = white
+    , bgDialog = bg_blue
+    , bDialog = b__transparent
+    , shadowSettings = shadow_5
+    }
+
+
+lightMainFG : String
+lightMainFG =
+    dark_gray
+
+
+themeLunatic : Theme
+themeLunatic =
+    { id = "builtInLunatic"
+    , name = "Lunatic"
+    , font = system_sans_serif
+    , fontMono = code
+    , fg = lightMainFG
+    , bg = bg_washed_yellow
+    , fgRemark = black_50
+    , fgAlert = red
+    , fgSpinner = dark_red
+    , fgOpName = dark_blue
+    , fgThreadSubject = purple
+    , bSeparator = b__light_purple
+    , fgPostNo = lightMainFG
+    , fgPost = lightMainFG
+    , fgPostHead = lightMainFG
+    , fgPostName = dark_blue
+    , fgPostTrip = purple
+    , bgPost = bg_washed_red
+    , bFocusedPost = b__light_red
+    , fgMenu = lightMainFG
+    , bgMenu = bg_purple
+    , fgMenuButton = white
+    , fgMenuButtonDisabled = white_20
+    , fgTextButton = purple
     , fgButton = white
     , bgButton = bg_red
     , bgButtonHover = hover_bg_dark_red
@@ -171,11 +224,7 @@ themeLight =
     , fgSlideInErr = white
     , bgSlideInErr = bg_red
     , fgDialog = white
-    , bgDialog = bg_blue
+    , bgDialog = bg_purple
+    , bDialog = b__transparent
     , shadowSettings = shadow_5
     }
-
-
-lightMainFG : String
-lightMainFG =
-    dark_gray

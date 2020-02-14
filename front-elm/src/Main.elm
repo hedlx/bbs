@@ -425,8 +425,10 @@ viewSettingsDialog cfg =
             classes
                 [ T.w_100
                 , T.br2
+                , T.b__solid
                 , theme.fgDialog
                 , theme.bgDialog
+                , theme.bDialog
                 , theme.shadowSettings
                 ]
     in

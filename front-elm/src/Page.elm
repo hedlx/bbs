@@ -60,6 +60,9 @@ changeRoute cfg url (Page page) =
             Route.Thread threadID ->
                 mapInitPage Thread ThreadMsg (Thread.init cfg threadID)
 
+            Route.Post threadID postID ->
+                mapInitPage Thread ThreadMsg (Thread.initGoTo cfg threadID postID)
+
             Route.NewThread ->
                 mapInitPage NewThread NewThreadMsg NewThread.init
 

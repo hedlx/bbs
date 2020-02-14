@@ -4,6 +4,7 @@ module Page.Thread exposing
     , Thread
     , decoder
     , init
+    , initGoTo
     , initReplyTo
     , reInit
     , replyTo
@@ -17,6 +18,7 @@ module Page.Thread exposing
 
 import Alert
 import Config exposing (Config)
+import DomCmd
 import Env
 import File exposing (File)
 import FilesDrop
@@ -44,17 +46,25 @@ import Url.Builder
 
 init : Config -> ID -> ( State, Cmd Msg )
 init _ id =
-    ( Loading PostForm.empty id, getThread id )
+    ( Loading PostForm.empty id, getThread id Nothing )
 
 
 reInit : Config -> State -> ( State, Cmd Msg )
 reInit cfg state =
     case state of
         Loading _ id ->
-            ( state, getThread id )
+            ( state, getThread id Nothing )
+
+        LoadingPost _ id postNo ->
+            ( state, getThread id (Just postNo) )
 
         Idle _ thread ->
             init cfg thread.id
+
+
+initGoTo : Config -> Int -> Int -> ( State, Cmd Msg )
+initGoTo _ id postNo =
+    ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
 
 
 initReplyTo : Config -> Int -> Int -> ( State, Cmd Msg )
@@ -73,11 +83,13 @@ initReplyTo cfg id postNo =
 
 type State
     = Loading PostForm Int
+    | LoadingPost PostForm Int Int
     | Idle PostForm Thread
 
 
 type alias Thread =
     { id : ID
+    , focusedPostNo : Maybe ID
     , subject : Maybe String
     , messages : List Post
     }
@@ -113,6 +125,9 @@ threadID state =
         Loading _ id ->
             id
 
+        LoadingPost _ id _ ->
+            id
+
         Idle _ thread ->
             thread.id
 
@@ -121,6 +136,9 @@ postForm : State -> PostForm
 postForm state =
     case state of
         Loading form _ ->
+            form
+
+        LoadingPost form _ _ ->
             form
 
         Idle form _ ->
@@ -132,6 +150,9 @@ mapPostForm f state =
     case state of
         Loading form tID ->
             Loading (f form) tID
+
+        LoadingPost form tID pID ->
+            LoadingPost (f form) tID pID
 
         Idle form thread ->
             Idle (f form) thread
@@ -170,18 +191,18 @@ toggleMediaPreview postNo mediaID state =
             state
 
 
-decoder : ID -> Decoder Thread
-decoder tID =
-    Decode.map2 (Thread tID)
+decoder : ID -> Maybe ID -> Decoder Thread
+decoder tID maybePostNo =
+    Decode.map2 (Thread tID maybePostNo)
         (Decode.field "subject" (Decode.maybe Decode.string))
         (Decode.field "messages" <| Decode.list Post.decoder)
 
 
-getThread : ID -> Cmd Msg
-getThread tID =
+getThread : ID -> Maybe ID -> Cmd Msg
+getThread tID maybePostNo =
     Http.get
         { url = Url.Builder.crossOrigin Env.urlAPI [ "threads", String.fromInt tID ] []
-        , expect = Http.expectJson GotThread (decoder tID)
+        , expect = Http.expectJson GotThread (decoder tID maybePostNo)
         }
 
 
@@ -220,6 +241,7 @@ update cfg msg state =
             in
             Response.return (Idle (PostForm.enable currentPostForm) thread)
                 |> Response.andThenIf (PostForm.isAutofocus currentPostForm) focusPostForm
+                |> Response.andThenIf (thread.focusedPostNo /= Nothing) scrollToPost
 
         GotThread (Err error) ->
             Response.raise (Alert.fromHttpError error)
@@ -261,7 +283,7 @@ handlePostFormResponse thread postFormResponse =
             Response.Ok (Idle newForm thread) Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id) Alert.None
+            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id thread.focusedPostNo) Alert.None
 
 
 focusPostForm : State -> Response State Msg
@@ -269,6 +291,23 @@ focusPostForm state =
     case state of
         Idle form _ ->
             Response.Ok state (Cmd.map PostFormMsg (PostForm.focus form)) Alert.None
+
+        _ ->
+            Response.return state
+
+
+scrollToPost : State -> Response State Msg
+scrollToPost state =
+    case state of
+        Idle _ thread ->
+            case thread.focusedPostNo of
+                Just postNo ->
+                    Response.Ok state
+                        (DomCmd.scrollTo (always NoOp) 100 350 (Post.domID thread.id postNo))
+                        Alert.None
+
+                Nothing ->
+                    Response.return state
 
         _ ->
             Response.return state
@@ -325,8 +364,18 @@ postEventHandlers =
 
 
 viewPosts : Config -> Thread -> List (Html Msg)
-viewPosts cfg { id, messages } =
-    List.map (Html.Lazy.lazy4 Post.view postEventHandlers cfg id) messages
+viewPosts cfg { id, messages, focusedPostNo } =
+    List.map (Html.Lazy.lazy4 viewPost cfg id focusedPostNo) messages
+
+
+viewPost : Config -> Int -> Maybe Int -> Post -> Html Msg
+viewPost cfg id focusedPostNo post =
+    case focusedPostNo of
+        Just postNo ->
+            Post.view postEventHandlers cfg id (post.no == postNo) post
+
+        Nothing ->
+            Post.view postEventHandlers cfg id False post
 
 
 viewPostForm : Config -> PostForm -> Html Msg

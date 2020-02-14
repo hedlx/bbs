@@ -5,6 +5,7 @@ module Post exposing
     , Op
     , Post
     , decoder
+    , domID
     , mapMedia
     , opDomID
     , toggleMediaPreview
@@ -24,6 +25,7 @@ import List.Extra
 import Media exposing (Media)
 import Route
 import String.Extra
+import String.Format as StrF
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Tachyons.Classes.Extra as TE
@@ -92,21 +94,39 @@ decoder =
         (Decode.field "media" (Decode.list Media.decoder))
 
 
-view : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
-view eventHandlers cfg threadID post =
+view : EventHandlers msg a -> Config -> ThreadID -> Bool -> Post -> Html msg
+view eventHandlers cfg threadID isFocused post =
     let
         theme =
             cfg.theme
     in
-    article [ stylePost theme ]
+    article
+        [ id (domID threadID post.no)
+        , stylePost isFocused theme
+        ]
         [ viewPostHead eventHandlers cfg threadID post
         , viewBody eventHandlers threadID post
         ]
 
 
-stylePost : Theme -> Attribute msg
-stylePost theme =
-    classes [ T.mb1, T.mb2_ns, T.br3, T.br4_ns, T.overflow_hidden, theme.bgPost ]
+domID : Int -> Int -> String
+domID threadID postNo =
+    "post-{{ }}-{{ }}"
+        |> StrF.value (String.fromInt threadID)
+        >> StrF.value (String.fromInt postNo)
+
+
+stylePost : Bool -> Theme -> Attribute msg
+stylePost isFocused theme =
+    classes
+        ([ T.mb1, T.mb2_ns, T.br3, T.br4_ns, T.overflow_hidden, theme.bgPost ]
+            ++ (if isFocused then
+                    [ T.b__solid, theme.bFocusedPost]
+
+                else
+                    []
+               )
+        )
 
 
 viewPostHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
@@ -385,7 +405,7 @@ viewOp eventHandlers cfg op =
         theme =
             cfg.theme
     in
-    article [ stylePost theme ]
+    article [ stylePost False theme ]
         [ viewOpHead eventHandlers cfg op
         , viewBody eventHandlers op.threadID op.post
         ]

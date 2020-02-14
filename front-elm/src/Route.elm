@@ -20,6 +20,7 @@ type Route
     = NotFound
     | Index QueryIndex
     | Thread Int
+    | Post Int Int
     | NewThread
 
 
@@ -67,6 +68,8 @@ parser =
             |> Parser.map indexWithQuery
         , oneOf [ int, s "threads" </> int ]
             |> Parser.map Thread
+        , oneOf [ int </> int, s "threads" </> int </> int ]
+            |> Parser.map Post
         , oneOf [ s "new", s "threads" </> s "new" ]
             |> Parser.map NewThread
         ]
@@ -109,6 +112,9 @@ path route =
 
         Thread threadID ->
             [ String.fromInt threadID ]
+
+        Post threadID postID ->
+            [ String.fromInt threadID, String.fromInt postID ]
 
         NewThread ->
             [ "new" ]
