@@ -62,9 +62,20 @@ reInit cfg state =
             init cfg thread.id
 
 
-initGoTo : Config -> Int -> Int -> ( State, Cmd Msg )
-initGoTo _ id postNo =
-    ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
+initGoTo : Config -> Int -> Int -> Maybe State -> ( State, Cmd Msg )
+initGoTo _ id postNo maybeThread =
+    case maybeThread of
+        Just (Idle form thread) ->
+            if thread.id == id then
+                ( Idle form { thread | focusedPostNo = Just postNo }
+                , DomCmd.scrollTo (always NoOp) 100 60 (Post.domID thread.id postNo)
+                )
+
+            else
+                ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
+
+        _ ->
+            ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
 
 
 initReplyTo : Config -> Int -> Int -> ( State, Cmd Msg )
@@ -172,7 +183,7 @@ replyTo limits postNo =
 
             else
                 form
-                    |> PostForm.appendToText limits (">>" ++ String.fromInt postNo)
+                    |> PostForm.appendToText limits (">>" ++ String.fromInt postNo ++ "\n")
                     >> PostForm.autofocus
         )
 
@@ -241,7 +252,7 @@ update cfg msg state =
             in
             Response.return (Idle (PostForm.enable currentPostForm) thread)
                 |> Response.andThenIf (PostForm.isAutofocus currentPostForm) focusPostForm
-                |> Response.andThenIf (thread.focusedPostNo /= Nothing) scrollToPost
+                |> Response.andThenIf (thread.focusedPostNo /= Nothing) (scrollToPost 350)
 
         GotThread (Err error) ->
             Response.raise (Alert.fromHttpError error)
@@ -283,7 +294,9 @@ handlePostFormResponse thread postFormResponse =
             Response.Ok (Idle newForm thread) Cmd.none (Alert.map PostFormMsg alert)
 
         PostForm.Submitted _ ->
-            Response.Ok (Idle (PostForm.disable PostForm.empty) thread) (getThread thread.id thread.focusedPostNo) Alert.None
+            Response.Ok (Idle (PostForm.disable PostForm.empty) thread)
+                (getThread thread.id Nothing)
+                Alert.None
 
 
 focusPostForm : State -> Response State Msg
@@ -296,14 +309,14 @@ focusPostForm state =
             Response.return state
 
 
-scrollToPost : State -> Response State Msg
-scrollToPost state =
+scrollToPost : Int -> State -> Response State Msg
+scrollToPost speed state =
     case state of
         Idle _ thread ->
             case thread.focusedPostNo of
                 Just postNo ->
                     Response.Ok state
-                        (DomCmd.scrollTo (always NoOp) 100 350 (Post.domID thread.id postNo))
+                        (DomCmd.scrollTo (always NoOp) 100 speed (Post.domID thread.id postNo))
                         Alert.None
 
                 Nothing ->
@@ -358,7 +371,7 @@ viewSubject theme thread =
 
 postEventHandlers : Post.EventHandlers Msg {}
 postEventHandlers =
-    { onMediaClicked = \_ -> MediaClicked
+    { onMediaClicked = always MediaClicked
     , onReplyToClicked = ReplyToClicked
     }
 

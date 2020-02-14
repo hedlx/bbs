@@ -24,7 +24,6 @@ import Json.Decode.Extra as DecodeExt
 import List.Extra
 import Media exposing (Media)
 import Route
-import String.Extra
 import String.Format as StrF
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
@@ -32,13 +31,14 @@ import Tachyons.Classes.Extra as TE
 import Theme exposing (Theme)
 import Time exposing (Month(..), Zone)
 import Url.Builder
+import UserText
 
 
 type alias Post =
     { no : No
     , name : String
     , trip : String
-    , text : String
+    , text : List UserText.Token
     , ts : Int
     , media : List Media
     }
@@ -89,7 +89,7 @@ decoder =
         (Decode.field "no" Decode.int)
         (DecodeExt.withDefault Env.defaultName <| Decode.field "name" Decode.string)
         (DecodeExt.withDefault "" <| Decode.field "trip" Decode.string)
-        (Decode.field "text" (Decode.oneOf [ Decode.string, Decode.null "" ]))
+        (Decode.field "text" (Decode.map UserText.parseString (Decode.oneOf [ Decode.string, Decode.null "" ])))
         (Decode.field "ts" Decode.int)
         (Decode.field "media" (Decode.list Media.decoder))
 
@@ -104,8 +104,8 @@ view eventHandlers cfg threadID isFocused post =
         [ id (domID threadID post.no)
         , stylePost isFocused theme
         ]
-        [ viewPostHead eventHandlers cfg threadID post
-        , viewBody eventHandlers threadID post
+        [ viewHead eventHandlers cfg threadID post
+        , viewBody eventHandlers cfg threadID post
         ]
 
 
@@ -119,25 +119,32 @@ domID threadID postNo =
 stylePost : Bool -> Theme -> Attribute msg
 stylePost isFocused theme =
     classes
-        ([ T.mb1, T.mb2_ns, T.br3, T.br4_ns, T.overflow_hidden, theme.bgPost ]
+        ([ T.mb1
+         , T.mb2_ns
+         , T.br3
+         , T.br4_ns
+         , T.overflow_hidden
+         , theme.bgPost
+         , T.b__solid
+         ]
             ++ (if isFocused then
-                    [ T.b__solid, theme.bFocusedPost]
+                    [ theme.bFocusedPost ]
 
                 else
-                    []
+                    [ T.b__transparent ]
                )
         )
 
 
-viewPostHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
-viewPostHead eventHandlers cfg threadID post =
+viewHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
+viewHead eventHandlers cfg threadID post =
     header [ stylePostHead cfg.theme ]
-        (viewPostHeadElements eventHandlers cfg threadID post)
+        (viewHeadElements eventHandlers cfg threadID post)
 
 
-viewPostHeadElements : EventHandlers msg a -> Config -> ThreadID -> Post -> List (Html msg)
-viewPostHeadElements eventHandlers { theme, timeZone } threadID post =
-    [ viewPostNo eventHandlers theme threadID post
+viewHeadElements : EventHandlers msg a -> Config -> ThreadID -> Post -> List (Html msg)
+viewHeadElements eventHandlers { theme, timeZone } threadID post =
+    [ viewNo eventHandlers theme threadID post
     , viewName theme post
     , viewPostTime timeZone post
     ]
@@ -157,8 +164,8 @@ stylePostHead theme =
         ]
 
 
-viewPostNo : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
-viewPostNo eventHandlers theme threadID post =
+viewNo : EventHandlers msg a -> Theme -> ThreadID -> Post -> Html msg
+viewNo eventHandlers theme threadID post =
     viewHeadElement
         [ classes [ T.link, T.pointer, TE.sel_none, theme.fgPostNo ]
         , onClick (eventHandlers.onReplyToClicked threadID post.no)
@@ -273,8 +280,8 @@ toMonthName month =
             "12"
 
 
-viewBody : EventHandlers msg a -> ThreadID -> Post -> Html msg
-viewBody eventHandlers threadID post =
+viewBody : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
+viewBody eventHandlers cfg threadID post =
     let
         style =
             classes [ T.overflow_hidden, T.pre ]
@@ -284,17 +291,58 @@ viewBody eventHandlers threadID post =
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
-        , viewPostText post.text
+        , viewText eventHandlers cfg.theme threadID post.text
         ]
 
 
-viewPostText : String -> Html msg
-viewPostText str =
-    if String.Extra.isBlank str then
+viewText : EventHandlers msg a -> Theme -> Int -> List UserText.Token -> Html msg
+viewText _ theme threadID tokens =
+    if List.isEmpty tokens then
         nothing
 
     else
-        div [ classes [ T.ma2, T.ma3_ns ] ] [ text str ]
+        div [ classes [ T.ma2, T.ma3_ns ] ]
+            (List.map (viewTextToken theme threadID) tokens)
+
+
+viewTextToken : Theme -> Int -> UserText.Token -> Html msg
+viewTextToken theme threadID token =
+    case token of
+        UserText.Plain str ->
+            text str
+
+        UserText.PostRefLocal pid ->
+            a
+                [ class T.no_underline
+                , href (Route.link (Route.Post threadID pid))
+                ]
+                [ span
+                    [ styleRef theme ]
+                    [ text (">>" ++ String.fromInt pid) ]
+                ]
+
+        UserText.PostRef tid pid ->
+            a
+                [ class T.no_underline
+                , href (Route.link (Route.Post tid pid))
+                ]
+                [ span [ styleRef theme ]
+                    [ text (">>" ++ String.fromInt tid ++ "/" ++ String.fromInt pid) ]
+                ]
+
+        UserText.ThreadRef tid ->
+            a
+                [ class T.no_underline
+                , href (Route.link (Route.Thread tid))
+                ]
+                [ span [ styleRef theme ]
+                    [ text (">>" ++ String.fromInt tid ++ "/") ]
+                ]
+
+
+styleRef : Theme -> Html.Attribute msg
+styleRef theme =
+    classes [ T.link, T.pointer, TE.sel_none, T.dim, T.underline, theme.fgTextButton ]
 
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -407,7 +455,7 @@ viewOp eventHandlers cfg op =
     in
     article [ stylePost False theme ]
         [ viewOpHead eventHandlers cfg op
-        , viewBody eventHandlers op.threadID op.post
+        , viewBody eventHandlers cfg op.threadID op.post
         ]
 
 
@@ -431,7 +479,7 @@ viewOpHead eventHandlers cfg { threadID, subject, post } =
             , viewShowAll theme threadID
             ]
         , div []
-            (viewPostHeadElements eventHandlers cfg threadID post)
+            (viewHeadElements eventHandlers cfg threadID post)
         ]
 
 
@@ -501,7 +549,7 @@ viewShowAll : Theme -> ThreadID -> Html msg
 viewShowAll theme threadID =
     viewThreadLink threadID
         [ class TE.sel_none ]
-        [ viewButtonHead theme "Show All" ]
+        [ viewButtonHead theme "Open" ]
 
 
 viewSubject : Theme -> ThreadID -> Maybe String -> Html msg
