@@ -347,16 +347,18 @@ styleRef theme =
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
 viewHeadElement attrs =
-    div (classes [ T.dib, T.mr2, T.pt2 ] :: attrs)
+    div (classes [ T.dib, T.mr2, T.mt2 ] :: attrs)
 
 
-viewButtonHead : Theme -> String -> Html msg
-viewButtonHead theme btnText =
+viewButtonHead : Theme -> (List (Html msg) -> Html msg) -> String -> Html msg
+viewButtonHead theme actionWrap btnText =
     viewHeadElement
         []
-        [ span [ class theme.fgTextButton ] [ text "[" ]
-        , span [ classes [ T.underline, T.dim, theme.fgTextButton ] ] [ text btnText ]
-        , span [ class theme.fgTextButton ] [ text "]" ]
+        [ actionWrap
+            [ span [ class theme.fgTextButton ] [ text "[" ]
+            , span [ classes [ T.underline, T.dim, theme.fgTextButton ] ] [ text btnText ]
+            , span [ class theme.fgTextButton ] [ text "]" ]
+            ]
         ]
 
 
@@ -485,9 +487,9 @@ viewOpHead eventHandlers cfg { threadID, subject, post } =
 
 viewOpNo : Theme -> ThreadID -> Html msg
 viewOpNo theme threadID =
-    viewThreadLink threadID
-        [ class TE.sel_none ]
-        [ viewButtonHead theme (String.fromInt threadID) ]
+    viewButtonHead theme
+        (viewThreadLink threadID [ class TE.sel_none ])
+        (String.fromInt threadID)
 
 
 viewPrevNextControls : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
@@ -538,32 +540,34 @@ attrsPrevNext theme threadID toMsg =
 
 viewReply : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
 viewReply eventHandlers theme threadID =
-    span
-        [ classes [ T.link, T.pointer, TE.sel_none ]
-        , onClick (eventHandlers.onReplyToClicked threadID 0)
-        ]
-        [ viewButtonHead theme "Reply" ]
+    viewButtonHead theme
+        (span
+            [ classes [ T.link, T.pointer, TE.sel_none ]
+            , onClick (eventHandlers.onReplyToClicked threadID 0)
+            ]
+        )
+        "Reply"
 
 
 viewShowAll : Theme -> ThreadID -> Html msg
 viewShowAll theme threadID =
-    viewThreadLink threadID
-        [ class TE.sel_none ]
-        [ viewButtonHead theme "Open" ]
+    viewButtonHead theme
+        (viewThreadLink threadID [ class TE.sel_none ])
+        "Open"
 
 
 viewSubject : Theme -> ThreadID -> Maybe String -> Html msg
 viewSubject theme threadID subject =
     let
         style =
-            classes [ T.f5, T.f4_ns, T.link, T.pointer, theme.fgThreadSubject ]
+            classes [ T.f5, T.f4_ns, T.no_underline, T.pointer, theme.fgThreadSubject ]
 
         strSubject =
             Maybe.withDefault ("Thread #" ++ String.fromInt threadID) subject
     in
-    viewThreadLink threadID
+    viewHeadElement
         []
-        [ viewHeadElement
+        [ viewThreadLink threadID
             [ style ]
             [ text strSubject ]
         ]
