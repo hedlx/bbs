@@ -325,6 +325,9 @@ viewTextToken theme threadID token =
         UserText.Plain str ->
             text str
 
+        UserText.Quote str ->
+            span [ classes [ theme.fgQuote ] ] [ text (">" ++ str) ]
+
         UserText.PostRefLocal pid ->
             a
                 [ class T.no_underline
@@ -356,7 +359,7 @@ viewTextToken theme threadID token =
 
 styleRef : Theme -> Html.Attribute msg
 styleRef theme =
-    classes [ T.link, T.pointer, TE.sel_none, T.dim, T.underline, theme.fgTextButton ]
+    classes [ T.link, T.pointer, T.dim, T.underline, theme.fgTextButton ]
 
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg

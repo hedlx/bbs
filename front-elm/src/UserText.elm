@@ -24,6 +24,7 @@ type Token
     | PostRefLocal Int
     | PostRef Int Int
     | ThreadRef Int
+    | Quote String
 
 
 parseString : String -> List Token
@@ -44,10 +45,31 @@ tokens : List Token -> Parser (P.Step (List Token) (List Token))
 tokens tokensReversed =
     oneOf
         [ succeed (\token -> Loop (token :: tokensReversed))
-            |= oneOf [ ref, plain ]
+            |= oneOf [ backtrackable ref, quote, plain ]
         , succeed ()
             |> map (\_ -> Done (List.reverse tokensReversed))
         ]
+
+
+plain : Parser Token
+plain =
+    succeed Plain
+        |= variable
+            { start = always True
+            , inner = (/=) '>'
+            , reserved = Set.fromList []
+            }
+
+
+quote : Parser Token
+quote =
+    succeed Quote
+        |. symbol ">"
+        |= variable
+            { start = always True
+            , inner = (/=) '\n'
+            , reserved = Set.fromList []
+            }
 
 
 ref : Parser Token
@@ -80,13 +102,3 @@ postRef =
         |= int
         |. symbol "/"
         |= int
-
-
-plain : Parser Token
-plain =
-    succeed Plain
-        |= variable
-            { start = always True
-            , inner = (/=) '>'
-            , reserved = Set.fromList []
-            }
