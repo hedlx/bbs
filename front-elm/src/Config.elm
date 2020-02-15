@@ -493,6 +493,14 @@ viewUserSettings { theme, name, trip, pass, perPageThreads } =
         ]
 
 
+viewOption : String -> List (Html Msg) -> Html Msg
+viewOption settingLabel optionBody =
+    div [ classes [ T.h2, T.mb2 ] ]
+        [ div [ classes [ T.fl, T.mr3, T.pt1 ] ] [ text settingLabel ]
+        , div [ classes [ T.fr ] ] optionBody
+        ]
+
+
 viewStringInput : Theme -> String -> (String -> Msg) -> String -> String -> Html Msg
 viewStringInput theme inputType toMsg currentValue placeholderValue =
     input
@@ -503,6 +511,73 @@ viewStringInput theme inputType toMsg currentValue placeholderValue =
         , placeholder placeholderValue
         ]
         []
+
+
+styleInput : Theme -> Attribute Msg
+styleInput theme =
+    classes
+        [ T.f7
+        , T.pa1
+        , T.br1
+        , T.b__solid
+        , theme.fontMono
+        , theme.fgInput
+        , theme.bgInput
+        , theme.bInput
+        ]
+
+
+viewSelectTheme : Theme -> Html Msg
+viewSelectTheme currentTheme =
+    let
+        style =
+            classes
+                [ T.br1
+                , T.pa1
+                , T.f6
+                , T.outline_0
+                , currentTheme.bInput
+                , currentTheme.fgInput
+                , currentTheme.bgInput
+                ]
+    in
+    select [ style, onChange SetTheme ] <|
+        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
+
+
+addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
+addSelectThemeOption currentTheme themeID theme options =
+    option
+        [ value themeID
+        , selected (currentTheme.id == themeID)
+        ]
+        [ text theme.name ]
+        :: options
+
+
+viewBtnReset : Theme -> Html Msg
+viewBtnReset theme =
+    let
+        style =
+            classes
+                [ T.w_100
+                , T.tc
+                , T.f6
+                , T.br2
+                , T.pa1
+                , T.outline_0
+                , theme.bInput
+                , theme.fgButton
+                , theme.bgButton
+                ]
+    in
+    button
+        [ style
+        , Style.buttonEnabled theme
+        , onClick ResetSettingsWithConfirmation
+        , title "Resets settings and cleans all BBS data from the browser storage"
+        ]
+        [ text "Reset Settings" ]
 
 
 viewPerPageThreadsInput : Theme -> PerPage -> Html Msg
@@ -538,80 +613,3 @@ viewPerPageThreadsInput theme currentPerPage =
 onBlur : (String -> msg) -> Attribute msg
 onBlur tagger =
     on "blur" (Decode.map tagger targetValue)
-
-
-styleInput : Theme -> Attribute Msg
-styleInput theme =
-    classes
-        [ T.f7
-        , T.pa1
-        , T.br1
-        , T.b__solid
-        , theme.fontMono
-        , theme.fgInput
-        , theme.bgInput
-        , theme.bInput
-        ]
-
-
-viewOption : String -> List (Html Msg) -> Html Msg
-viewOption settingLabel optionBody =
-    div [ classes [ T.h2, T.mb2 ] ]
-        [ div [ classes [ T.fl, T.mr3, T.pt1 ] ] [ text settingLabel ]
-        , div [ classes [ T.fr ] ] optionBody
-        ]
-
-
-viewSelectTheme : Theme -> Html Msg
-viewSelectTheme currentTheme =
-    let
-        style =
-            classes
-                [ T.br1
-                , T.pa1
-                , T.f6
-                , T.outline_0
-                , currentTheme.bInput
-                , currentTheme.fgInput
-                , currentTheme.bgInput
-                ]
-    in
-    select [ style, onChange SetTheme ] <|
-        Dict.foldr (addSelectThemeOption currentTheme) [] Theme.builtIn
-
-
-addSelectThemeOption : Theme -> Theme.ID -> Theme -> List (Html Msg) -> List (Html Msg)
-addSelectThemeOption currentTheme themeID theme options =
-    option
-        [ Attributes.style "background-color" "#eee"
-        , Attributes.style "color" "#000"
-        , value themeID
-        , selected (currentTheme.id == themeID)
-        ]
-        [ text theme.name ]
-        :: options
-
-
-viewBtnReset : Theme -> Html Msg
-viewBtnReset theme =
-    let
-        style =
-            classes
-                [ T.w_100
-                , T.tc
-                , T.f6
-                , T.br2
-                , T.pa1
-                , T.outline_0
-                , theme.bInput
-                , theme.fgButton
-                , theme.bgButton
-                ]
-    in
-    button
-        [ style
-        , Style.buttonEnabled theme
-        , onClick ResetSettingsWithConfirmation
-        , title "Resets settings and cleans all BBS data from the browser storage"
-        ]
-        [ text "Reset Settings" ]

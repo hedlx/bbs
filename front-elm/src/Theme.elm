@@ -28,6 +28,7 @@ type alias Theme =
     , bFocusedPost : String
     , fgMenu : String
     , bgMenu : String
+    , shadowMenu : String
     , fgMenuButton : String
     , fgMenuButtonDisabled : String
     , fgTextButton : String
@@ -108,8 +109,9 @@ themeVoid =
     , bFocusedPost = b__blue
     , fgMenu = darkMainFG
     , bgMenu = bg_dark_gray
+    , shadowMenu = shadow_2
     , fgMenuButton = white_80
-    , fgMenuButtonDisabled = white_20
+    , fgMenuButtonDisabled = black_20
     , fgTextButton = white_80
     , fgButton = white_80
     , bgButton = bg_dark_gray
@@ -158,14 +160,15 @@ themeSkylight =
     , bFocusedPost = b__pink
     , fgMenu = lightMainFG
     , bgMenu = bg_blue
+    , shadowMenu = ""
     , fgMenuButton = white
-    , fgMenuButtonDisabled = white_50
+    , fgMenuButtonDisabled = black_10
     , fgTextButton = dark_blue
     , fgButton = white
     , bgButton = bg_light_red
     , bgButtonHover = hover_bg_red
-    , fgButtonDisabled = b__black_20
-    , bgButtonDisabled = bg_black_10
+    , fgButtonDisabled = black_20
+    , bgButtonDisabled = bg_lightest_blue
     , fgInput = lightMainFG
     , bgInput = bg_white
     , bInput = b__black_40
@@ -208,14 +211,15 @@ themeLunatic =
     , bFocusedPost = b__light_red
     , fgMenu = lightMainFG
     , bgMenu = bg_purple
+    , shadowMenu = ""
     , fgMenuButton = white
-    , fgMenuButtonDisabled = white_20
+    , fgMenuButtonDisabled = black_20
     , fgTextButton = purple
     , fgButton = white
     , bgButton = bg_red
     , bgButtonHover = hover_bg_dark_red
-    , fgButtonDisabled = b__black_20
-    , bgButtonDisabled = bg_black_20
+    , fgButtonDisabled = black_20
+    , bgButtonDisabled = bg_black_10
     , fgInput = lightMainFG
     , bgInput = bg_white
     , bInput = b__black_40

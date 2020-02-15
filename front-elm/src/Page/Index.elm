@@ -177,7 +177,7 @@ getFirstOpPostPosition threads toMsg =
                     NoOp
 
         cmdGetElement threadPw =
-            Dom.getElement (Post.opDomID threadPw.id)
+            Dom.getElement (Post.domIDOp threadPw.id)
     in
     List.head threads
         |> Maybe.map cmdGetElement
@@ -189,7 +189,7 @@ cmdScrollToLastThread : Page -> Cmd Msg
 cmdScrollToLastThread page =
     List.Extra.last page.threads
         |> Maybe.map .id
-        >> Maybe.map (\tID -> getFirstOpPostPosition page.threads (ScrollTo (Post.opDomID tID)))
+        >> Maybe.map (\tID -> getFirstOpPostPosition page.threads (ScrollTo (Post.domIDOp tID)))
         >> Maybe.withDefault Cmd.none
 
 
@@ -288,7 +288,7 @@ goToNearbyThread threadID isGoToPrev cfg page =
         Just nearID ->
             Response.do <|
                 getFirstOpPostPosition page.threads
-                    (ScrollTo (Post.opDomID nearID))
+                    (ScrollTo (Post.domIDOp nearID))
 
 
 

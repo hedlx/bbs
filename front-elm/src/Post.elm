@@ -6,8 +6,10 @@ module Post exposing
     , Post
     , decoder
     , domID
+    , domIDBtnNext
+    , domIDBtnPrev
+    , domIDOp
     , mapMedia
-    , opDomID
     , toggleMediaPreview
     , view
     , viewOp
@@ -94,6 +96,17 @@ decoder =
         (Decode.field "media" (Decode.list Media.decoder))
 
 
+
+-- Regular Post
+
+
+domID : Int -> Int -> String
+domID threadID postNo =
+    "post-{{ }}-{{ }}"
+        |> StrF.value (String.fromInt threadID)
+        >> StrF.value (String.fromInt postNo)
+
+
 view : EventHandlers msg a -> Config -> ThreadID -> Bool -> Post -> Html msg
 view eventHandlers cfg threadID isFocused post =
     let
@@ -107,13 +120,6 @@ view eventHandlers cfg threadID isFocused post =
         [ viewHead eventHandlers cfg threadID post
         , viewBody eventHandlers cfg threadID post
         ]
-
-
-domID : Int -> Int -> String
-domID threadID postNo =
-    "post-{{ }}-{{ }}"
-        |> StrF.value (String.fromInt threadID)
-        >> StrF.value (String.fromInt postNo)
 
 
 stylePost : Bool -> Theme -> Attribute msg
@@ -134,6 +140,10 @@ stylePost isFocused theme =
                     [ T.b__transparent ]
                )
         )
+
+
+
+-- Post Head
 
 
 viewHead : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
@@ -280,6 +290,10 @@ toMonthName month =
             "12"
 
 
+
+-- Post Body
+
+
 viewBody : EventHandlers msg a -> Config -> ThreadID -> Post -> Html msg
 viewBody eventHandlers cfg threadID post =
     let
@@ -350,13 +364,13 @@ viewHeadElement attrs =
     div (classes [ T.dib, T.mr2, T.mt2 ] :: attrs)
 
 
-viewButtonHead : Theme -> (List (Html msg) -> Html msg) -> String -> Html msg
-viewButtonHead theme actionWrap btnText =
+viewHeadButton : (List (Html msg) -> Html msg) -> Theme -> String -> Html msg
+viewHeadButton actionWrapper theme btnText =
     viewHeadElement
-        []
-        [ actionWrap
+        [ classes [ T.dim ] ]
+        [ actionWrapper
             [ span [ class theme.fgTextButton ] [ text "[" ]
-            , span [ classes [ T.underline, T.dim, theme.fgTextButton ] ] [ text btnText ]
+            , span [ classes [ T.underline, theme.fgTextButton ] ] [ text btnText ]
             , span [ class theme.fgTextButton ] [ text "]" ]
             ]
         ]
@@ -446,7 +460,22 @@ stylePostMedia =
 
 
 
--- OP-post functions
+-- OP-Post
+
+
+domIDOp : Int -> String
+domIDOp threadID =
+    StrF.value (String.fromInt threadID) "post-op-{{ }}"
+
+
+domIDBtnNext : Int -> String
+domIDBtnNext threadID =
+    StrF.value (String.fromInt threadID) "btn-next-{{ }}"
+
+
+domIDBtnPrev : Int -> String
+domIDBtnPrev threadID =
+    StrF.value (String.fromInt threadID) "btn-prev-{{ }}"
 
 
 viewOp : EventHandlersOP msg -> Config -> Op -> Html msg
@@ -461,9 +490,8 @@ viewOp eventHandlers cfg op =
         ]
 
 
-opDomID : Int -> String
-opDomID threadID =
-    "thread-" ++ String.fromInt threadID
+
+-- OP-Post Head
 
 
 viewOpHead : EventHandlersOP msg -> Config -> Op -> Html msg
@@ -487,92 +515,89 @@ viewOpHead eventHandlers cfg { threadID, subject, post } =
 
 viewOpNo : Theme -> ThreadID -> Html msg
 viewOpNo theme threadID =
-    viewButtonHead theme
-        (viewThreadLink threadID [ class TE.sel_none ])
+    viewHeadButton (viewThreadLink threadID [ class TE.sel_none ])
+        theme
         (String.fromInt threadID)
 
 
 viewPrevNextControls : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
 viewPrevNextControls eventHandlers theme threadID =
     span
-        [ id (opDomID threadID)
+        [ id (domIDOp threadID)
         , classes [ T.mr2, TE.sel_none ]
         ]
-        [ viewNextThread eventHandlers theme threadID
-        , text "|"
-        , viewPrevThread eventHandlers theme threadID
+        [ button
+            (id (domIDBtnNext threadID)
+                :: stylePrevNext
+                :: (eventHandlers.onNextThreadClicked
+                        |> Maybe.map (\toMsg -> [ onClick (toMsg threadID), stylePrevNextEnabled theme ])
+                        >> Maybe.withDefault [ class theme.fgButtonDisabled ]
+                   )
+            )
+            [ text "[▼" ]
+        , span [ class theme.fgTextButton ] [ text "|" ]
+        , button
+            (id (domIDBtnPrev threadID)
+                :: stylePrevNext
+                :: (eventHandlers.onPrevThreadClicked
+                        |> Maybe.map (\toMsg -> [ onClick (toMsg threadID), stylePrevNextEnabled theme ])
+                        >> Maybe.withDefault [ class theme.fgButtonDisabled ]
+                   )
+            )
+            [ text "▲]" ]
         ]
 
 
-viewNextThread : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
-viewNextThread eventHandlers theme threadID =
-    let
-        attrs =
-            eventHandlers.onNextThreadClicked
-                |> Maybe.map (attrsPrevNext theme threadID)
-                >> Maybe.withDefault []
-    in
-    span (title "Go To Next Thread" :: attrs) [ text "[▼" ]
+stylePrevNextEnabled : Theme -> Attribute msg
+stylePrevNextEnabled theme =
+    classes [ theme.fgTextButton, T.dim ]
 
 
-viewPrevThread : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
-viewPrevThread eventHandlers theme threadID =
-    let
-        attrs =
-            eventHandlers.onPrevThreadClicked
-                |> Maybe.map (attrsPrevNext theme threadID)
-                >> Maybe.withDefault [ class theme.fgButtonDisabled ]
-    in
-    span (title "Go To Previous Thread" :: attrs) [ text "▲]" ]
-
-
-attrsPrevNext : Theme -> Int -> (Int -> msg) -> List (Attribute msg)
-attrsPrevNext theme threadID toMsg =
-    [ onClick (toMsg threadID)
-    , classes
-        [ T.link
-        , T.pointer
-        , theme.fgTextButton
-        , T.dim
+stylePrevNext : Attribute msg
+stylePrevNext =
+    classes
+        [ T.pointer
+        , T.outline_transparent
+        , T.bg_transparent
+        , T.b__none
+        , T.pa0
         ]
-    ]
-
-
-viewReply : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
-viewReply eventHandlers theme threadID =
-    viewButtonHead theme
-        (span
-            [ classes [ T.link, T.pointer, TE.sel_none ]
-            , onClick (eventHandlers.onReplyToClicked threadID 0)
-            ]
-        )
-        "Reply"
-
-
-viewShowAll : Theme -> ThreadID -> Html msg
-viewShowAll theme threadID =
-    viewButtonHead theme
-        (viewThreadLink threadID [ class TE.sel_none ])
-        "Open"
 
 
 viewSubject : Theme -> ThreadID -> Maybe String -> Html msg
 viewSubject theme threadID subject =
     let
         style =
-            classes [ T.f5, T.f4_ns, T.no_underline, T.pointer, theme.fgThreadSubject ]
+            classes [ T.f5, T.f4_ns, T.no_underline, T.dim, T.pointer, theme.fgThreadSubject ]
 
         strSubject =
             Maybe.withDefault ("Thread #" ++ String.fromInt threadID) subject
     in
     viewHeadElement
         []
-        [ viewThreadLink threadID
-            [ style ]
-            [ text strSubject ]
-        ]
+        [ viewThreadLink threadID [ style ] [ text strSubject ] ]
+
+
+viewReply : EventHandlersOP msg -> Theme -> ThreadID -> Html msg
+viewReply eventHandlers theme threadID =
+    viewHeadButton
+        (a
+            [ classes [ T.bg_transparent, T.pa0, T.b__none, T.no_underline, T.pointer, TE.sel_none ]
+            , onClick (eventHandlers.onReplyToClicked threadID 0)
+            , href ""
+            ]
+        )
+        theme
+        "Reply"
+
+
+viewShowAll : Theme -> ThreadID -> Html msg
+viewShowAll theme threadID =
+    viewHeadButton (viewThreadLink threadID [ class TE.sel_none ])
+        theme
+        "Open"
 
 
 viewThreadLink : ThreadID -> List (Attribute msg) -> List (Html msg) -> Html msg
 viewThreadLink threadID attrs =
-    a (href (Route.link (Route.Thread threadID)) :: attrs)
+    a (href (Route.link (Route.Thread threadID)) :: classes [ T.no_underline ] :: attrs)

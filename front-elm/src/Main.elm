@@ -285,7 +285,7 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
         [ main_
             [ styleBody
 
-            -- Ignore dropped files on top level to prevent
+            -- Ignore dropped files on the top level to prevent
             -- the browser from openning them.
             , FilesDrop.onDragOver NoOp
             , FilesDrop.onDrop (\_ -> NoOp)
@@ -298,6 +298,10 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
         , Html.map PageMsg (Page.view cfg page)
         ]
     }
+
+
+
+-- Nav Menu
 
 
 viewNavigationMenu : Config -> Html Msg
@@ -319,6 +323,7 @@ viewNavigationMenu cfg =
                 , T.items_center
                 , T.z_max
                 , theme.bgMenu
+                , theme.shadowMenu
                 ]
     in
     nav [ style, id "nav-menu" ]
@@ -331,28 +336,26 @@ viewNavigationMenu cfg =
 
 viewBtnIndex : Theme -> Html Msg
 viewBtnIndex theme =
-    a [ href (Route.link Route.index) ]
-        [ div
-            [ styleButtonMenu
-            , Style.buttonIconic
-            , Html.Attributes.title "Main Page"
-            , classes [ T.dim, theme.fgMenuButton ]
-            ]
-            [ Icons.hedlx 32 ]
+    a
+        [ href (Route.link Route.index)
+        , styleButtonMenu
+        , Style.buttonIconic
+        , Html.Attributes.title "Main Page"
+        , classes [ T.dim, theme.fgMenuButton ]
         ]
+        [ Icons.hedlx 32 ]
 
 
 viewBtnNewThread : Theme -> Html Msg
 viewBtnNewThread theme =
-    a [ href (Route.link Route.NewThread) ]
-        [ div
-            [ styleButtonMenu
-            , Style.buttonIconic
-            , Html.Attributes.title "Start New Thread"
-            , classes [ T.dim, theme.fgMenuButton ]
-            ]
-            [ Icons.add 32 ]
+    a
+        [ href (Route.link Route.NewThread)
+        , styleButtonMenu
+        , Style.buttonIconic
+        , Html.Attributes.title "Create New Thread"
+        , classes [ T.dim, theme.fgMenuButton ]
         ]
+        [ Icons.add 32 ]
 
 
 viewBtnDelete : Theme -> Html Msg
@@ -368,24 +371,23 @@ viewBtnDelete theme =
                 ]
 
             else
-                [ Html.Attributes.title "Delete\nYou need to select items before"
+                [ Html.Attributes.title "Delete\nPlease select items to delete"
                 , classes [ theme.fgMenuButtonDisabled ]
                 ]
     in
-    div ([ styleButtonMenu, Style.buttonIconic ] ++ dynamicAttrs)
+    button ([ styleButtonMenu, Style.buttonIconic ] ++ dynamicAttrs)
         [ Icons.delete 32 ]
 
 
 viewBtnSettings : Theme -> Html Msg
 viewBtnSettings theme =
-    div
+    button
         [ classes [ T.bottom_0_ns, T.right_0, T.absolute ]
         , styleButtonMenu
         , Style.buttonIconic
         , Html.Attributes.title "Settings"
         , onClick ToggleSettings
         , classes [ T.dim, theme.fgMenuButton ]
-        , tabindex 0
         ]
         [ Icons.settings 32 ]
 
@@ -393,6 +395,10 @@ viewBtnSettings theme =
 styleButtonMenu : Attribute Msg
 styleButtonMenu =
     classes [ T.pa2, T.pa3_ns ]
+
+
+
+-- Settings Dialog
 
 
 viewSettingsDialog : Config -> Html Msg
