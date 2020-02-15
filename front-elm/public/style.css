@@ -1,0 +1,45 @@
+/* Extra */
+
+.select-none {
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+}
+
+/* Animations */
+
+@keyframes ani__fadein_right {
+  0% { opacity:0; transform:translateX(15px); }
+  100% { opacity:1; transform:translateX(0px); }
+}
+
+
+.fadein-right {
+  animation-name: ani__fadein_right;
+  animation-duration:0.3s;
+}
+
+@keyframes ani__fadein_left_ns {
+  0% { opacity:0; transform:translateX(-15px); }
+  100% { opacity:1; transform:translateX(0px); }
+}
+
+@media only screen and (min-width: 30em) {
+  .fadein-left-ns {
+    animation-name: ani__fadein_left_ns;
+    animation-duration:0.3s;
+  }
+}
+
+@keyframes ani__fadein_top_s {
+  0% { opacity:0; transform:translateY(-15px); }
+  100% { opacity:1; transform:translateY(0px); }
+}
+
+@media only screen and (max-width: 30em) {
+  .fadein-top-s {
+    animation-name: ani__fadein_top_s;
+    animation-duration: 0.3s;
+  }
+}

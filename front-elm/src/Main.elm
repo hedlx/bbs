@@ -283,10 +283,7 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
     in
     { title = title
     , body =
-        [ Tachyons.tachyons.css
-        , TA.css
-        , TE.css
-        , main_
+        [ main_
             [ styleBody
 
             -- Ignore dropped files on top level to prevent
