@@ -22,7 +22,6 @@ import Style
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Tachyons.Classes.Animations as TA
-import Tachyons.Classes.Extra as TE
 import Theme exposing (Theme)
 import Update.Extra
 import Url exposing (Url)
