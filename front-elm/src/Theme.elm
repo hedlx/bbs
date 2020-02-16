@@ -27,6 +27,8 @@ type alias Theme =
     , bgPost : String
     , bFocusedPost : String
     , fgQuote : String
+    , fgCode : String
+    , bgCode : String
     , fgMenu : String
     , bgMenu : String
     , shadowMenu : String
@@ -109,6 +111,8 @@ themeVoid =
     , bgPost = bg_dark_gray
     , bFocusedPost = b__blue
     , fgQuote = gray
+    , fgCode = ""
+    , bgCode = bg_black_20
     , fgMenu = darkMainFG
     , bgMenu = bg_dark_gray
     , shadowMenu = shadow_2
@@ -159,8 +163,10 @@ themeSkylight =
     , fgPostName = dark_blue
     , fgPostTrip = navy
     , bgPost = bg_lightest_blue
-    , bFocusedPost = b__pink
+    , bFocusedPost = b__gold
     , fgQuote = green
+    , fgCode = dark_blue
+    , bgCode = bg_washed_yellow
     , fgMenu = lightMainFG
     , bgMenu = bg_blue
     , shadowMenu = ""
@@ -213,6 +219,8 @@ themeLunatic =
     , bgPost = bg_washed_red
     , bFocusedPost = b__light_red
     , fgQuote = light_red
+    , fgCode = purple
+    , bgCode = bg_white_60
     , fgMenu = lightMainFG
     , bgMenu = bg_purple
     , shadowMenu = ""

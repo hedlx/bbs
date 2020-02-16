@@ -328,6 +328,18 @@ viewTextToken theme threadID token =
         UserText.Quote str ->
             span [ classes [ theme.fgQuote ] ] [ text (">" ++ str) ]
 
+        UserText.Bold tokens ->
+            b [] (List.map (viewTextToken theme threadID) tokens)
+
+        UserText.Italic tokens ->
+            i [] (List.map (viewTextToken theme threadID) tokens)
+
+        UserText.Code str ->
+            code [ classes [ T.dib, theme.fgCode, theme.bgCode, T.br2, T.f6, T.pa2] ] [ text str ]
+
+        UserText.CodeInline str ->
+            code [ classes [ theme.fgCode, theme.bgCode, T.br2, T.f6 ] ] [ text str ]
+
         UserText.PostRefLocal pid ->
             a
                 [ class T.no_underline
