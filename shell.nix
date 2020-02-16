@@ -2,13 +2,13 @@ let
   moz-overlay = import (builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz);
   nixpkgs = 
     import (builtins.fetchTarball {
-      name = "nixos-unstable-2018-12-17";
-      url = https://github.com/nixos/nixpkgs/archive/51deb8951d8910e2706a3c48d9765fc8d410d5f5.tar.gz;
-      sha256 = "1mkg1g2hsr4rm6xqyh4v6xjfcllx1lgczc9gaw51n9h1lhxfj71k";
+      name = "nixos-unstable-2020-02-16";
+      url = https://github.com/nixos/nixpkgs/archive/56c4800e7f9d57b102bb53326f24c10847cec8a1.tar.gz;
+      sha256 = "0r6fwzxs9ywhff8mp6hx2a1bzp8pwkc5qy3fv03i1k37rfabq4r8";
     }) {
       overlays = [ moz-overlay ];
     };
-    rust-channel = nixpkgs.rustChannelOf { date = "2019-02-26"; channel = "nightly"; };
+    rust-channel = nixpkgs.rustChannelOf { date = "2020-02-16"; channel = "nightly"; };
     rust-platform = (nixpkgs.makeRustPlatform {
       rustc = rust-channel.rust;
       cargo = rust-channel.cargo;
@@ -27,7 +27,8 @@ stdenv.mkDerivation {
     pngcrush
     pngnq
 
-    (rustracer.override { rustPlatform = rust-platform; })
+    rustracer
+    cargo-edit
 
     postgresql.lib
     postgresql

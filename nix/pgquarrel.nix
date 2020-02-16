@@ -16,7 +16,7 @@ stdenv.mkDerivation rec {
   meta = {
     description = "Tool to compare PostgreSQL database schemas (DDL)";
     homepage = https://github.com/eulerto/pgquarrel;
-    license = stdenv.lib.licenses.bsd;
+    license = stdenv.lib.licenses.bsd3;
     maintainers = [ stdenv.lib.maintainers.xzfc ];
     platforms = [ "x86_64-linux" ];
   };
