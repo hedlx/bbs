@@ -17,10 +17,6 @@ matrix:
 
     - language: rust
       rust: nightly
-      cache:
-        directories:
-        - $HOME/.cargo
-        - $TRAVIS_BUILD_DIR/backend/target
       before_install: cd backend
       script: cargo build --release
       deploy:
