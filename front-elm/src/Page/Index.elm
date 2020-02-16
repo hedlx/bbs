@@ -51,14 +51,13 @@ reInit cfg query state =
 
 
 cmdInit : Config -> QueryIndex -> Cmd Msg
-cmdInit { perPageThreads } query =
+cmdInit cfg query =
     let
         numPage =
             Maybe.withDefault 0 query.page
 
         perPage =
-            Config.perPageToInt perPageThreads
-                |> Maybe.withDefault Env.threadsPerPage
+            Config.perPageThreads cfg
     in
     getThreads perPage numPage
 
@@ -311,12 +310,8 @@ view cfg state =
 viewThreads : Config -> Page -> Html Msg
 viewThreads cfg { number, totalThreads, threads } =
     let
-        perPage =
-            Config.perPageToInt cfg.perPageThreads
-                |> Maybe.withDefault Env.threadsPerPage
-
         totalOffset =
-            perPage * number
+            Config.perPageThreads cfg * number
     in
     div []
         (List.intersperse (viewSeparator cfg.theme) <|
@@ -368,7 +363,7 @@ viewLast cfg { id, last } =
 
 
 viewPageControls : Config -> Page -> Html Msg
-viewPageControls { theme, perPageThreads } { totalThreads, number } =
+viewPageControls ({ theme } as cfg) { totalThreads, number } =
     let
         style =
             classes
@@ -381,8 +376,7 @@ viewPageControls { theme, perPageThreads } { totalThreads, number } =
                 ]
 
         perPage =
-            Config.perPageToInt perPageThreads
-                |> Maybe.withDefault Env.threadsPerPage
+            Config.perPageThreads cfg
 
         numPageLast =
             (totalThreads - 1) // perPage

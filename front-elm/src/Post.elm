@@ -305,18 +305,18 @@ viewBody eventHandlers cfg threadID post =
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
-        , viewText eventHandlers cfg.theme threadID post.text
+        , viewText eventHandlers cfg threadID post.text
         ]
 
 
-viewText : EventHandlers msg a -> Theme -> Int -> List UserText.Token -> Html msg
-viewText _ theme threadID tokens =
+viewText : EventHandlers msg a -> Config -> Int -> List UserText.Token -> Html msg
+viewText _ cfg threadID tokens =
     if List.isEmpty tokens then
         nothing
 
     else
-        div [ classes [ T.ma2, T.ma3_ns ] ]
-            (List.map (viewTextToken theme threadID) tokens)
+        div [ classes [ T.ma2, T.ma3_ns ], style "max-width" (String.fromInt (Config.maxLineLength cfg) ++ "ch") ]
+            (List.map (viewTextToken cfg.theme threadID) tokens)
 
 
 viewTextToken : Theme -> Int -> UserText.Token -> Html msg

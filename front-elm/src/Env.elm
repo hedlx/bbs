@@ -2,7 +2,10 @@ module Env exposing
     ( bbsName
     , defaultName
     , fileFormats
+    , lineLength
+    , maxLineLength
     , maxPerPage
+    , minLineLength
     , minPerPage
     , threadsPerPage
     , urlAPI
@@ -62,3 +65,18 @@ maxPerPage =
 threadsPerPage : Int
 threadsPerPage =
     8
+
+
+minLineLength : Int
+minLineLength =
+    24
+
+
+maxLineLength : Int
+maxLineLength =
+    256
+
+
+lineLength : Int
+lineLength =
+    75

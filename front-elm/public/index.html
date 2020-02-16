@@ -1,49 +1,41 @@
 <!DOCTYPE HTML>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="description" content="Anonymous BBS">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="/elm/manifest.json">
 
-    <style>
-      html {
-        height: 100vh;
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Anonymous BBS">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/elm/manifest.json">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/tachyons@4.11.1/css/tachyons.min.css" />
+  <link rel="stylesheet" type="text/css" title="main" href="style.css" />
+  <script src="main.js" type="text/javascript"></script>
+</head>
+
+<body>
+  <script>
+    var storageKey = 'elmApp';
+
+    var app = Elm.Main.init({
+      flags: {
+        settings: JSON.parse(localStorage.getItem(storageKey))
       }
+    });
 
-      body {
-        min-height: 100vh;
+    app.ports.saveUserSettings.subscribe(function (settings) {
+      var data = { settings: settings };
+      localStorage.setItem(storageKey, JSON.stringify(data));
+    });
+
+    app.ports.cleanUserSettings.subscribe(function () {
+      localStorage.removeItem(storageKey);
+    });
+
+    window.addEventListener('storage', function (event) {
+      if (event.storageArea === localStorage && event.key === storageKey) {
+        app.ports.userSettingsChanged.send({ settings: JSON.parse(event.newValue) });
       }
-    </style>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/tachyons@4.11.1/css/tachyons.min.css"/>
-    <link rel="stylesheet" type="text/css" href="style.css"/>
+    }, false);
+  </script>
+</body>
 
-    <script src="main.js" type="text/javascript"></script>
-  </head>
-  <body>
-    <script>
-      var storageKey = 'elmApp';
-
-      var app = Elm.Main.init({
-        flags: {
-          settings: JSON.parse(localStorage.getItem(storageKey))
-        }
-      });
-
-      app.ports.saveUserSettings.subscribe(function(settings) {
-        var data = { settings: settings };
-        localStorage.setItem(storageKey, JSON.stringify(data));
-      });
-
-      app.ports.cleanUserSettings.subscribe(function() {
-        localStorage.removeItem(storageKey);
-      });
-
-      window.addEventListener('storage', function(event) {
-        if (event.storageArea === localStorage && event.key === storageKey) {
-          app.ports.userSettingsChanged.send({ settings: JSON.parse(event.newValue) });
-        }
-      }, false);
-    </script>
-  </body>
 </html>

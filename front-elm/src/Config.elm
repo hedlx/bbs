@@ -4,8 +4,9 @@ module Config exposing
     , Response
     , encodeUserSettings
     , init
+    , maxLineLength
     , mergeFlags
-    , perPageToInt
+    , perPageThreads
     , subscriptions
     , update
     , viewUserSettings
@@ -17,18 +18,16 @@ import Browser.Navigation as Nav
 import Dict
 import Env
 import Html exposing (..)
-import Html.Attributes as Attributes exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Events.Extra exposing (onChange)
 import Http
+import IO
+import IntField exposing (IntField)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExt
 import Json.Encode as Encode
-import Keyboard
-import Keyboard.Events as KeyboardEv
 import Limits exposing (Limits)
-import LocalStorage
-import Regex exposing (Regex)
 import Route exposing (Route)
 import String.Extra
 import Style
@@ -60,6 +59,7 @@ init flags url key =
             , trip = defaultUserSettings.trip
             , pass = defaultUserSettings.pass
             , perPageThreads = defaultUserSettings.perPageThreads
+            , maxLineLength = defaultUserSettings.maxLineLength
             , limits = Limits.empty
             , timeZone = Nothing
             }
@@ -79,7 +79,8 @@ type alias Config =
     , name : String
     , trip : String
     , pass : String
-    , perPageThreads : PerPage
+    , perPageThreads : IntField
+    , maxLineLength : IntField
     , limits : Limits
     , timeZone : Maybe Zone
     }
@@ -98,131 +99,18 @@ mergeFlags flags cfg =
         , pass = userSettings.pass
         , theme = userSettings.theme
         , perPageThreads = userSettings.perPageThreads
+        , maxLineLength = userSettings.maxLineLength
     }
 
 
-type PerPage
-    = PerPageDefault
-    | PerPage Int
-    | PerPageEdit Int String
+perPageThreads : Config -> Int
+perPageThreads cfg =
+    IntField.toInt cfg.perPageThreads
 
 
-perPageThreadsFieldID : String
-perPageThreadsFieldID =
-    "per-page-threads"
-
-
-editPerPage : Int -> PerPage -> PerPage
-editPerPage perPageDefault perPage =
-    case perPage of
-        PerPageDefault ->
-            PerPageEdit perPageDefault (String.fromInt perPageDefault)
-
-        PerPage n ->
-            PerPageEdit n (String.fromInt n)
-
-        _ ->
-            perPage
-
-
-submitPerPage : PerPage -> PerPage
-submitPerPage perPage =
-    case perPage of
-        PerPageEdit _ str ->
-            perPageFromString str
-
-        _ ->
-            perPage
-
-
-setPerPageEdit : String -> PerPage -> PerPage
-setPerPageEdit str perPage =
-    if Regex.contains regexPerPageEdit str then
-        case perPage of
-            PerPageEdit n _ ->
-                PerPageEdit n str
-
-            _ ->
-                perPage
-
-    else
-        perPage
-
-
-isPerPageChanged : PerPage -> Bool
-isPerPageChanged perPage =
-    case perPage of
-        PerPageEdit n str ->
-            String.toInt str /= Just n
-
-        _ ->
-            False
-
-
-regexPerPageEdit : Regex
-regexPerPageEdit =
-    Regex.fromString "^\\d*$"
-        |> Maybe.withDefault Regex.never
-
-
-decoderPerPage : Decoder PerPage
-decoderPerPage =
-    DecodeExt.withDefault PerPageDefault <|
-        Decode.map perPageFromInt Decode.int
-
-
-perPageFromString : String -> PerPage
-perPageFromString str =
-    Decode.decodeString decoderPerPage str
-        |> Result.withDefault PerPageDefault
-
-
-perPageFromInt : Int -> PerPage
-perPageFromInt n =
-    if n < Env.minPerPage then
-        PerPage Env.minPerPage
-
-    else if Env.maxPerPage < n then
-        PerPage Env.maxPerPage
-
-    else
-        PerPage n
-
-
-encodePerPage : PerPage -> Encode.Value
-encodePerPage perPage =
-    case perPage of
-        PerPage n ->
-            Encode.int n
-
-        _ ->
-            Encode.null
-
-
-perPageToStr : PerPage -> Maybe String
-perPageToStr perPage =
-    case perPage of
-        PerPageEdit _ val ->
-            Just val
-
-        PerPage n ->
-            Just (String.fromInt n)
-
-        PerPageDefault ->
-            Nothing
-
-
-perPageToInt : PerPage -> Maybe Int
-perPageToInt perPage =
-    case perPage of
-        PerPage n ->
-            Just n
-
-        PerPageEdit n _ ->
-            Just n
-
-        _ ->
-            Nothing
+maxLineLength : Config -> Int
+maxLineLength cfg =
+    IntField.toInt cfg.maxLineLength
 
 
 type alias UserSettings =
@@ -230,8 +118,24 @@ type alias UserSettings =
     , trip : String
     , pass : String
     , theme : Theme
-    , perPageThreads : PerPage
+    , perPageThreads : IntField
+    , maxLineLength : IntField
     }
+
+
+domIDperPageThreadsField : String
+domIDperPageThreadsField =
+    "per-page-threads"
+
+
+limitsPerPageThreads : IntField.Limits
+limitsPerPageThreads =
+    ( Env.minPerPage, Env.threadsPerPage, Env.maxPerPage )
+
+
+limitsMaxLineLength : IntField.Limits
+limitsMaxLineLength =
+    ( Env.minLineLength, Env.lineLength, Env.maxLineLength )
 
 
 defaultUserSettings : UserSettings
@@ -240,13 +144,14 @@ defaultUserSettings =
     , trip = ""
     , pass = ""
     , theme = Theme.default
-    , perPageThreads = PerPageDefault
+    , perPageThreads = IntField.fromLimits limitsPerPageThreads
+    , maxLineLength = IntField.fromLimits limitsMaxLineLength
     }
 
 
 decoderUserSettings : Decoder UserSettings
 decoderUserSettings =
-    Decode.map5 UserSettings
+    Decode.map6 UserSettings
         (DecodeExt.withDefault defaultUserSettings.name <|
             Decode.at [ "settings", "name" ] Decode.string
         )
@@ -260,7 +165,10 @@ decoderUserSettings =
             Decode.at [ "settings", "theme" ] Theme.decoder
         )
         (DecodeExt.withDefault defaultUserSettings.perPageThreads <|
-            Decode.at [ "settings", "perPageThreads" ] decoderPerPage
+            Decode.at [ "settings", "perPageThreads" ] (IntField.decoder limitsPerPageThreads)
+        )
+        (DecodeExt.withDefault defaultUserSettings.maxLineLength <|
+            Decode.at [ "settings", "maxLineLength" ] (IntField.decoder limitsMaxLineLength)
         )
 
 
@@ -271,7 +179,8 @@ encodeUserSettings cfg =
         , ( "trip", Encode.string cfg.trip )
         , ( "pass", Encode.string cfg.pass )
         , ( "theme", Theme.encode cfg.theme )
-        , ( "perPageThreads", encodePerPage cfg.perPageThreads )
+        , ( "perPageThreads", IntField.encode cfg.perPageThreads )
+        , ( "maxLineLength", IntField.encode cfg.maxLineLength )
         ]
 
 
@@ -282,6 +191,8 @@ resetUserSettings cfg =
         , trip = defaultUserSettings.trip
         , pass = defaultUserSettings.pass
         , theme = defaultUserSettings.theme
+        , perPageThreads = defaultUserSettings.perPageThreads
+        , maxLineLength = defaultUserSettings.maxLineLength
     }
 
 
@@ -320,7 +231,7 @@ getLimits =
 
 saveUserSettings : Config -> Cmd Msg
 saveUserSettings cfg =
-    LocalStorage.saveUserSettings (encodeUserSettings cfg)
+    IO.saveUserSettings (encodeUserSettings cfg)
 
 
 
@@ -341,6 +252,7 @@ type Msg
     | EditPerPageThreads
     | ChangePerPageThreads String
     | SubmitPerPageThreads
+    | SetMaxLineLength Int
 
 
 type alias Response =
@@ -377,7 +289,7 @@ update maybeRoute msg cfg =
 
         ResetSettings ->
             ( resetUserSettings cfg
-            , LocalStorage.cleanUserSettings ()
+            , IO.cleanUserSettings ()
             , Alert.None
             )
 
@@ -391,43 +303,37 @@ update maybeRoute msg cfg =
             return { cfg | timeZone = Just newZone }
 
         EditPerPageThreads ->
-            return
-                { cfg
-                    | perPageThreads = editPerPage Env.threadsPerPage cfg.perPageThreads
-                }
+            return { cfg | perPageThreads = IntField.edit cfg.perPageThreads }
 
         ChangePerPageThreads str ->
-            return
-                { cfg
-                    | perPageThreads = setPerPageEdit str cfg.perPageThreads
-                }
+            return { cfg | perPageThreads = IntField.updateString str cfg.perPageThreads }
 
         SubmitPerPageThreads ->
             let
-                newPerPageThreads =
-                    submitPerPage cfg.perPageThreads
-
                 ( newCfg, cmdSave, _ ) =
-                    save { cfg | perPageThreads = newPerPageThreads }
+                    save { cfg | perPageThreads = IntField.submit cfg.perPageThreads }
 
                 isIndexPage =
                     Maybe.map Route.isIndex maybeRoute
                         |> Maybe.withDefault False
 
                 cmdReloadIndex =
-                    if isIndexPage && isPerPageChanged cfg.perPageThreads then
+                    if isIndexPage && IntField.isChanged cfg.perPageThreads then
                         Nav.pushUrl cfg.key (Route.link Route.index)
 
                     else
                         Cmd.none
 
                 cmdUnfocus =
-                    Dom.blur perPageThreadsFieldID |> Task.attempt (\_ -> NoOp)
+                    Dom.blur domIDperPageThreadsField |> Task.attempt (\_ -> NoOp)
             in
             ( newCfg
             , Cmd.batch [ cmdUnfocus, cmdSave, cmdReloadIndex ]
             , Alert.None
             )
+
+        SetMaxLineLength newVal ->
+            save { cfg | maxLineLength = IntField.update newVal cfg.maxLineLength }
 
 
 return : Config -> Response
@@ -469,7 +375,7 @@ alertFailedRetrieveData =
 
 subscriptions : Config -> Sub Msg
 subscriptions _ =
-    LocalStorage.userSettingsChanged SettingsStorageChanged
+    IO.userSettingsChanged SettingsStorageChanged
 
 
 
@@ -477,7 +383,7 @@ subscriptions _ =
 
 
 viewUserSettings : Config -> Html Msg
-viewUserSettings { theme, name, trip, pass, perPageThreads } =
+viewUserSettings ({ theme, name, trip, pass } as cfg) =
     div [ class T.pa3 ]
         [ viewOption "Name"
             [ viewStringInput theme "text" SetName name Env.defaultName ]
@@ -488,7 +394,25 @@ viewUserSettings { theme, name, trip, pass, perPageThreads } =
         , viewOption "UI Theme"
             [ viewSelectTheme theme ]
         , viewOption "Threads / Page"
-            [ viewPerPageThreadsInput theme perPageThreads ]
+            [ IntField.input
+                { onEdit = EditPerPageThreads
+                , onChange = ChangePerPageThreads
+                , onSubmit = SubmitPerPageThreads
+                }
+                [ id domIDperPageThreadsField
+                , class T.w3
+                , styleInput theme
+                ]
+                cfg.perPageThreads
+            ]
+        , viewOption "Max Line Length"
+            [ IntField.range
+                { onChange = SetMaxLineLength }
+                [ class T.w4 ]
+                cfg.maxLineLength
+            , div [ classes [ T.f6, T.dib, T.w2, T.ml2, T.fr ] ]
+                [ text (IntField.toString cfg.maxLineLength) ]
+            ]
         , viewBtnReset theme
         ]
 
@@ -578,38 +502,3 @@ viewBtnReset theme =
         , title "Resets settings and cleans all BBS data from the browser storage"
         ]
         [ text "Reset Settings" ]
-
-
-viewPerPageThreadsInput : Theme -> PerPage -> Html Msg
-viewPerPageThreadsInput theme currentPerPage =
-    let
-        strDefault =
-            String.fromInt Env.threadsPerPage
-
-        currentVal =
-            perPageToStr currentPerPage
-                |> Maybe.withDefault strDefault
-    in
-    input
-        [ id perPageThreadsFieldID
-        , type_ "number"
-        , class T.w3
-        , styleInput theme
-        , Attributes.min (String.fromInt Env.minPerPage)
-        , Attributes.max (String.fromInt Env.maxPerPage)
-        , value currentVal
-        , placeholder strDefault
-        , onFocus EditPerPageThreads
-        , onBlur (\_ -> SubmitPerPageThreads)
-        , onInput ChangePerPageThreads
-        , KeyboardEv.on KeyboardEv.Keydown
-            [ ( Keyboard.Escape, SubmitPerPageThreads )
-            , ( Keyboard.Enter, SubmitPerPageThreads )
-            ]
-        ]
-        []
-
-
-onBlur : (String -> msg) -> Attribute msg
-onBlur tagger =
-    on "blur" (Decode.map tagger targetValue)

@@ -1,4 +1,4 @@
-port module LocalStorage exposing (cleanUserSettings, saveUserSettings, userSettingsChanged)
+port module IO exposing (cleanUserSettings, saveUserSettings, userSettingsChanged)
 
 import Json.Encode as Encode
 
