@@ -4,20 +4,20 @@ version = "0.1.0"
 authors = ["Albert Safin <xzfcpw@gmail.com>"]
 
 [dependencies]
-base64 = "0.10"
-chrono = "0.4"
-diesel = { version = "1.4", features = ["postgres", "chrono"] }
-jpeg-decoder = "0.1"
-png = "0.14"
-postgres = { version = "0.15", features = ["with-chrono"] }
+base64 = "0.11.0"
+chrono = "0.4.10"
+diesel = { version = "1.4.3", features = ["postgres", "chrono"] }
+jpeg-decoder = "0.1.18"
+png = "0.15.3"
+postgres = "0.17.1"
 rocket = "0.4.2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-sha2 = "0.8"
-tempfile = "3.0"
+serde = { version = "1.0.104", features = ["derive"] }
+serde_json = "1.0.48"
+sha2 = "0.8.1"
+tempfile = "3.1.0"
 
 [dependencies.multipart]
-version = "0.16"
+version = "0.16.1"
 default-features = false
 features = ["mock", "rocket", "server"]
 
