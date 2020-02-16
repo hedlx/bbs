@@ -343,7 +343,7 @@ viewBtnIndex theme =
         , Html.Attributes.title "Main Page"
         , classes [ T.dim, theme.fgMenuButton ]
         ]
-        [ Icons.hedlx 32 ]
+        [ Icons.logo 32 ]
 
 
 viewBtnNewThread : Theme -> Html Msg

@@ -1,10 +1,11 @@
-module Icons exposing (add, close, delete, hedlx, reset, search, settings, spinner)
+module Icons exposing (add, close, delete, logo, reset, search, settings, spinner)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Icons.HedlxSvg as HedlxSvg
 import Icons.SpinnerSvg as SpinnerSvg
 import Octicons
+import Svg
+import Svg.Attributes
 
 
 options : Octicons.Options
@@ -43,9 +44,11 @@ reset size =
     Octicons.sync (Octicons.size size options)
 
 
-hedlx : Int -> Html msg
-hedlx size =
-    HedlxSvg.icon size
+logo : Int -> Html msg
+logo size =
+    Svg.svg
+        [ width size, height size, Svg.Attributes.fill "currentColor" ]
+        [ Svg.use [ attribute "href" "icons/logo.svg#content" ] [] ]
 
 
 spinner : Float -> Html msg
