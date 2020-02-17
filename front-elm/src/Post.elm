@@ -25,6 +25,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as DecodeExt
 import List.Extra
 import Media exposing (Media)
+import Post.Text exposing (Text)
 import Route
 import String.Format as StrF
 import Tachyons exposing (classes)
@@ -33,14 +34,13 @@ import Tachyons.Classes.Extra as TE
 import Theme exposing (Theme)
 import Time exposing (Month(..), Zone)
 import Url.Builder
-import UserText
 
 
 type alias Post =
     { no : No
     , name : String
     , trip : String
-    , text : List UserText.Token
+    , text : Text
     , ts : Int
     , media : List Media
     }
@@ -91,7 +91,7 @@ decoder =
         (Decode.field "no" Decode.int)
         (DecodeExt.withDefault Env.defaultName <| Decode.field "name" Decode.string)
         (DecodeExt.withDefault "" <| Decode.field "trip" Decode.string)
-        (Decode.field "text" (Decode.map UserText.parseString (Decode.oneOf [ Decode.string, Decode.null "" ])))
+        (Decode.field "text" Post.Text.decoder)
         (Decode.field "ts" Decode.int)
         (Decode.field "media" (Decode.list Media.decoder))
 
@@ -305,73 +305,8 @@ viewBody eventHandlers cfg threadID post =
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
         [ viewListMedia eventHandlers threadID post.no post.media
-        , viewText eventHandlers cfg threadID post.text
+        , Post.Text.view cfg threadID post.text
         ]
-
-
-viewText : EventHandlers msg a -> Config -> Int -> List UserText.Token -> Html msg
-viewText _ cfg threadID tokens =
-    if List.isEmpty tokens then
-        nothing
-
-    else
-        div [ classes [ T.ma2, T.ma3_ns ], style "max-width" (String.fromInt (Config.maxLineLength cfg) ++ "ch") ]
-            (List.map (viewTextToken cfg.theme threadID) tokens)
-
-
-viewTextToken : Theme -> Int -> UserText.Token -> Html msg
-viewTextToken theme threadID token =
-    case token of
-        UserText.Plain str ->
-            text str
-
-        UserText.Quote str ->
-            span [ classes [ theme.fgQuote ] ] [ text (">" ++ str) ]
-
-        UserText.Bold tokens ->
-            b [] (List.map (viewTextToken theme threadID) tokens)
-
-        UserText.Italic tokens ->
-            i [] (List.map (viewTextToken theme threadID) tokens)
-
-        UserText.Code str ->
-            code [ classes [ T.dib, theme.fgCode, theme.bgCode, T.br2, T.f6, T.pa2] ] [ text str ]
-
-        UserText.CodeInline str ->
-            code [ classes [ theme.fgCode, theme.bgCode, T.br2, T.f6 ] ] [ text str ]
-
-        UserText.PostRefLocal pid ->
-            a
-                [ class T.no_underline
-                , href (Route.link (Route.Post threadID pid))
-                ]
-                [ span
-                    [ styleRef theme ]
-                    [ text (">>" ++ String.fromInt pid) ]
-                ]
-
-        UserText.PostRef tid pid ->
-            a
-                [ class T.no_underline
-                , href (Route.link (Route.Post tid pid))
-                ]
-                [ span [ styleRef theme ]
-                    [ text (">>" ++ String.fromInt tid ++ "/" ++ String.fromInt pid) ]
-                ]
-
-        UserText.ThreadRef tid ->
-            a
-                [ class T.no_underline
-                , href (Route.link (Route.Thread tid))
-                ]
-                [ span [ styleRef theme ]
-                    [ text (">>" ++ String.fromInt tid ++ "/") ]
-                ]
-
-
-styleRef : Theme -> Html.Attribute msg
-styleRef theme =
-    classes [ T.link, T.pointer, T.dim, T.underline, theme.fgTextButton ]
 
 
 viewHeadElement : List (Attribute msg) -> List (Html msg) -> Html msg
