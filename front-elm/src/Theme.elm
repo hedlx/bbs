@@ -26,6 +26,7 @@ type alias Theme =
     , fgPostTrip : String
     , bgPost : String
     , bFocusedPost : String
+    , fgRef : String
     , fgQuote : String
     , fgCode : String
     , bgCode : String
@@ -110,6 +111,7 @@ themeVoid =
     , fgPostTrip = white
     , bgPost = bg_dark_gray
     , bFocusedPost = b__blue
+    , fgRef = light_blue
     , fgQuote = gray
     , fgCode = ""
     , bgCode = bg_black_20
@@ -164,6 +166,7 @@ themeSkylight =
     , fgPostTrip = navy
     , bgPost = bg_lightest_blue
     , bFocusedPost = b__gold
+    , fgRef = dark_blue
     , fgQuote = green
     , fgCode = dark_blue
     , bgCode = bg_washed_yellow
@@ -218,6 +221,7 @@ themeLunatic =
     , fgPostTrip = purple
     , bgPost = bg_washed_red
     , bFocusedPost = b__light_red
+    , fgRef = dark_blue
     , fgQuote = light_red
     , fgCode = purple
     , bgCode = bg_white_60

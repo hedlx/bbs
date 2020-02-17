@@ -44,9 +44,72 @@ view cfg threadID (Text str) =
             [ classes [ T.ma2, T.ma3_ns ]
             , style "max-width" (String.fromInt (Config.maxLineLength cfg) ++ "ch")
             ]
-            (List.concatMap (renderBlock cfg.theme)
-                (MB.parse Nothing (replaceRefs threadID str))
-            )
+            (List.concatMap (renderBlock cfg.theme threadID) (MB.parse Nothing str))
+
+
+renderBlock : Theme -> Int -> Block b i -> List (Html msg)
+renderBlock theme threadID block =
+    case block of
+        MB.CodeBlock _ str ->
+            [ code [ classes [ T.dib, theme.fgCode, theme.bgCode, T.br2, T.f6, T.pa2 ] ]
+                [ text str ]
+            ]
+
+        MB.BlockQuote subBlocks ->
+            [ blockquote [ classes [ theme.fgQuote ] ]
+                (List.concatMap (renderBlock theme threadID) subBlocks)
+            ]
+
+        MB.Paragraph str inlines ->
+            MB.defaultHtml Nothing
+                (Just (renderInline theme threadID))
+                (MB.Paragraph str inlines)
+
+        _ ->
+            MB.toHtml block
+
+
+renderInline : Theme -> Int -> Inline i -> Html msg
+renderInline theme threadID inline =
+    case inline of
+        MI.Text str ->
+            renderTextWithRefs theme threadID str
+
+        _ ->
+            MI.toHtml inline
+
+
+renderTextWithRefs : Theme -> Int -> String -> Html msg
+renderTextWithRefs theme threadID str =
+    span []
+        (List.concatMap
+            (MB.defaultHtml Nothing (Just (renderInlineRefs theme threadID)))
+            (MB.parse Nothing (replaceRefs threadID str))
+        )
+
+
+renderInlineRefs : Theme -> Int -> Inline i -> Html msg
+renderInlineRefs theme threadID inline =
+    case inline of
+        MI.Link url maybeTitle inlines ->
+            a
+                [ href url
+                , styleRef theme
+                , title (Maybe.withDefault url maybeTitle)
+                ]
+                [ text "@"
+                , span [ class T.underline ]
+                    (List.map (renderInlineRefs theme threadID) inlines)
+                ]
+
+        _ ->
+            MI.toHtml inline
+
+
+regexRef : Regex
+regexRef =
+    Regex.fromString "@(\\d+)(/?\\d*)"
+        |> Maybe.withDefault Regex.never
 
 
 replaceRefs : Int -> String -> String
@@ -54,7 +117,7 @@ replaceRefs threadID str =
     Regex.replace regexRef
         (\{ match, submatches } ->
             "[{{ }}]({{ }})"
-                |> StrF.value match
+                |> StrF.value (String.dropLeft 1 match)
                 >> StrF.value
                     (case submatches of
                         (Just postNo) :: Nothing :: [] ->
@@ -70,47 +133,6 @@ replaceRefs threadID str =
         str
 
 
-regexRef : Regex
-regexRef =
-    Regex.fromString ">>(\\d+)(/?\\d*)"
-        |> Maybe.withDefault Regex.never
-
-
-renderBlock : Theme -> Block b i -> List (Html msg)
-renderBlock theme block =
-    case block of
-        MB.CodeBlock _ str ->
-            [ code [ classes [ T.dib, theme.fgCode, theme.bgCode, T.br2, T.f6, T.pa2 ] ]
-                [ text str ]
-            ]
-
-        MB.BlockQuote subBlocks ->
-            [ blockquote [ classes [ theme.fgQuote ] ]
-                (List.concatMap (renderBlock theme) subBlocks)
-            ]
-
-        MB.Paragraph _ inlines ->
-            [ p [] (List.map (renderInline theme) inlines) ]
-
-        _ ->
-            MB.toHtml block
-
-
-renderInline : Theme -> Inline i -> Html msg
-renderInline theme inline =
-    case inline of
-        MI.Link url maybeTitle inlines ->
-            a
-                [ href url
-                , styleRef theme
-                , title (Maybe.withDefault url maybeTitle)
-                ]
-                (List.map (renderInline theme) inlines)
-
-        _ ->
-            MI.toHtml inline
-
-
 styleRef : Theme -> Html.Attribute msg
 styleRef theme =
-    classes [ T.link, T.pointer, T.dim, T.underline, theme.fgTextButton ]
+    classes [ T.link, theme.fontMono, T.f6, T.pointer, T.dim, theme.fgRef ]
