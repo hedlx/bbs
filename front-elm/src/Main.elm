@@ -116,8 +116,10 @@ update msg model =
                     else
                         ( model, Cmd.none )
 
-                Browser.External _ ->
-                    ( model, Cmd.none )
+                Browser.External strUrl ->
+                    Route.tryParseAutolink model.cfg.urlApp strUrl
+                        |> Maybe.map (\url -> update (LinkClicked (Browser.Internal url)) model)
+                        >> Maybe.withDefault ( model, Nav.load strUrl )
 
         UrlChanged url ->
             changeRoute model.cfg url model

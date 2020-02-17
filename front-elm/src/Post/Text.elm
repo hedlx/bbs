@@ -107,6 +107,15 @@ renderInline theme threadID inline =
         MI.Text str ->
             renderTextWithRefs theme threadID str
 
+        MI.Link url maybeTitle inlines ->
+            a
+                [ href url
+                , styleLink theme
+                , title (Maybe.withDefault url maybeTitle)
+                , class T.underline
+                ]
+                (List.map (renderInline theme threadID) inlines)
+
         _ ->
             MI.toHtml inline
 
@@ -126,8 +135,9 @@ renderInlineRefs theme threadID inline =
         MI.Link url maybeTitle inlines ->
             a
                 [ href url
-                , styleRef theme
+                , styleLink theme
                 , title (Maybe.withDefault url maybeTitle)
+                , classes [ theme.fontMono, T.f6 ]
                 ]
                 [ text "@"
                 , span [ class T.underline ]
@@ -165,6 +175,6 @@ replaceRefs threadID str =
         str
 
 
-styleRef : Theme -> Html.Attribute msg
-styleRef theme =
-    classes [ T.link, theme.fontMono, T.f6, T.pointer, T.dim, theme.fgRef ]
+styleLink : Theme -> Html.Attribute msg
+styleLink theme =
+    classes [ T.link, T.pointer, T.dim, theme.fgRef ]

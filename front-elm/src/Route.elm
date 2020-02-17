@@ -7,9 +7,12 @@ module Route exposing
     , isIndex
     , link
     , parse
+    , tryParseAutolink
     )
 
 import Browser.Navigation as Nav
+import Parser as GeneralParser exposing ((|.), (|=))
+import Set
 import Url exposing (Url)
 import Url.Builder as Builder exposing (QueryParameter)
 import Url.Parser as Parser exposing ((</>), (<?>), Parser, int, oneOf, s, top)
@@ -133,3 +136,21 @@ queryParameters route =
 go : Nav.Key -> Route -> Cmd msg
 go key route =
     Nav.pushUrl key (link route)
+
+
+tryParseAutolink : Url -> String -> Maybe Url
+tryParseAutolink urlApp str =
+    GeneralParser.run parserAutolink str
+        |> Result.map (\p -> { urlApp | fragment = Just ("/" ++ p) })
+        >> Result.toMaybe
+
+
+parserAutolink : GeneralParser.Parser String
+parserAutolink =
+    GeneralParser.succeed identity
+        |. GeneralParser.symbol "re:"
+        |= GeneralParser.variable
+            { start = Char.isDigit
+            , inner = always True
+            , reserved = Set.fromList []
+            }
