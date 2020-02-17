@@ -56,8 +56,11 @@ renderBlock theme threadID block =
             ]
 
         MB.BlockQuote subBlocks ->
-            [ blockquote [ classes [ theme.fgQuote ] ]
-                (List.concatMap (renderBlock theme threadID) subBlocks)
+            [ blockquote [ classes [ theme.fgQuote, T.ma0 ] ]
+                (List.concatMap
+                    (renderBlock theme threadID << addGT)
+                    subBlocks
+                )
             ]
 
         MB.Paragraph str inlines ->
@@ -65,8 +68,37 @@ renderBlock theme threadID block =
                 (Just (renderInline theme threadID))
                 (MB.Paragraph str inlines)
 
+        MB.List listBlock items ->
+            MB.defaultHtml (Just (renderBlock theme threadID))
+                Nothing
+                (MB.List listBlock items)
+
+        MB.PlainInlines inlines ->
+            MB.defaultHtml Nothing
+                (Just (renderInline theme threadID))
+                (MB.PlainInlines inlines)
+
         _ ->
             MB.toHtml block
+
+
+addGT : Block b i -> Block b i
+addGT =
+    MB.walkInlines
+        (\inline ->
+            case inline of
+                MI.Text str ->
+                    MI.Text ("\\> " ++ Regex.replace regexNewLine (always "\n\\> ") str)
+
+                _ ->
+                    inline
+        )
+
+
+regexNewLine : Regex
+regexNewLine =
+    Regex.fromString "\\n"
+        |> Maybe.withDefault Regex.never
 
 
 renderInline : Theme -> Int -> Inline i -> Html msg

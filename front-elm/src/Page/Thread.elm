@@ -183,7 +183,7 @@ replyTo limits postNo =
 
             else
                 form
-                    |> PostForm.appendToText limits (">>" ++ String.fromInt postNo ++ "\n")
+                    |> PostForm.appendToText limits ("@" ++ String.fromInt postNo ++ "\n")
                     >> PostForm.autofocus
         )
 
