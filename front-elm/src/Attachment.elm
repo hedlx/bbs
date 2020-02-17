@@ -11,6 +11,7 @@ module Attachment exposing
     , upload
     )
 
+import Config exposing (Config)
 import Env
 import File exposing (File)
 import Http
@@ -76,8 +77,8 @@ generatePreview toMsg { id, file } =
     Task.perform (toMsg id) (File.toUrl file)
 
 
-upload : (Result Http.Error ( ID, BackendID ) -> msg) -> Attachment -> Cmd msg
-upload toMsg attachment =
+upload : Config -> (Result Http.Error ( ID, BackendID ) -> msg) -> Attachment -> Cmd msg
+upload { urlServer } toMsg attachment =
     let
         path =
             [ "upload" ]
@@ -86,7 +87,7 @@ upload toMsg attachment =
             Result.map (\backendID -> ( attachment.id, backendID ))
     in
     Http.post
-        { url = Url.Builder.crossOrigin Env.urlAPI path []
+        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) path []
         , body = Http.multipartBody [ Http.filePart "media" attachment.file ]
         , expect = Http.expectJson (toMsg << addFileID) (Decode.field "id" Decode.string)
         }

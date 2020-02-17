@@ -7,7 +7,7 @@ This is a Hedlx BBS frontend.
 1. Install `npm`, `npx` and `git`
 1. Clone this repository
 1. Run `npm install` in the repository root directory
-1. Change `urlServer` in `src/Env.elm` to your back-end url.
+1. Change `urlServer` in `public/index.html` to your back-end url.
 1. Run `npm run make` to compile application
 1. Use a web server to serve files from `static` directory
 1. Configure your web server to serve `static/index.html` on 404 errors

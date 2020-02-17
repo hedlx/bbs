@@ -1,6 +1,7 @@
 module Env exposing
     ( bbsName
     , defaultName
+    , defaultUrlServer
     , fileFormats
     , lineLength
     , maxLineLength
@@ -10,30 +11,29 @@ module Env exposing
     , threadsPerPage
     , urlAPI
     , urlImage
-    , urlServer
     , urlThumb
     )
 
 import Url.Builder
 
 
-urlServer : String
-urlServer =
-    "https://bbs.hedlx.org"
+defaultUrlServer : String
+defaultUrlServer =
+    "localhost:8000"
 
 
-urlAPI : String
-urlAPI =
+urlAPI : String -> String
+urlAPI urlServer =
     Url.Builder.crossOrigin urlServer [ "api" ] []
 
 
-urlImage : String
-urlImage =
+urlImage : String -> String
+urlImage urlServer =
     Url.Builder.crossOrigin urlServer [ "i" ] []
 
 
-urlThumb : String
-urlThumb =
+urlThumb : String -> String
+urlThumb urlServer =
     Url.Builder.crossOrigin urlServer [ "t" ] []
 
 

@@ -52,7 +52,8 @@ init flags url key =
             }
 
         cfg =
-            { key = key
+            { urlServer = Env.defaultUrlServer
+            , key = key
             , urlApp = normalizedUrl
             , theme = Theme.default
             , name = defaultUserSettings.name
@@ -73,7 +74,8 @@ init flags url key =
 
 
 type alias Config =
-    { key : Nav.Key
+    { urlServer : String
+    , key : Nav.Key
     , urlApp : Url
     , theme : Theme
     , name : String
@@ -89,12 +91,17 @@ type alias Config =
 mergeFlags : Encode.Value -> Config -> Config
 mergeFlags flags cfg =
     let
+        urlServer =
+            Decode.decodeValue (Decode.field "urlServer" Decode.string) flags
+                |> Result.withDefault Env.defaultUrlServer
+
         userSettings =
             Decode.decodeValue (Decode.field "settings" decoderUserSettings) flags
                 |> Result.withDefault defaultUserSettings
     in
     { cfg
-        | name = userSettings.name
+        | urlServer = urlServer
+        , name = userSettings.name
         , trip = userSettings.trip
         , pass = userSettings.pass
         , theme = userSettings.theme
@@ -208,7 +215,7 @@ fetch cfg =
 
         fetchLimits =
             if Limits.hasUndefined cfg.limits then
-                getLimits
+                getLimits cfg
 
             else
                 Cmd.none
@@ -221,10 +228,10 @@ getTimeZone =
     Time.here |> Task.perform GotTimeZone
 
 
-getLimits : Cmd Msg
-getLimits =
+getLimits : Config -> Cmd Msg
+getLimits { urlServer } =
     Http.get
-        { url = Url.Builder.crossOrigin Env.urlAPI [ "limits" ] []
+        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "limits" ] []
         , expect = Http.expectJson GotLimits Limits.decoder
         }
 

@@ -304,7 +304,7 @@ viewBody eventHandlers cfg threadID post =
         [ style
         , Html.Attributes.style "white-space" "pre-wrap"
         ]
-        [ viewListMedia eventHandlers threadID post.no post.media
+        [ viewListMedia eventHandlers cfg threadID post.no post.media
         , Post.Text.view cfg threadID post.text
         ]
 
@@ -326,43 +326,43 @@ viewHeadButton actionWrapper theme btnText =
         ]
 
 
-viewListMedia : EventHandlers msg a -> ThreadID -> No -> List Media -> Html msg
-viewListMedia eventHandlers threadID postNo listMedia =
+viewListMedia : EventHandlers msg a -> Config -> ThreadID -> No -> List Media -> Html msg
+viewListMedia eventHandlers cfg threadID postNo listMedia =
     let
         style =
             classes [ T.fl, T.mr2, T.mb2, T.mr3_ns, T.mb3_ns, T.flex, T.flex_wrap ]
     in
     div [ style ] <|
-        List.map (viewMedia eventHandlers threadID postNo) listMedia
+        List.map (viewMedia eventHandlers cfg threadID postNo) listMedia
 
 
-viewMedia : EventHandlers msg a -> ThreadID -> No -> Media -> Html msg
-viewMedia eventHandlers threadID postNo media =
+viewMedia : EventHandlers msg a -> Config -> ThreadID -> No -> Media -> Html msg
+viewMedia eventHandlers cfg threadID postNo media =
     let
         styleMediaContainer =
             classes [ T.ml2, T.mt2, T.ml3_ns, T.mt3_ns ]
 
         attrs =
-            [ href (Media.url media)
+            [ href (Media.url cfg media)
             , onClick (eventHandlers.onMediaClicked threadID postNo media.id)
             ]
     in
     if media.isPreview then
         div [ class T.db, styleMediaContainer ]
-            [ a attrs [ viewMediaPreview media ]
+            [ a attrs [ viewMediaPreview cfg media ]
             ]
 
     else
         div [ styleMediaContainer ]
-            [ a attrs [ viewMediaFull media ]
+            [ a attrs [ viewMediaFull cfg media ]
             ]
 
 
-viewMediaPreview : Media -> Html msg
-viewMediaPreview media =
+viewMediaPreview : Config -> Media -> Html msg
+viewMediaPreview cfg media =
     let
         urlPreview =
-            Url.Builder.crossOrigin Env.urlThumb [ media.id ] []
+            Url.Builder.crossOrigin (Env.urlThumb cfg.urlServer) [ media.id ] []
 
         attrsSizes =
             if media.width >= media.height then
@@ -374,7 +374,7 @@ viewMediaPreview media =
     img
         (attrsSizes
             ++ [ stylePostMedia
-               , src (Media.urlPreview media)
+               , src (Media.urlPreview cfg media)
                , alt "[Attached media]"
                ]
         )
@@ -393,12 +393,12 @@ mediaSizes big small attrBig attrSmall =
     [ attrBig pBig, attrSmall pSmall ]
 
 
-viewMediaFull : Media -> Html msg
-viewMediaFull media =
+viewMediaFull : Config -> Media -> Html msg
+viewMediaFull cfg media =
     img
         [ stylePostMedia
         , width media.width
-        , src (Media.url media)
+        , src (Media.url cfg media)
         , alt "[Attached media]"
         ]
         []

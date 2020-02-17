@@ -474,7 +474,7 @@ focus _ =
 submit : List String -> Config -> PostForm -> Cmd Msg
 submit submitPath cfg postForm =
     Http.post
-        { url = Url.Builder.crossOrigin Env.urlAPI submitPath []
+        { url = Url.Builder.crossOrigin (Env.urlAPI cfg.urlServer) submitPath []
         , body = Http.jsonBody (encode cfg postForm)
         , expect = Http.expectWhatever FormSubmitted
         }
@@ -591,7 +591,7 @@ update submitPath cfg msg postForm =
             let
                 uploadCmds =
                     notUploadedAttachments postForm
-                        |> List.map (Attachment.upload AttachmentUploaded)
+                        |> List.map (Attachment.upload cfg AttachmentUploaded)
 
                 cmd =
                     if List.isEmpty uploadCmds then

@@ -45,25 +45,25 @@ import Url.Builder
 
 
 init : Config -> ID -> ( State, Cmd Msg )
-init _ id =
-    ( Loading PostForm.empty id, getThread id Nothing )
+init cfg id =
+    ( Loading PostForm.empty id, getThread cfg id Nothing )
 
 
 reInit : Config -> State -> ( State, Cmd Msg )
 reInit cfg state =
     case state of
         Loading _ id ->
-            ( state, getThread id Nothing )
+            ( state, getThread cfg id Nothing )
 
         LoadingPost _ id postNo ->
-            ( state, getThread id (Just postNo) )
+            ( state, getThread cfg id (Just postNo) )
 
         Idle _ thread ->
             init cfg thread.id
 
 
 initGoTo : Config -> Int -> Int -> Maybe State -> ( State, Cmd Msg )
-initGoTo _ id postNo maybeThread =
+initGoTo cfg id postNo maybeThread =
     case maybeThread of
         Just (Idle form thread) ->
             if thread.id == id then
@@ -72,10 +72,10 @@ initGoTo _ id postNo maybeThread =
                 )
 
             else
-                ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
+                ( LoadingPost PostForm.empty id postNo, getThread cfg id (Just postNo) )
 
         _ ->
-            ( LoadingPost PostForm.empty id postNo, getThread id (Just postNo) )
+            ( LoadingPost PostForm.empty id postNo, getThread cfg id (Just postNo) )
 
 
 initReplyTo : Config -> Int -> Int -> ( State, Cmd Msg )
@@ -209,10 +209,10 @@ decoder tID maybePostNo =
         (Decode.field "messages" <| Decode.list Post.decoder)
 
 
-getThread : ID -> Maybe ID -> Cmd Msg
-getThread tID maybePostNo =
+getThread : Config -> ID -> Maybe ID -> Cmd Msg
+getThread { urlServer } tID maybePostNo =
     Http.get
-        { url = Url.Builder.crossOrigin Env.urlAPI [ "threads", String.fromInt tID ] []
+        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "threads", String.fromInt tID ] []
         , expect = Http.expectJson GotThread (decoder tID maybePostNo)
         }
 
@@ -240,7 +240,7 @@ update cfg msg state =
             case state of
                 Idle form thread ->
                     updatePostForm (threadID state) cfg subMsg form
-                        |> handlePostFormResponse thread
+                        |> handlePostFormResponse cfg thread
 
                 _ ->
                     Response.None
@@ -272,7 +272,7 @@ update cfg msg state =
             case state of
                 Idle form thread ->
                     PostForm.addFiles cfg.limits files form
-                        |> handlePostFormResponse thread
+                        |> handlePostFormResponse cfg thread
                         >> Response.andThen focusPostForm
 
                 _ ->
@@ -284,8 +284,8 @@ updatePostForm tID =
     PostForm.update (pathPost tID)
 
 
-handlePostFormResponse : Thread -> PostForm.Response -> Response State Msg
-handlePostFormResponse thread postFormResponse =
+handlePostFormResponse : Config -> Thread -> PostForm.Response -> Response State Msg
+handlePostFormResponse cfg thread postFormResponse =
     case postFormResponse of
         PostForm.Ok newForm newCmd ->
             Response.Ok (Idle newForm thread) (Cmd.map PostFormMsg newCmd) Alert.None
@@ -295,7 +295,7 @@ handlePostFormResponse thread postFormResponse =
 
         PostForm.Submitted _ ->
             Response.Ok (Idle (PostForm.disable PostForm.empty) thread)
-                (getThread thread.id Nothing)
+                (getThread cfg thread.id Nothing)
                 Alert.None
 
 

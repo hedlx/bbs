@@ -59,7 +59,7 @@ cmdInit cfg query =
         perPage =
             Config.perPageThreads cfg
     in
-    getThreads perPage numPage
+    getThreads cfg perPage numPage
 
 
 
@@ -135,8 +135,8 @@ decoderThreadPreview =
         (Decode.field "last" <| Decode.list Post.decoder)
 
 
-getThreads : Int -> Int -> Cmd Msg
-getThreads perPageThreads numPage =
+getThreads : Config -> Int -> Int -> Cmd Msg
+getThreads { urlServer } perPageThreads numPage =
     let
         params =
             [ Url.Builder.int "offset" (perPageThreads * numPage)
@@ -144,7 +144,7 @@ getThreads perPageThreads numPage =
             ]
     in
     Http.get
-        { url = Url.Builder.crossOrigin Env.urlAPI [ "threads" ] params
+        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "threads" ] params
         , expect = Http.expectJson GotThreads (decoderPage numPage)
         }
 
