@@ -108,7 +108,7 @@ update msg model =
             updatePage (Page.update model.cfg subMsg model.page) model
 
         LinkClicked urlRequest ->
-            case  Debug.log ""  urlRequest of
+            case urlRequest of
                 Browser.Internal url ->
                     if isShouldHandleUrl model.cfg url then
                         ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
