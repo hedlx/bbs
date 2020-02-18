@@ -141,7 +141,7 @@ go key route =
 tryParseAutolink : Url -> String -> Maybe Url
 tryParseAutolink urlApp str =
     GeneralParser.run parserAutolink str
-        |> Result.map (\p -> { urlApp | fragment = Just ("/" ++ p) })
+        |> Result.map (\p -> { urlApp | fragment = Just ("/" ++ p), path = "/" })
         >> Result.toMaybe
 
 
