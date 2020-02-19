@@ -8,9 +8,10 @@ import Html.Extra exposing (..)
 import Json.Decode as Decode exposing (Decoder)
 import Markdown.Block as MB exposing (Block)
 import Markdown.Inline as MI exposing (Inline)
+import Parser as P exposing ((|.), (|=), Parser)
 import Regex exposing (Regex)
+import Set
 import String.Extra
-import String.Format as StrF
 import Tachyons exposing (classes)
 import Tachyons.Classes as T
 import Theme exposing (Theme)
@@ -105,7 +106,7 @@ renderInline : Theme -> Int -> Inline i -> Html msg
 renderInline theme threadID inline =
     case inline of
         MI.Text str ->
-            renderTextWithRefs theme threadID str
+            renderText theme threadID str
 
         MI.Link url maybeTitle inlines ->
             a
@@ -120,59 +121,104 @@ renderInline theme threadID inline =
             MI.toHtml inline
 
 
-renderTextWithRefs : Theme -> Int -> String -> Html msg
-renderTextWithRefs theme threadID str =
+renderText : Theme -> Int -> String -> Html msg
+renderText theme threadID str =
     span []
-        (List.concatMap
-            (MB.defaultHtml Nothing (Just (renderInlineRefs theme threadID)))
-            (MB.parse Nothing (replaceRefs threadID str))
+        (P.run (parserTextToHtml theme threadID) str
+            |> Result.withDefault [ text str ]
         )
 
 
-renderInlineRefs : Theme -> Int -> Inline i -> Html msg
-renderInlineRefs theme threadID inline =
-    case inline of
-        MI.Link url maybeTitle inlines ->
-            a
-                [ href url
-                , styleLink theme
-                , title (Maybe.withDefault url maybeTitle)
-                , classes [ theme.fontMono, T.f6 ]
+parserTextToHtml : Theme -> Int -> Parser (List (Html msg))
+parserTextToHtml theme threadID =
+    P.loop []
+        (\revParsed ->
+            P.oneOf
+                [ P.succeed (\html -> P.Loop (html :: revParsed))
+                    |= P.oneOf
+                        [ parserRef theme threadID
+                        , parserPlainText theme
+                        ]
+                , P.succeed ()
+                    |> P.map (\_ -> P.Done (List.reverse revParsed))
                 ]
-                [ text "@"
-                , span [ class T.underline ]
-                    (List.map (renderInlineRefs theme threadID) inlines)
-                ]
-
-        _ ->
-            MI.toHtml inline
-
-
-regexRef : Regex
-regexRef =
-    Regex.fromString "@(\\d+)(/?\\d*)"
-        |> Maybe.withDefault Regex.never
-
-
-replaceRefs : Int -> String -> String
-replaceRefs threadID str =
-    Regex.replace regexRef
-        (\{ match, submatches } ->
-            "[{{ }}]({{ }})"
-                |> StrF.value (String.dropLeft 1 match)
-                >> StrF.value
-                    (case submatches of
-                        (Just postNo) :: Nothing :: [] ->
-                            "#/" ++ String.fromInt threadID ++ "/" ++ postNo
-
-                        (Just tID) :: (Just postNo) :: [] ->
-                            "#/" ++ tID ++ postNo
-
-                        _ ->
-                            "/404"
-                    )
         )
-        str
+
+
+parserPlainText : Theme -> Parser (Html msg)
+parserPlainText _ =
+    P.succeed text
+        |= P.variable
+            { start = always True
+            , inner = (/=) '@'
+            , reserved = Set.fromList []
+            }
+
+
+type Ref
+    = Ref RefKind String
+
+
+type RefKind
+    = RefPostLocal
+    | RefPostGlobal
+    | RefThread
+
+
+parserRef : Theme -> Int -> Parser (Html msg)
+parserRef theme threadID =
+    P.succeed (renderRef theme threadID)
+        |. P.symbol "@"
+        |= P.oneOf
+            [ P.backtrackable <|
+                P.succeed (\tID postNo -> Ref RefPostGlobal (tID ++ "/" ++ postNo))
+                    |= parserDigits
+                    |. P.symbol "/"
+                    |= parserDigits
+            , P.backtrackable <|
+                P.succeed (Ref RefThread)
+                    |= parserDigits
+                    |. P.symbol "/"
+            , P.backtrackable <|
+                P.succeed (Ref RefPostLocal)
+                    |= parserDigits
+            ]
+
+
+parserDigits : Parser String
+parserDigits =
+    P.variable
+        { start = Char.isDigit
+        , inner = Char.isDigit
+        , reserved = Set.fromList []
+        }
+
+
+refToPath : Int -> Ref -> String
+refToPath threadID ref =
+    case ref of
+        Ref RefPostLocal path ->
+            "#/" ++ String.fromInt threadID ++ "/" ++ path
+
+        Ref _ path ->
+            "#/" ++ path
+
+
+refToStr : Ref -> String
+refToStr ref =
+    case ref of
+        Ref _ path ->
+            "@" ++ path
+
+
+renderRef : Theme -> Int -> Ref -> Html msg
+renderRef theme threadID ref =
+    a
+        [ href (refToPath threadID ref)
+        , styleLink theme
+        , classes [ theme.fontMono, T.f6 ]
+        ]
+        [ text (refToStr ref) ]
 
 
 styleLink : Theme -> Html.Attribute msg
