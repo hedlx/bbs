@@ -52,7 +52,9 @@ init flags url key =
             }
 
         cfg =
-            { urlServer = Env.defaultUrlServer
+            { urlApi = Url.Builder.crossOrigin Env.defaultUrlServer Env.defaultApiPath []
+            , urlImage = Url.Builder.crossOrigin Env.defaultUrlServer Env.defaultImagePath []
+            , urlThumb = Url.Builder.crossOrigin Env.defaultUrlServer Env.defaultThumbPath []
             , key = key
             , urlApp = normalizedUrl
             , theme = Theme.default
@@ -74,7 +76,9 @@ init flags url key =
 
 
 type alias Config =
-    { urlServer : String
+    { urlApi : String
+    , urlImage : String
+    , urlThumb : String
     , key : Nav.Key
     , urlApp : Url
     , theme : Theme
@@ -100,7 +104,9 @@ mergeFlags flags cfg =
                 |> Result.withDefault defaultUserSettings
     in
     { cfg
-        | urlServer = urlServer
+        | urlApi = Url.Builder.crossOrigin urlServer Env.defaultApiPath []
+        , urlImage = Url.Builder.crossOrigin urlServer Env.defaultImagePath []
+        , urlThumb = Url.Builder.crossOrigin urlServer Env.defaultThumbPath []
         , name = userSettings.name
         , trip = userSettings.trip
         , pass = userSettings.pass
@@ -229,9 +235,9 @@ getTimeZone =
 
 
 getLimits : Config -> Cmd Msg
-getLimits { urlServer } =
+getLimits { urlApi } =
     Http.get
-        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "limits" ] []
+        { url = Url.Builder.crossOrigin urlApi [ "limits" ] []
         , expect = Http.expectJson GotLimits Limits.decoder
         }
 

@@ -1,7 +1,6 @@
 module Media exposing (ID, Media, decoder, togglePreview, url, urlPreview)
 
 import Config exposing (Config)
-import Env
 import Json.Decode as Decode exposing (Decoder)
 import Url.Builder
 
@@ -27,7 +26,7 @@ togglePreview media =
 
 
 url : Config -> Media -> String
-url { urlServer } media =
+url { urlImage } media =
     let
         ext =
             case media.mime of
@@ -40,12 +39,12 @@ url { urlServer } media =
                 _ ->
                     ""
     in
-    Url.Builder.crossOrigin (Env.urlImage urlServer) [ media.id ++ ext ] []
+    Url.Builder.crossOrigin urlImage [ media.id ++ ext ] []
 
 
 urlPreview : Config -> Media -> String
-urlPreview { urlServer } media =
-    Url.Builder.crossOrigin (Env.urlThumb urlServer) [ media.id ] []
+urlPreview { urlThumb } media =
+    Url.Builder.crossOrigin urlThumb [ media.id ] []
 
 
 decoder : Decoder Media

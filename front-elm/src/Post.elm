@@ -345,24 +345,23 @@ viewMedia eventHandlers cfg threadID postNo media =
         attrs =
             [ href (Media.url cfg media)
             , onClick (eventHandlers.onMediaClicked threadID postNo media.id)
+            , target "_top"
             ]
     in
     if media.isPreview then
         div [ class T.db, styleMediaContainer ]
-            [ a attrs [ viewMediaPreview cfg media ]
-            ]
+            [ a attrs [ viewMediaPreview cfg media ] ]
 
     else
         div [ styleMediaContainer ]
-            [ a attrs [ viewMediaFull cfg media ]
-            ]
+            [ a attrs [ viewMediaFull cfg media ] ]
 
 
 viewMediaPreview : Config -> Media -> Html msg
 viewMediaPreview cfg media =
     let
         urlPreview =
-            Url.Builder.crossOrigin (Env.urlThumb cfg.urlServer) [ media.id ] []
+            Url.Builder.crossOrigin cfg.urlThumb [ media.id ] []
 
         attrsSizes =
             if media.width >= media.height then

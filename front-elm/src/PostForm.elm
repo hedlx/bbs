@@ -474,7 +474,7 @@ focus _ =
 submit : List String -> Config -> PostForm -> Cmd Msg
 submit submitPath cfg postForm =
     Http.post
-        { url = Url.Builder.crossOrigin (Env.urlAPI cfg.urlServer) submitPath []
+        { url = Url.Builder.crossOrigin cfg.urlApi submitPath []
         , body = Http.jsonBody (encode cfg postForm)
         , expect = Http.expectWhatever FormSubmitted
         }

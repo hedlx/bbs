@@ -19,7 +19,6 @@ module Page.Thread exposing
 import Alert
 import Config exposing (Config)
 import DomCmd
-import Env
 import File exposing (File)
 import FilesDrop
 import Html exposing (..)
@@ -210,9 +209,9 @@ decoder tID maybePostNo =
 
 
 getThread : Config -> ID -> Maybe ID -> Cmd Msg
-getThread { urlServer } tID maybePostNo =
+getThread { urlApi } tID maybePostNo =
     Http.get
-        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "threads", String.fromInt tID ] []
+        { url = Url.Builder.crossOrigin urlApi [ "threads", String.fromInt tID ] []
         , expect = Http.expectJson GotThread (decoder tID maybePostNo)
         }
 

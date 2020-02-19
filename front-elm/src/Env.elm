@@ -1,6 +1,9 @@
 module Env exposing
     ( bbsName
+    , defaultApiPath
+    , defaultImagePath
     , defaultName
+    , defaultThumbPath
     , defaultUrlServer
     , fileFormats
     , lineLength
@@ -9,12 +12,7 @@ module Env exposing
     , minLineLength
     , minPerPage
     , threadsPerPage
-    , urlAPI
-    , urlImage
-    , urlThumb
     )
-
-import Url.Builder
 
 
 defaultUrlServer : String
@@ -22,19 +20,19 @@ defaultUrlServer =
     "localhost:8000"
 
 
-urlAPI : String -> String
-urlAPI urlServer =
-    Url.Builder.crossOrigin urlServer [ "api" ] []
+defaultApiPath : List String
+defaultApiPath =
+    [ "api" ]
 
 
-urlImage : String -> String
-urlImage urlServer =
-    Url.Builder.crossOrigin urlServer [ "i" ] []
+defaultImagePath : List String
+defaultImagePath =
+    [ "i" ]
 
 
-urlThumb : String -> String
-urlThumb urlServer =
-    Url.Builder.crossOrigin urlServer [ "t" ] []
+defaultThumbPath : List String
+defaultThumbPath =
+    [ "t" ]
 
 
 fileFormats : List String

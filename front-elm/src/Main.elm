@@ -12,6 +12,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Extra
 import Icons
+import Json.Decode as Decode
 import Json.Encode as Encode
 import Page exposing (Page)
 import Regex
@@ -291,13 +292,14 @@ view { cfg, page, isSettingsVisible, slideIn, dialog } =
             -- the browser from openning them.
             , FilesDrop.onDragOver NoOp
             , FilesDrop.onDrop (\_ -> NoOp)
+            , preventDefaultOn "click" (Decode.succeed ( NoOp, True ))
             ]
             [ viewNavigationMenu cfg
             , Dialog.view cfg.theme { onOk = ConfirmDialog, onCancel = CancelDialog } dialog
             , Html.Extra.viewIf isSettingsVisible (viewSettingsDialog cfg)
             , Html.map SlideInMsg (SlideIn.view cfg.theme slideIn)
+            , Html.map PageMsg (Page.view cfg page)
             ]
-        , Html.map PageMsg (Page.view cfg page)
         ]
     }
 

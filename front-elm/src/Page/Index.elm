@@ -13,7 +13,6 @@ import Alert
 import Browser.Dom as Dom
 import Config exposing (Config)
 import DomCmd
-import Env
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -136,7 +135,7 @@ decoderThreadPreview =
 
 
 getThreads : Config -> Int -> Int -> Cmd Msg
-getThreads { urlServer } perPageThreads numPage =
+getThreads { urlApi } perPageThreads numPage =
     let
         params =
             [ Url.Builder.int "offset" (perPageThreads * numPage)
@@ -144,7 +143,7 @@ getThreads { urlServer } perPageThreads numPage =
             ]
     in
     Http.get
-        { url = Url.Builder.crossOrigin (Env.urlAPI urlServer) [ "threads" ] params
+        { url = Url.Builder.crossOrigin urlApi [ "threads" ] params
         , expect = Http.expectJson GotThreads (decoderPage numPage)
         }
 
