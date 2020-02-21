@@ -111,11 +111,7 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    if isShouldHandleUrl model.cfg url then
-                        ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
-
-                    else
-                        ( model, Cmd.none )
+                    ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
 
                 Browser.External strUrl ->
                     Route.tryParseAutolink model.cfg.urlApp strUrl
@@ -123,7 +119,11 @@ update msg model =
                         >> Maybe.withDefault ( model, Nav.load strUrl )
 
         UrlChanged url ->
-            changeRoute model.cfg url model
+            if isUrlSPA model.cfg url then
+                changeRoute model.cfg url model
+
+            else
+                ( model, Nav.load (Url.toString url) )
 
         SlideInMsg subMsg ->
             let
@@ -212,11 +212,15 @@ updatePage ( newPage, pageCmd, pageAlert ) model =
     )
 
 
-isShouldHandleUrl : Config -> Url -> Bool
-isShouldHandleUrl cfg url =
+
+-- Router
+
+
+isUrlSPA : Config -> Url -> Bool
+isUrlSPA cfg url =
     let
         regexUrlApp =
-            Regex.fromString ("^/?" ++ cfg.urlApp.path)
+            Regex.fromString ("^/?" ++ cfg.urlApp.path ++ "/?$")
                 |> Maybe.withDefault Regex.never
     in
     Regex.contains regexUrlApp url.path
