@@ -89,7 +89,7 @@ addGT =
         (\inline ->
             case inline of
                 MI.Text str ->
-                    MI.Text ("\\> " ++ Regex.replace regexNewLine (always "\n\\> ") str)
+                    MI.Text ("> " ++ Regex.replace regexNewLine (always "\n> ") str)
 
                 _ ->
                     inline
