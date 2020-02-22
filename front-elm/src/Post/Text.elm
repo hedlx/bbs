@@ -176,7 +176,7 @@ parserRef theme threadID =
                     |. P.symbol "/"
                     |= parserDigits
             , P.backtrackable <|
-                P.succeed (Ref RefThread)
+                P.succeed (\tID -> Ref RefThread (tID ++ "/"))
                     |= parserDigits
                     |. P.symbol "/"
             , P.backtrackable <|
