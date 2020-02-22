@@ -111,7 +111,11 @@ update msg model =
         LinkClicked urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
+                    if isUrlSPA model.cfg url then
+                        ( model, Nav.pushUrl model.cfg.key (Url.toString url) )
+
+                    else
+                        ( model, Nav.load (Url.toString url) )
 
                 Browser.External strUrl ->
                     Route.tryParseAutolink model.cfg.urlApp strUrl
@@ -119,11 +123,7 @@ update msg model =
                         >> Maybe.withDefault ( model, Nav.load strUrl )
 
         UrlChanged url ->
-            if isUrlSPA model.cfg url then
-                changeRoute model.cfg url model
-
-            else
-                ( model, Nav.load (Url.toString url) )
+            changeRoute model.cfg url model
 
         SlideInMsg subMsg ->
             let
