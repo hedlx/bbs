@@ -4,13 +4,13 @@
    [front.pages.current :as current]
    [front.state.events]
    [front.state.subs]
-   [reagent.core :as reagent]
+   [reagent.dom :as rdom]
    [re-frame.core :as rf]
    [front.util.js :as utils]))
 
 
-(defn mount-root []
-  (reagent/render [current/page] (.getElementById js/document "app")))
+(defn ^:export run []
+  (rdom/render [current/page] (js/document.getElementById "app")))
 
 (defn init! [base-url]
   (rf/dispatch-sync [:initialize {:base-url base-url
@@ -23,4 +23,4 @@
     200))
 
   (router/init-router!)
-  (mount-root))
+  (run))
