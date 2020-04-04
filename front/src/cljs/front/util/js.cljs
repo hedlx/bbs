@@ -25,3 +25,9 @@
 
 (defn throttle [listener interval]
   (disposable->function Throttle listener interval))
+
+(defn file->map [file]
+  {:name (.-name file)
+   :size (.-size file)
+   :type (.-type file)
+   :file file})

@@ -17,7 +17,8 @@
 (def default-answer {:data {:name ""
                             :secret ""
                             :password ""
-                            :text ""}
+                            :text ""
+                            :media {}}
                      :status {:error nil
                               :in-progress? false}})
 

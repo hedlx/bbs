@@ -2,7 +2,8 @@
   (:require
    [re-frame.core :refer [subscribe dispatch]]
    [clojure.spec.alpha :as s]
-   [front.state.specs :as specs]))
+   [front.state.specs :as specs]
+   [front.components.dropzone :as dropzone]))
 
 (defn c [{:keys [on-success on-close]}]
   (fn []
@@ -55,16 +56,20 @@
                  :on-change #(dispatch [:change-password (-> % .-target .-value)])}]]
        [:div {:class "create-new-separator"}]
        [:div {:class "create-new-message-label"} "Message"]
-       [:textarea {:class (when-not (s/valid? ::specs/text (:text data)) "error")
-                   :placeholder "Your message"
-                   :value (:text data)
-                   :disabled in-progress?
-                   :on-change #(dispatch [:change-msg (-> % .-target .-value)])}]
-       [:button {:class "primary"
-                 :disabled (or in-progress? (not (s/valid? target-spec data)))
-                 :on-click #(dispatch
-                             [:post-msg
-                              (merge {:on-success on-success}
-                                     (when (-> thread-id nil? not)
-                                       {:thread thread-id}))])}
-        (if in-progress? "Creating..." "Post")]])))
+       [:div {:class "create-new-message"}
+        [:textarea {:class (when-not (s/valid? ::specs/text (:text data)) "error")
+                    :placeholder "Your message"
+                    :value (:text data)
+                    :disabled in-progress?
+                    :on-change #(dispatch [:change-msg (-> % .-target .-value)])}]]
+       [:div {:class "create-new-dropzone"}
+        [dropzone/c {:on-drop #(doseq [file %] (dispatch [:add-img {:file file}]))}]]
+       [:div {:class "create-new-button"}
+        [:button {:class "primary"
+                  :disabled (or in-progress? (not (s/valid? target-spec data)))
+                  :on-click #(dispatch
+                              [:post-msg
+                               (merge {:on-success on-success}
+                                      (when (-> thread-id nil? not)
+                                        {:thread thread-id}))])}
+         (if in-progress? "Creating..." "Post")]]])))
