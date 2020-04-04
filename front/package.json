@@ -19,19 +19,24 @@
   },
   "homepage": "https://github.com/hedlx/bbs/tree/master/front#readme",
   "dependencies": {
-    "react": "16.9.0",
-    "react-dom": "16.9.0"
+    "create-react-class": "15.6.3",
+    "highlight.js": "9.15.8",
+    "material-ui": "^0.20.2",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-flip-move": "3.0.3",
+    "react-highlight.js": "1.0.7"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.2",
-    "@babel/preset-env": "^7.6.2",
-    "@babel/register": "^7.6.2",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@babel/register": "^7.9.0",
     "del": "^5.1.0",
     "gulp": "^4.0.2",
     "gulp-concat-css": "^3.1.0",
     "gulp-sass": "^4.0.2",
-    "node-sass": "^4.12.0",
-    "shadow-cljs": "^2.8.59"
+    "node-sass": "^4.13.1",
+    "shadow-cljs": "^2.8.94"
   },
   "babel": {
     "presets": [

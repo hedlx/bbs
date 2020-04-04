@@ -43,4 +43,4 @@ To make optimized build just run:
 npm run build
 ```
 
-After that you will have all necessary file in `resources/public/`
+After that you will have all necessary files in `resources/public/`
