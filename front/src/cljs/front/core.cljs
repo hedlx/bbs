@@ -22,5 +22,11 @@
     #(rf/dispatch [:window-resized [js/window.innerWidth js/window.innerHeight]])
     200))
 
+  (set!
+    js/window.onscroll
+    (utils/throttle
+      #(rf/dispatch [:window-scrolled [js/window.pageYOffset]])
+      200))
+
   (router/init-router!)
   (run))

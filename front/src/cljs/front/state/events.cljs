@@ -41,6 +41,13 @@
        (assoc-in [:window :width] width)
        (assoc-in [:window :height] height))))
 
+(reg-event-db
+ :window-scrolled
+ (fn [db [_ [offset]]]
+  (-> db
+    (assoc-in [:window :y-offset-delta] (- offset (get-in db [:window :y-offset])))
+    (assoc-in [:window :y-offset] offset))))
+
 (reg-event-fx
   :load-threads
   (fn [{:keys [db]}, _]

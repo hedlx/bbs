@@ -6,6 +6,8 @@
 
 (reg-sub :w-height #(-> % (:window) (:height)))
 (reg-sub :w-width #(-> % (:window) (:width)))
+(reg-sub :y-offset #(-> % (:window) (:y-offset)))
+(reg-sub :y-offset-delta #(-> % (:window) (:y-offset-delta)))
 
 (reg-sub :threads-root #(:threads %))
 (reg-sub

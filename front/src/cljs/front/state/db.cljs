@@ -2,7 +2,9 @@
 
 
 (def default-window {:width 0
-                     :height 0})
+                     :height 0
+                     :y-offset 0
+                     :y-offset-delta 0})
 
 (def default-thread {:posts []
                      :subject nil
