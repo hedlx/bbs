@@ -1,0 +1,648 @@
+- args:
+    actions:
+    - definition:
+        arguments:
+        - name: message
+          type: String
+        - name: name
+          type: String
+        - name: tripcode
+          type: String
+        - name: subject
+          type: String
+        - name: password
+          type: String
+        - name: child_of
+          type: '[CreateMessageRelationsInsertInput!]!'
+        - name: attachments
+          type: '[CreateMessageAttachmentsInsertInput!]!'
+        handler: http://create_message:8080/
+        kind: synchronous
+        output_type: CreateMessageOutput
+      name: createMessage
+    custom_types:
+      enums:
+      - name: CreateMessageAttachmentsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: attachments_pkey
+      - name: CreateMessageAttachmentsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: file_id
+        - description: column name
+          is_deprecated: null
+          value: msg_id
+      - name: CreateMessageRelationsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: relations_pkey
+      - name: CreateMessageRelationsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: source_id
+        - description: column name
+          is_deprecated: null
+          value: target_id
+      - name: CreateMessageMsgsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: msgs_pkey
+      - name: CreateMessageMsgsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: created_at
+        - description: column name
+          is_deprecated: null
+          value: id
+        - description: column name
+          is_deprecated: null
+          value: message
+        - description: column name
+          is_deprecated: null
+          value: name
+        - description: column name
+          is_deprecated: null
+          value: password
+        - description: column name
+          is_deprecated: null
+          value: subject
+        - description: column name
+          is_deprecated: null
+          value: tripcode
+      - name: TestAttachmentsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: attachments_pkey
+      - name: TestAttachmentsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: file_id
+        - description: column name
+          is_deprecated: null
+          value: msg_id
+      - name: TestRelationsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: relations_pkey
+      - name: TestRelationsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: child_id
+        - description: column name
+          is_deprecated: null
+          value: parent_id
+      - name: TestMsgsConstraint
+        values:
+        - description: unique or primary key constraint
+          is_deprecated: null
+          value: msgs_pkey
+      - name: TestMsgsUpdateColumn
+        values:
+        - description: column name
+          is_deprecated: null
+          value: created_at
+        - description: column name
+          is_deprecated: null
+          value: id
+        - description: column name
+          is_deprecated: null
+          value: message
+        - description: column name
+          is_deprecated: null
+          value: name
+        - description: column name
+          is_deprecated: null
+          value: password
+        - description: column name
+          is_deprecated: null
+          value: subject
+        - description: column name
+          is_deprecated: null
+          value: tripcode
+      input_objects:
+      - fields:
+        - name: file_id
+          type: String
+        - name: msg
+          type: CreateMessageMsgsObjRelInsertInput
+        - name: msg_id
+          type: CreateMessageBigint
+        name: CreateMessageAttachmentsInsertInput
+      - fields:
+        - name: data
+          type: CreateMessageMsgsInsertInput!
+        - name: on_conflict
+          type: CreateMessageMsgsOnConflict
+        name: CreateMessageMsgsObjRelInsertInput
+      - fields:
+        - name: attachments
+          type: CreateMessageAttachmentsArrRelInsertInput
+        - name: child_of
+          type: CreateMessageRelationsArrRelInsertInput
+        - name: created_at
+          type: CreateMessageTimestamptz
+        - name: id
+          type: CreateMessageBigint
+        - name: message
+          type: String
+        - name: name
+          type: String
+        - name: parent_of
+          type: CreateMessageRelationsArrRelInsertInput
+        - name: password
+          type: String
+        - name: subject
+          type: String
+        - name: tripcode
+          type: String
+        name: CreateMessageMsgsInsertInput
+      - fields:
+        - name: data
+          type: '[CreateMessageAttachmentsInsertInput!]!'
+        - name: on_conflict
+          type: CreateMessageAttachmentsOnConflict
+        name: CreateMessageAttachmentsArrRelInsertInput
+      - fields:
+        - name: constraint
+          type: CreateMessageAttachmentsConstraint!
+        - name: update_columns
+          type: '[CreateMessageAttachmentsUpdateColumn!]!'
+        - name: where
+          type: CreateMessageAttachmentsBoolExp
+        name: CreateMessageAttachmentsOnConflict
+      - fields:
+        - name: _and
+          type: '[CreateMessageAttachmentsBoolExp]'
+        - name: _not
+          type: CreateMessageAttachmentsBoolExp
+        - name: _or
+          type: '[CreateMessageAttachmentsBoolExp]'
+        - name: file_id
+          type: CreateMessageStringComparisonExp
+        - name: msg
+          type: CreateMessageMsgsBoolExp
+        - name: msg_id
+          type: CreateMessageBigintComparisonExp
+        name: CreateMessageAttachmentsBoolExp
+      - fields:
+        - name: _eq
+          type: String
+        - name: _gt
+          type: String
+        - name: _gte
+          type: String
+        - name: _ilike
+          type: String
+        - name: _in
+          type: '[String!]'
+        - name: _is_null
+          type: Boolean
+        - name: _like
+          type: String
+        - name: _lt
+          type: String
+        - name: _lte
+          type: String
+        - name: _neq
+          type: String
+        - name: _nilike
+          type: String
+        - name: _nin
+          type: '[String!]'
+        - name: _nlike
+          type: String
+        - name: _nsimilar
+          type: String
+        - name: _similar
+          type: String
+        name: CreateMessageStringComparisonExp
+      - fields:
+        - name: _and
+          type: '[CreateMessageMsgsBoolExp]'
+        - name: _not
+          type: CreateMessageMsgsBoolExp
+        - name: _or
+          type: '[CreateMessageMsgsBoolExp]'
+        - name: attachments
+          type: CreateMessageAttachmentsBoolExp
+        - name: child_of
+          type: CreateMessageRelationsBoolExp
+        - name: created_at
+          type: CreateMessageTimestamptzComparisonExp
+        - name: id
+          type: CreateMessageBigintComparisonExp
+        - name: message
+          type: CreateMessageStringComparisonExp
+        - name: name
+          type: CreateMessageStringComparisonExp
+        - name: parent_of
+          type: CreateMessageRelationsBoolExp
+        - name: password
+          type: CreateMessageStringComparisonExp
+        - name: subject
+          type: CreateMessageStringComparisonExp
+        - name: tripcode
+          type: CreateMessageStringComparisonExp
+        name: CreateMessageMsgsBoolExp
+      - fields:
+        - name: _and
+          type: '[CreateMessageRelationsBoolExp]'
+        - name: _not
+          type: CreateMessageRelationsBoolExp
+        - name: _or
+          type: '[CreateMessageRelationsBoolExp]'
+        - name: child_msg
+          type: CreateMessageMsgsBoolExp
+        - name: parent_msg
+          type: CreateMessageMsgsBoolExp
+        - name: source_id
+          type: CreateMessageBigintComparisonExp
+        - name: target_id
+          type: CreateMessageBigintComparisonExp
+        name: CreateMessageRelationsBoolExp
+      - fields:
+        - name: _eq
+          type: CreateMessageBigint
+        - name: _gt
+          type: CreateMessageBigint
+        - name: _gte
+          type: CreateMessageBigint
+        - name: _in
+          type: '[CreateMessageBigint!]'
+        - name: _is_null
+          type: Boolean
+        - name: _lt
+          type: CreateMessageBigint
+        - name: _lte
+          type: CreateMessageBigint
+        - name: _neq
+          type: CreateMessageBigint
+        - name: _nin
+          type: '[CreateMessageBigint!]'
+        name: CreateMessageBigintComparisonExp
+      - fields:
+        - name: _eq
+          type: CreateMessageTimestamptz
+        - name: _gt
+          type: CreateMessageTimestamptz
+        - name: _gte
+          type: CreateMessageTimestamptz
+        - name: _in
+          type: '[CreateMessageTimestamptz!]'
+        - name: _is_null
+          type: Boolean
+        - name: _lt
+          type: CreateMessageTimestamptz
+        - name: _lte
+          type: CreateMessageTimestamptz
+        - name: _neq
+          type: CreateMessageTimestamptz
+        - name: _nin
+          type: '[CreateMessageTimestamptz!]'
+        name: CreateMessageTimestamptzComparisonExp
+      - fields:
+        - name: data
+          type: '[CreateMessageRelationsInsertInput!]!'
+        - name: on_conflict
+          type: CreateMessageRelationsOnConflict
+        name: CreateMessageRelationsArrRelInsertInput
+      - fields:
+        - name: child_msg
+          type: CreateMessageMsgsObjRelInsertInput
+        - name: parent_msg
+          type: CreateMessageMsgsObjRelInsertInput
+        - name: source_id
+          type: CreateMessageBigint
+        - name: target_id
+          type: CreateMessageBigint
+        name: CreateMessageRelationsInsertInput
+      - fields:
+        - name: constraint
+          type: CreateMessageRelationsConstraint!
+        - name: update_columns
+          type: '[CreateMessageRelationsUpdateColumn!]!'
+        - name: where
+          type: CreateMessageRelationsBoolExp
+        name: CreateMessageRelationsOnConflict
+      - fields:
+        - name: constraint
+          type: CreateMessageMsgsConstraint!
+        - name: update_columns
+          type: '[CreateMessageMsgsUpdateColumn!]!'
+        - name: where
+          type: CreateMessageMsgsBoolExp
+        name: CreateMessageMsgsOnConflict
+      - fields:
+        - name: file_id
+          type: String
+        - name: msg
+          type: TestMsgsObjRelInsertInput
+        - name: msg_id
+          type: TestBigint
+        name: TestAttachmentsInsertInput
+      - fields:
+        - name: data
+          type: TestMsgsInsertInput!
+        - name: on_conflict
+          type: TestMsgsOnConflict
+        name: TestMsgsObjRelInsertInput
+      - fields:
+        - name: attachments
+          type: TestAttachmentsArrRelInsertInput
+        - name: child
+          type: TestRelationsArrRelInsertInput
+        - name: created_at
+          type: TestTimestamptz
+        - name: id
+          type: TestBigint
+        - name: message
+          type: String
+        - name: name
+          type: String
+        - name: parent
+          type: TestRelationsArrRelInsertInput
+        - name: password
+          type: String
+        - name: subject
+          type: String
+        - name: tripcode
+          type: String
+        name: TestMsgsInsertInput
+      - fields:
+        - name: data
+          type: '[TestAttachmentsInsertInput!]!'
+        - name: on_conflict
+          type: TestAttachmentsOnConflict
+        name: TestAttachmentsArrRelInsertInput
+      - fields:
+        - name: constraint
+          type: TestAttachmentsConstraint!
+        - name: update_columns
+          type: '[TestAttachmentsUpdateColumn!]!'
+        - name: where
+          type: TestAttachmentsBoolExp
+        name: TestAttachmentsOnConflict
+      - fields:
+        - name: _and
+          type: '[TestAttachmentsBoolExp]'
+        - name: _not
+          type: TestAttachmentsBoolExp
+        - name: _or
+          type: '[TestAttachmentsBoolExp]'
+        - name: file_id
+          type: TestStringComparisonExp
+        - name: msg
+          type: TestMsgsBoolExp
+        - name: msg_id
+          type: TestBigintComparisonExp
+        name: TestAttachmentsBoolExp
+      - fields:
+        - name: _eq
+          type: String
+        - name: _gt
+          type: String
+        - name: _gte
+          type: String
+        - name: _ilike
+          type: String
+        - name: _in
+          type: '[String!]'
+        - name: _is_null
+          type: Boolean
+        - name: _like
+          type: String
+        - name: _lt
+          type: String
+        - name: _lte
+          type: String
+        - name: _neq
+          type: String
+        - name: _nilike
+          type: String
+        - name: _nin
+          type: '[String!]'
+        - name: _nlike
+          type: String
+        - name: _nsimilar
+          type: String
+        - name: _similar
+          type: String
+        name: TestStringComparisonExp
+      - fields:
+        - name: _and
+          type: '[TestMsgsBoolExp]'
+        - name: _not
+          type: TestMsgsBoolExp
+        - name: _or
+          type: '[TestMsgsBoolExp]'
+        - name: attachments
+          type: TestAttachmentsBoolExp
+        - name: child
+          type: TestRelationsBoolExp
+        - name: created_at
+          type: TestTimestamptzComparisonExp
+        - name: id
+          type: TestBigintComparisonExp
+        - name: message
+          type: TestStringComparisonExp
+        - name: name
+          type: TestStringComparisonExp
+        - name: parent
+          type: TestRelationsBoolExp
+        - name: password
+          type: TestStringComparisonExp
+        - name: subject
+          type: TestStringComparisonExp
+        - name: tripcode
+          type: TestStringComparisonExp
+        name: TestMsgsBoolExp
+      - fields:
+        - name: _and
+          type: '[TestRelationsBoolExp]'
+        - name: _not
+          type: TestRelationsBoolExp
+        - name: _or
+          type: '[TestRelationsBoolExp]'
+        - name: child_id
+          type: TestBigintComparisonExp
+        - name: child_msg
+          type: TestMsgsBoolExp
+        - name: parent_id
+          type: TestBigintComparisonExp
+        - name: parent_msg
+          type: TestMsgsBoolExp
+        name: TestRelationsBoolExp
+      - fields:
+        - name: _eq
+          type: TestBigint
+        - name: _gt
+          type: TestBigint
+        - name: _gte
+          type: TestBigint
+        - name: _in
+          type: '[TestBigint!]'
+        - name: _is_null
+          type: Boolean
+        - name: _lt
+          type: TestBigint
+        - name: _lte
+          type: TestBigint
+        - name: _neq
+          type: TestBigint
+        - name: _nin
+          type: '[TestBigint!]'
+        name: TestBigintComparisonExp
+      - fields:
+        - name: _eq
+          type: TestTimestamptz
+        - name: _gt
+          type: TestTimestamptz
+        - name: _gte
+          type: TestTimestamptz
+        - name: _in
+          type: '[TestTimestamptz!]'
+        - name: _is_null
+          type: Boolean
+        - name: _lt
+          type: TestTimestamptz
+        - name: _lte
+          type: TestTimestamptz
+        - name: _neq
+          type: TestTimestamptz
+        - name: _nin
+          type: '[TestTimestamptz!]'
+        name: TestTimestamptzComparisonExp
+      - fields:
+        - name: data
+          type: '[TestRelationsInsertInput!]!'
+        - name: on_conflict
+          type: TestRelationsOnConflict
+        name: TestRelationsArrRelInsertInput
+      - fields:
+        - name: child_id
+          type: TestBigint
+        - name: child_msg
+          type: TestMsgsObjRelInsertInput
+        - name: parent_id
+          type: TestBigint
+        - name: parent_msg
+          type: TestMsgsObjRelInsertInput
+        name: TestRelationsInsertInput
+      - fields:
+        - name: constraint
+          type: TestRelationsConstraint!
+        - name: update_columns
+          type: '[TestRelationsUpdateColumn!]!'
+        - name: where
+          type: TestRelationsBoolExp
+        name: TestRelationsOnConflict
+      - fields:
+        - name: constraint
+          type: TestMsgsConstraint!
+        - name: update_columns
+          type: '[TestMsgsUpdateColumn!]!'
+        - name: where
+          type: TestMsgsBoolExp
+        name: TestMsgsOnConflict
+      objects:
+      - fields:
+        - name: created_at
+          type: CreateMessageTimestamptz!
+        - name: id
+          type: CreateMessageBigint!
+        - name: message
+          type: String
+        - name: name
+          type: String!
+        - name: password
+          type: String
+        - name: subject
+          type: String
+        - name: tripcode
+          type: String
+        name: CreateMessageOutput
+        relationships:
+        - field_mapping:
+            id: id
+          name: created_message
+          remote_table:
+            name: msgs
+            schema: public
+          type: object
+      - fields:
+        - name: created_at
+          type: TestTimestamptz!
+        - name: id
+          type: TestBigint!
+        - name: message
+          type: String
+        - name: name
+          type: String!
+        - name: password
+          type: String
+        - name: subject
+          type: String
+        - name: tripcode
+          type: String
+        name: TestOutput
+      scalars:
+      - name: CreateMessageBigint
+      - name: CreateMessageTimestamptz
+      - name: TestBigint
+      - name: TestTimestamptz
+    tables:
+    - object_relationships:
+      - name: msg
+        using:
+          foreign_key_constraint_on: msg_id
+      table:
+        name: attachments
+        schema: public
+    - array_relationships:
+      - name: attachments
+        using:
+          foreign_key_constraint_on:
+            column: msg_id
+            table:
+              name: attachments
+              schema: public
+      - name: child_of
+        using:
+          foreign_key_constraint_on:
+            column: source_id
+            table:
+              name: relations
+              schema: public
+      - name: parent_of
+        using:
+          foreign_key_constraint_on:
+            column: target_id
+            table:
+              name: relations
+              schema: public
+      table:
+        name: msgs
+        schema: public
+    - object_relationships:
+      - name: child_msg
+        using:
+          foreign_key_constraint_on: source_id
+      - name: parent_msg
+        using:
+          foreign_key_constraint_on: target_id
+      table:
+        name: relations
+        schema: public
+    version: 2
+  type: replace_metadata
