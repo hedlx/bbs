@@ -1,0 +1,9 @@
+FROM golang:1.13-alpine
+
+RUN apk add git
+RUN go get github.com/codegangsta/gin
+RUN mkdir -p /go/src/lambda
+
+WORKDIR /go/src/lambda
+ENV PORT 3001
+CMD ["gin", "--port", "8080", "run", "main.go"]

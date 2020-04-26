@@ -13,9 +13,13 @@ An elegant message board software, for a more civilized age.
 ## Configuration
 
 Create `.env` file in project root with next variable, currently config suppots next variables (defauls):
-```
+```bash
 HASURA_SECRET=SUPER_HASURA_SECRET
 DOCKERFILE=Dockerfile
+
+MINIO_ACCESS_KEY=MINIO_ACCESS_KEY
+MINIO_SECRET_KEY=MINIO_SECRET_KEY
+MINIO_BUCKET=MINIO_BUCKET
 ```
 
 ### Development
@@ -35,4 +39,11 @@ You can perform all docker-compose flows as usual.
 For instance, to just launch containers perform:
 ```bash
 docker-compose -f stack.yml up
+```
+
+In case you building prod version and api services have got changed, you proabably need to
+additionally force `docker-compose` to rebuild images:
+
+```bash
+docker-compose -f stack.yml build
 ```
