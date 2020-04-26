@@ -2,8 +2,6 @@ version: '3'
 services:
   hasura:
     image: hasura/graphql-engine:v1.2.0-beta.3.cli-migrations
-    ports:
-      - "8101:8080"
     restart: always
     depends_on:
       - "postgres"
@@ -25,8 +23,6 @@ services:
     image: minio/minio:RELEASE.2020-04-04T05-39-31Z
     volumes:
       - minio_data:/data
-    ports:
-      - "9001:9000"
     environment:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-MINIO_SECRET_KEY}
@@ -53,8 +49,6 @@ services:
     build:
       context: "./backend-ng/api/upload-file"
       dockerfile: ${DOCKERFILE:-Dockerfile}
-    ports:
-      - "9090:8080"
     restart: always
     environment:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
@@ -65,6 +59,13 @@ services:
     depends_on:
       - "minio"
 
+  nginx:
+    build:
+      context: "./backend-ng/nginx"
+      dockerfile: "Dockerfile"
+    ports:
+      - "8080:80"
+    restart: always
 
 volumes:
   db_data:
