@@ -1,0 +1,73 @@
+version: '3'
+services:
+  hasura:
+    image: hasura/graphql-engine:v1.2.0-beta.3.cli-migrations
+    restart: always
+    depends_on:
+      - "postgres"
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_SECRET:-HASURA_SECRET}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
+    volumes:
+      - ./backend-ng/hasura/migrations:/hasura-migrations
+
+  postgres:
+    image: postgres:12-alpine
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:RELEASE.2020-04-04T05-39-31Z
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-MINIO_SECRET_KEY}
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  create_message:
+    build:
+      context: "./backend-ng/api/create-message"
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+    restart: always
+    environment:
+      HASURA_SECRET: ${HASURA_SECRET:-HASURA_SECRET}
+    volumes:
+      - "./backend-ng/api/create-message:/go/src/lambda"
+    depends_on:
+      - "hasura"
+
+  upload_file:
+    build:
+      context: "./backend-ng/api/upload-file"
+      dockerfile: ${DOCKERFILE:-Dockerfile}
+    restart: always
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-MINIO_BUCKET}
+    volumes:
+      - "./backend-ng/api/upload-file:/go/src/lambda"
+    depends_on:
+      - "minio"
+
+  nginx:
+    build:
+      context: "./backend-ng/nginx"
+      dockerfile: "Dockerfile"
+    ports:
+      - "8080:80"
+    restart: always
+
+volumes:
+  db_data:
+  minio_data:
