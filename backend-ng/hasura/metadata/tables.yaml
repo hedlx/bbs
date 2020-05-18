@@ -1,0 +1,60 @@
+- table:
+    schema: public
+    name: attachments
+  object_relationships:
+  - name: msg
+    using:
+      foreign_key_constraint_on: msg_id
+- table:
+    schema: public
+    name: msgs
+  array_relationships:
+  - name: attachments
+    using:
+      foreign_key_constraint_on:
+        column: msg_id
+        table:
+          schema: public
+          name: attachments
+  - name: child_of
+    using:
+      foreign_key_constraint_on:
+        column: source_id
+        table:
+          schema: public
+          name: relations
+  - name: parent_of
+    using:
+      foreign_key_constraint_on:
+        column: target_id
+        table:
+          schema: public
+          name: relations
+  select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+      - created_at
+      - id
+      - message
+      - name
+      - subject
+      - tripcode
+      filter: {}
+      allow_aggregations: true
+  delete_permissions:
+  - role: anonymous
+    permission:
+      filter:
+        password:
+          _eq: Post-Password
+- table:
+    schema: public
+    name: relations
+  object_relationships:
+  - name: child_msg
+    using:
+      foreign_key_constraint_on: source_id
+  - name: parent_msg
+    using:
+      foreign_key_constraint_on: target_id

@@ -1,0 +1,379 @@
+type Mutation {
+  createMessage (
+    message: String
+    name: String
+    tripcode: String
+    subject: String
+    password: String
+    child_of: [CreateMessageRelationsInsertInput!]!
+    attachments: [CreateMessageAttachmentsInsertInput!]!
+  ): CreateMessageOutput
+}
+
+
+
+
+enum CreateMessageAttachmentsConstraint {
+  """ unique or primary key constraint """ attachments_pkey
+}
+
+enum CreateMessageAttachmentsUpdateColumn {
+  """ column name """ file_id
+  """ column name """ msg_id
+}
+
+enum CreateMessageRelationsConstraint {
+  """ unique or primary key constraint """ relations_pkey
+}
+
+enum CreateMessageRelationsUpdateColumn {
+  """ column name """ source_id
+  """ column name """ target_id
+}
+
+enum CreateMessageMsgsConstraint {
+  """ unique or primary key constraint """ msgs_pkey
+}
+
+enum CreateMessageMsgsUpdateColumn {
+  """ column name """ created_at
+  """ column name """ id
+  """ column name """ message
+  """ column name """ name
+  """ column name """ password
+  """ column name """ subject
+  """ column name """ tripcode
+}
+
+enum TestAttachmentsConstraint {
+  """ unique or primary key constraint """ attachments_pkey
+}
+
+enum TestAttachmentsUpdateColumn {
+  """ column name """ file_id
+  """ column name """ msg_id
+}
+
+enum TestRelationsConstraint {
+  """ unique or primary key constraint """ relations_pkey
+}
+
+enum TestRelationsUpdateColumn {
+  """ column name """ child_id
+  """ column name """ parent_id
+}
+
+enum TestMsgsConstraint {
+  """ unique or primary key constraint """ msgs_pkey
+}
+
+enum TestMsgsUpdateColumn {
+  """ column name """ created_at
+  """ column name """ id
+  """ column name """ message
+  """ column name """ name
+  """ column name """ password
+  """ column name """ subject
+  """ column name """ tripcode
+}
+
+input CreateMessageAttachmentsInsertInput {
+  file_id : String
+  msg : CreateMessageMsgsObjRelInsertInput
+  msg_id : CreateMessageBigint
+}
+
+input CreateMessageMsgsObjRelInsertInput {
+  data : CreateMessageMsgsInsertInput!
+  on_conflict : CreateMessageMsgsOnConflict
+}
+
+input CreateMessageMsgsInsertInput {
+  attachments : CreateMessageAttachmentsArrRelInsertInput
+  child_of : CreateMessageRelationsArrRelInsertInput
+  created_at : CreateMessageTimestamptz
+  id : CreateMessageBigint
+  message : String
+  name : String
+  parent_of : CreateMessageRelationsArrRelInsertInput
+  password : String
+  subject : String
+  tripcode : String
+}
+
+input CreateMessageAttachmentsArrRelInsertInput {
+  data : [CreateMessageAttachmentsInsertInput!]!
+  on_conflict : CreateMessageAttachmentsOnConflict
+}
+
+input CreateMessageAttachmentsOnConflict {
+  constraint : CreateMessageAttachmentsConstraint!
+  update_columns : [CreateMessageAttachmentsUpdateColumn!]!
+  where : CreateMessageAttachmentsBoolExp
+}
+
+input CreateMessageAttachmentsBoolExp {
+  _and : [CreateMessageAttachmentsBoolExp]
+  _not : CreateMessageAttachmentsBoolExp
+  _or : [CreateMessageAttachmentsBoolExp]
+  file_id : CreateMessageStringComparisonExp
+  msg : CreateMessageMsgsBoolExp
+  msg_id : CreateMessageBigintComparisonExp
+}
+
+input CreateMessageStringComparisonExp {
+  _eq : String
+  _gt : String
+  _gte : String
+  _ilike : String
+  _in : [String!]
+  _is_null : Boolean
+  _like : String
+  _lt : String
+  _lte : String
+  _neq : String
+  _nilike : String
+  _nin : [String!]
+  _nlike : String
+  _nsimilar : String
+  _similar : String
+}
+
+input CreateMessageMsgsBoolExp {
+  _and : [CreateMessageMsgsBoolExp]
+  _not : CreateMessageMsgsBoolExp
+  _or : [CreateMessageMsgsBoolExp]
+  attachments : CreateMessageAttachmentsBoolExp
+  child_of : CreateMessageRelationsBoolExp
+  created_at : CreateMessageTimestamptzComparisonExp
+  id : CreateMessageBigintComparisonExp
+  message : CreateMessageStringComparisonExp
+  name : CreateMessageStringComparisonExp
+  parent_of : CreateMessageRelationsBoolExp
+  password : CreateMessageStringComparisonExp
+  subject : CreateMessageStringComparisonExp
+  tripcode : CreateMessageStringComparisonExp
+}
+
+input CreateMessageRelationsBoolExp {
+  _and : [CreateMessageRelationsBoolExp]
+  _not : CreateMessageRelationsBoolExp
+  _or : [CreateMessageRelationsBoolExp]
+  child_msg : CreateMessageMsgsBoolExp
+  parent_msg : CreateMessageMsgsBoolExp
+  source_id : CreateMessageBigintComparisonExp
+  target_id : CreateMessageBigintComparisonExp
+}
+
+input CreateMessageBigintComparisonExp {
+  _eq : CreateMessageBigint
+  _gt : CreateMessageBigint
+  _gte : CreateMessageBigint
+  _in : [CreateMessageBigint!]
+  _is_null : Boolean
+  _lt : CreateMessageBigint
+  _lte : CreateMessageBigint
+  _neq : CreateMessageBigint
+  _nin : [CreateMessageBigint!]
+}
+
+input CreateMessageTimestamptzComparisonExp {
+  _eq : CreateMessageTimestamptz
+  _gt : CreateMessageTimestamptz
+  _gte : CreateMessageTimestamptz
+  _in : [CreateMessageTimestamptz!]
+  _is_null : Boolean
+  _lt : CreateMessageTimestamptz
+  _lte : CreateMessageTimestamptz
+  _neq : CreateMessageTimestamptz
+  _nin : [CreateMessageTimestamptz!]
+}
+
+input CreateMessageRelationsArrRelInsertInput {
+  data : [CreateMessageRelationsInsertInput!]!
+  on_conflict : CreateMessageRelationsOnConflict
+}
+
+input CreateMessageRelationsInsertInput {
+  child_msg : CreateMessageMsgsObjRelInsertInput
+  parent_msg : CreateMessageMsgsObjRelInsertInput
+  source_id : CreateMessageBigint
+  target_id : CreateMessageBigint
+}
+
+input CreateMessageRelationsOnConflict {
+  constraint : CreateMessageRelationsConstraint!
+  update_columns : [CreateMessageRelationsUpdateColumn!]!
+  where : CreateMessageRelationsBoolExp
+}
+
+input CreateMessageMsgsOnConflict {
+  constraint : CreateMessageMsgsConstraint!
+  update_columns : [CreateMessageMsgsUpdateColumn!]!
+  where : CreateMessageMsgsBoolExp
+}
+
+input TestAttachmentsInsertInput {
+  file_id : String
+  msg : TestMsgsObjRelInsertInput
+  msg_id : TestBigint
+}
+
+input TestMsgsObjRelInsertInput {
+  data : TestMsgsInsertInput!
+  on_conflict : TestMsgsOnConflict
+}
+
+input TestMsgsInsertInput {
+  attachments : TestAttachmentsArrRelInsertInput
+  child : TestRelationsArrRelInsertInput
+  created_at : TestTimestamptz
+  id : TestBigint
+  message : String
+  name : String
+  parent : TestRelationsArrRelInsertInput
+  password : String
+  subject : String
+  tripcode : String
+}
+
+input TestAttachmentsArrRelInsertInput {
+  data : [TestAttachmentsInsertInput!]!
+  on_conflict : TestAttachmentsOnConflict
+}
+
+input TestAttachmentsOnConflict {
+  constraint : TestAttachmentsConstraint!
+  update_columns : [TestAttachmentsUpdateColumn!]!
+  where : TestAttachmentsBoolExp
+}
+
+input TestAttachmentsBoolExp {
+  _and : [TestAttachmentsBoolExp]
+  _not : TestAttachmentsBoolExp
+  _or : [TestAttachmentsBoolExp]
+  file_id : TestStringComparisonExp
+  msg : TestMsgsBoolExp
+  msg_id : TestBigintComparisonExp
+}
+
+input TestStringComparisonExp {
+  _eq : String
+  _gt : String
+  _gte : String
+  _ilike : String
+  _in : [String!]
+  _is_null : Boolean
+  _like : String
+  _lt : String
+  _lte : String
+  _neq : String
+  _nilike : String
+  _nin : [String!]
+  _nlike : String
+  _nsimilar : String
+  _similar : String
+}
+
+input TestMsgsBoolExp {
+  _and : [TestMsgsBoolExp]
+  _not : TestMsgsBoolExp
+  _or : [TestMsgsBoolExp]
+  attachments : TestAttachmentsBoolExp
+  child : TestRelationsBoolExp
+  created_at : TestTimestamptzComparisonExp
+  id : TestBigintComparisonExp
+  message : TestStringComparisonExp
+  name : TestStringComparisonExp
+  parent : TestRelationsBoolExp
+  password : TestStringComparisonExp
+  subject : TestStringComparisonExp
+  tripcode : TestStringComparisonExp
+}
+
+input TestRelationsBoolExp {
+  _and : [TestRelationsBoolExp]
+  _not : TestRelationsBoolExp
+  _or : [TestRelationsBoolExp]
+  child_id : TestBigintComparisonExp
+  child_msg : TestMsgsBoolExp
+  parent_id : TestBigintComparisonExp
+  parent_msg : TestMsgsBoolExp
+}
+
+input TestBigintComparisonExp {
+  _eq : TestBigint
+  _gt : TestBigint
+  _gte : TestBigint
+  _in : [TestBigint!]
+  _is_null : Boolean
+  _lt : TestBigint
+  _lte : TestBigint
+  _neq : TestBigint
+  _nin : [TestBigint!]
+}
+
+input TestTimestamptzComparisonExp {
+  _eq : TestTimestamptz
+  _gt : TestTimestamptz
+  _gte : TestTimestamptz
+  _in : [TestTimestamptz!]
+  _is_null : Boolean
+  _lt : TestTimestamptz
+  _lte : TestTimestamptz
+  _neq : TestTimestamptz
+  _nin : [TestTimestamptz!]
+}
+
+input TestRelationsArrRelInsertInput {
+  data : [TestRelationsInsertInput!]!
+  on_conflict : TestRelationsOnConflict
+}
+
+input TestRelationsInsertInput {
+  child_id : TestBigint
+  child_msg : TestMsgsObjRelInsertInput
+  parent_id : TestBigint
+  parent_msg : TestMsgsObjRelInsertInput
+}
+
+input TestRelationsOnConflict {
+  constraint : TestRelationsConstraint!
+  update_columns : [TestRelationsUpdateColumn!]!
+  where : TestRelationsBoolExp
+}
+
+input TestMsgsOnConflict {
+  constraint : TestMsgsConstraint!
+  update_columns : [TestMsgsUpdateColumn!]!
+  where : TestMsgsBoolExp
+}
+
+type CreateMessageOutput {
+  created_at : CreateMessageTimestamptz!
+  id : CreateMessageBigint!
+  message : String
+  name : String!
+  password : String
+  subject : String
+  tripcode : String
+}
+
+type TestOutput {
+  created_at : TestTimestamptz!
+  id : TestBigint!
+  message : String
+  name : String!
+  password : String
+  subject : String
+  tripcode : String
+}
+
+scalar CreateMessageBigint
+
+scalar CreateMessageTimestamptz
+
+scalar TestBigint
+
+scalar TestTimestamptz
+

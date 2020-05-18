@@ -1,0 +1,164 @@
+actions:
+- name: createMessage
+  definition:
+    kind: synchronous
+    handler: http://create_message:8080/
+  permissions:
+  - role: anonymous
+custom_types:
+  enums:
+  - name: CreateMessageAttachmentsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: attachments_pkey
+  - name: CreateMessageAttachmentsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: file_id
+    - description: column name
+      is_deprecated: null
+      value: msg_id
+  - name: CreateMessageRelationsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: relations_pkey
+  - name: CreateMessageRelationsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: source_id
+    - description: column name
+      is_deprecated: null
+      value: target_id
+  - name: CreateMessageMsgsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: msgs_pkey
+  - name: CreateMessageMsgsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: created_at
+    - description: column name
+      is_deprecated: null
+      value: id
+    - description: column name
+      is_deprecated: null
+      value: message
+    - description: column name
+      is_deprecated: null
+      value: name
+    - description: column name
+      is_deprecated: null
+      value: password
+    - description: column name
+      is_deprecated: null
+      value: subject
+    - description: column name
+      is_deprecated: null
+      value: tripcode
+  - name: TestAttachmentsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: attachments_pkey
+  - name: TestAttachmentsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: file_id
+    - description: column name
+      is_deprecated: null
+      value: msg_id
+  - name: TestRelationsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: relations_pkey
+  - name: TestRelationsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: child_id
+    - description: column name
+      is_deprecated: null
+      value: parent_id
+  - name: TestMsgsConstraint
+    values:
+    - description: unique or primary key constraint
+      is_deprecated: null
+      value: msgs_pkey
+  - name: TestMsgsUpdateColumn
+    values:
+    - description: column name
+      is_deprecated: null
+      value: created_at
+    - description: column name
+      is_deprecated: null
+      value: id
+    - description: column name
+      is_deprecated: null
+      value: message
+    - description: column name
+      is_deprecated: null
+      value: name
+    - description: column name
+      is_deprecated: null
+      value: password
+    - description: column name
+      is_deprecated: null
+      value: subject
+    - description: column name
+      is_deprecated: null
+      value: tripcode
+  input_objects:
+  - name: CreateMessageAttachmentsInsertInput
+  - name: CreateMessageMsgsObjRelInsertInput
+  - name: CreateMessageMsgsInsertInput
+  - name: CreateMessageAttachmentsArrRelInsertInput
+  - name: CreateMessageAttachmentsOnConflict
+  - name: CreateMessageAttachmentsBoolExp
+  - name: CreateMessageStringComparisonExp
+  - name: CreateMessageMsgsBoolExp
+  - name: CreateMessageRelationsBoolExp
+  - name: CreateMessageBigintComparisonExp
+  - name: CreateMessageTimestamptzComparisonExp
+  - name: CreateMessageRelationsArrRelInsertInput
+  - name: CreateMessageRelationsInsertInput
+  - name: CreateMessageRelationsOnConflict
+  - name: CreateMessageMsgsOnConflict
+  - name: TestAttachmentsInsertInput
+  - name: TestMsgsObjRelInsertInput
+  - name: TestMsgsInsertInput
+  - name: TestAttachmentsArrRelInsertInput
+  - name: TestAttachmentsOnConflict
+  - name: TestAttachmentsBoolExp
+  - name: TestStringComparisonExp
+  - name: TestMsgsBoolExp
+  - name: TestRelationsBoolExp
+  - name: TestBigintComparisonExp
+  - name: TestTimestamptzComparisonExp
+  - name: TestRelationsArrRelInsertInput
+  - name: TestRelationsInsertInput
+  - name: TestRelationsOnConflict
+  - name: TestMsgsOnConflict
+  objects:
+  - name: CreateMessageOutput
+    relationships:
+    - remote_table:
+        schema: public
+        name: msgs
+      name: created_message
+      type: object
+      field_mapping:
+        id: id
+  - name: TestOutput
+  scalars:
+  - name: CreateMessageBigint
+  - name: CreateMessageTimestamptz
+  - name: TestBigint
+  - name: TestTimestamptz

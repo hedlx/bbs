@@ -1,18 +1,19 @@
 version: '3'
 services:
   hasura:
-    image: hasura/graphql-engine:v1.2.0-beta.3.cli-migrations
+    image: hasura/graphql-engine:latest.cli-migrations-v2
     restart: always
     depends_on:
       - "postgres"
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
-      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_SECRET:-HASURA_SECRET}
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: "anonymous"
     volumes:
       - ./backend-ng/hasura/migrations:/hasura-migrations
+      - ./backend-ng/hasura/metadata:/hasura-metadata
 
   postgres:
     image: postgres:12-alpine
