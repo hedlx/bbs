@@ -5,6 +5,14 @@
   - name: msg
     using:
       foreign_key_constraint_on: msg_id
+  select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+      - file_id
+      - msg_id
+      filter: {}
+      allow_aggregations: true
 - table:
     schema: public
     name: msgs
@@ -58,3 +66,11 @@
   - name: parent_msg
     using:
       foreign_key_constraint_on: target_id
+  select_permissions:
+  - role: anonymous
+    permission:
+      columns:
+      - target_id
+      - source_id
+      filter: {}
+      allow_aggregations: true
