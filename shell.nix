@@ -8,7 +8,7 @@ let
     }) {
       overlays = [ moz-overlay ];
     };
-    rust-channel = nixpkgs.rustChannelOf { date = "2020-02-16"; channel = "nightly"; };
+    rust-channel = nixpkgs.rustChannelOf { date = "2021-03-27"; channel = "nightly"; };
     rust-platform = (nixpkgs.makeRustPlatform {
       rustc = rust-channel.rust;
       cargo = rust-channel.cargo;
